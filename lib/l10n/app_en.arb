@@ -1,0 +1,11 @@
+﻿{
+  "@@locale": "en",
+  "appTitle": "PraniDoctor",
+  "navHome": "Home",
+  "navServices": "Services",
+  "navInbox": "Inbox",
+  "navSettings": "Settings",
+  "drawerTitle": "Menu",
+  "loginTitle": "Sign in",
+  "loginDevContinue": "Continue (development)"
+}
