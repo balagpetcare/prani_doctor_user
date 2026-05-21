@@ -4,6 +4,7 @@ abstract class LocalCacheContract {
 
   static const authSnapshotKey = 'auth_snapshot';
   static const profileKey = 'profile_snapshot';
+  static const serviceRequestsListKey = 'service_requests:list';
   static String areaSeedKey(String locale) => 'area_seed:$locale';
   static String caseDraftKey(String caseId) => 'case_draft:$caseId';
   static String voiceDraftKey(String sessionId) => 'voice_draft:$sessionId';

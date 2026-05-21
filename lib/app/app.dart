@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../routing/app_router.dart';
 import '../theme/theme_controller.dart';
+import '../features/notifications/notification_coordinator.dart';
+import '../features/offline/offline_coordinator.dart';
 import 'app_startup.dart';
 
 class PraniDoctorApp extends ConsumerWidget {
@@ -17,15 +19,19 @@ class PraniDoctorApp extends ConsumerWidget {
     final dark = ref.watch(darkThemeProvider);
 
     return AppStartup(
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        theme: light,
-        darkTheme: dark,
-        themeMode: themeMode,
-        routerConfig: router,
+      child: OfflineCoordinator(
+        child: NotificationCoordinator(
+          child: MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            theme: light,
+            darkTheme: dark,
+            themeMode: themeMode,
+            routerConfig: router,
+          ),
+        ),
       ),
     );
   }

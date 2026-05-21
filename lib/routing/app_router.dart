@@ -5,10 +5,16 @@ import 'package:go_router/go_router.dart';
 import '../core/session/session_controller.dart';
 import '../core/session/session_state.dart';
 import '../features/auth/presentation/login_page.dart';
+import '../features/auth/presentation/register_page.dart';
 import '../features/home/home_page.dart';
 import '../features/inbox/inbox_page.dart';
 import '../features/services/services_page.dart';
+import '../features/doctors/presentation/book_consultation_page.dart';
+import '../features/doctors/presentation/doctor_detail_page.dart';
 import '../features/settings/settings_page.dart';
+import '../features/profile/presentation/profile_edit_page.dart';
+import '../features/service_requests/presentation/service_request_detail_page.dart';
+import '../features/service_requests/presentation/service_request_history_page.dart';
 import 'app_routes.dart';
 import 'shell/app_shell_scaffold.dart';
 
@@ -38,11 +44,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: notifier,
     redirect: (context, state) {
       final loc = state.matchedLocation;
-      final loggingIn = loc == AppRoutes.login;
-      if (!session.isAuthenticated && !loggingIn) {
+      final isAuthRoute = loc == AppRoutes.login || loc == AppRoutes.register;
+      if (!session.isAuthenticated && !isAuthRoute) {
         return AppRoutes.login;
       }
-      if (session.isAuthenticated && loggingIn) {
+      if (session.isAuthenticated && isAuthRoute) {
         return AppRoutes.home;
       }
       return null;
@@ -72,6 +78,26 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 pageBuilder: (context, state) => const NoTransitionPage<void>(
                   child: ServicesPage(),
                 ),
+                routes: [
+                  GoRoute(
+                    path: 'doctor/:id',
+                    name: 'doctorDetail',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => DoctorDetailPage(
+                      doctorId: state.pathParameters['id']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'book',
+                        name: 'bookConsultation',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) => BookConsultationPage(
+                          doctorId: state.pathParameters['id']!,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
@@ -83,6 +109,26 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 pageBuilder: (context, state) => const NoTransitionPage<void>(
                   child: InboxPage(),
                 ),
+                routes: [
+                  GoRoute(
+                    path: 'request/:id',
+                    name: 'serviceRequestDetail',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => ServiceRequestDetailPage(
+                      requestId: state.pathParameters['id']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'history',
+                        name: 'serviceRequestHistory',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) => ServiceRequestHistoryPage(
+                          requestId: state.pathParameters['id']!,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
@@ -94,6 +140,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 pageBuilder: (context, state) => const NoTransitionPage<void>(
                   child: SettingsPage(),
                 ),
+                routes: [
+                  GoRoute(
+                    path: 'profile',
+                    name: 'settingsProfile',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const ProfileEditPage(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -104,6 +158,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         name: 'login',
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.register,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'register',
+        builder: (context, state) => const RegisterPage(),
       ),
     ],
   );

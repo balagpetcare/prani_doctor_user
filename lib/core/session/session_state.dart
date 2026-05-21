@@ -8,5 +8,6 @@ class SessionState with _$SessionState {
     @Default(false) bool isAuthenticated,
     String? userId,
     String? displayName,
+    String? phone,
   }) = _SessionState;
 }

@@ -20,6 +20,7 @@ mixin _$SessionState {
   bool get isAuthenticated => throw _privateConstructorUsedError;
   String? get userId => throw _privateConstructorUsedError;
   String? get displayName => throw _privateConstructorUsedError;
+  String? get phone => throw _privateConstructorUsedError;
 
   /// Create a copy of SessionState
   /// with the given fields replaced by the non-null parameter values.
@@ -35,7 +36,12 @@ abstract class $SessionStateCopyWith<$Res> {
     $Res Function(SessionState) then,
   ) = _$SessionStateCopyWithImpl<$Res, SessionState>;
   @useResult
-  $Res call({bool isAuthenticated, String? userId, String? displayName});
+  $Res call({
+    bool isAuthenticated,
+    String? userId,
+    String? displayName,
+    String? phone,
+  });
 }
 
 /// @nodoc
@@ -56,6 +62,7 @@ class _$SessionStateCopyWithImpl<$Res, $Val extends SessionState>
     Object? isAuthenticated = null,
     Object? userId = freezed,
     Object? displayName = freezed,
+    Object? phone = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -70,6 +77,10 @@ class _$SessionStateCopyWithImpl<$Res, $Val extends SessionState>
             displayName: freezed == displayName
                 ? _value.displayName
                 : displayName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            phone: freezed == phone
+                ? _value.phone
+                : phone // ignore: cast_nullable_to_non_nullable
                       as String?,
           )
           as $Val,
@@ -86,7 +97,12 @@ abstract class _$$SessionStateImplCopyWith<$Res>
   ) = __$$SessionStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({bool isAuthenticated, String? userId, String? displayName});
+  $Res call({
+    bool isAuthenticated,
+    String? userId,
+    String? displayName,
+    String? phone,
+  });
 }
 
 /// @nodoc
@@ -106,6 +122,7 @@ class __$$SessionStateImplCopyWithImpl<$Res>
     Object? isAuthenticated = null,
     Object? userId = freezed,
     Object? displayName = freezed,
+    Object? phone = freezed,
   }) {
     return _then(
       _$SessionStateImpl(
@@ -121,6 +138,10 @@ class __$$SessionStateImplCopyWithImpl<$Res>
             ? _value.displayName
             : displayName // ignore: cast_nullable_to_non_nullable
                   as String?,
+        phone: freezed == phone
+            ? _value.phone
+            : phone // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -133,6 +154,7 @@ class _$SessionStateImpl implements _SessionState {
     this.isAuthenticated = false,
     this.userId,
     this.displayName,
+    this.phone,
   });
 
   @override
@@ -142,10 +164,12 @@ class _$SessionStateImpl implements _SessionState {
   final String? userId;
   @override
   final String? displayName;
+  @override
+  final String? phone;
 
   @override
   String toString() {
-    return 'SessionState(isAuthenticated: $isAuthenticated, userId: $userId, displayName: $displayName)';
+    return 'SessionState(isAuthenticated: $isAuthenticated, userId: $userId, displayName: $displayName, phone: $phone)';
   }
 
   @override
@@ -157,12 +181,13 @@ class _$SessionStateImpl implements _SessionState {
                 other.isAuthenticated == isAuthenticated) &&
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.displayName, displayName) ||
-                other.displayName == displayName));
+                other.displayName == displayName) &&
+            (identical(other.phone, phone) || other.phone == phone));
   }
 
   @override
   int get hashCode =>
-      Object.hash(runtimeType, isAuthenticated, userId, displayName);
+      Object.hash(runtimeType, isAuthenticated, userId, displayName, phone);
 
   /// Create a copy of SessionState
   /// with the given fields replaced by the non-null parameter values.
@@ -178,6 +203,7 @@ abstract class _SessionState implements SessionState {
     final bool isAuthenticated,
     final String? userId,
     final String? displayName,
+    final String? phone,
   }) = _$SessionStateImpl;
 
   @override
@@ -186,6 +212,8 @@ abstract class _SessionState implements SessionState {
   String? get userId;
   @override
   String? get displayName;
+  @override
+  String? get phone;
 
   /// Create a copy of SessionState
   /// with the given fields replaced by the non-null parameter values.

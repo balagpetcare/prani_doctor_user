@@ -5,5 +5,8 @@ import 'app_theme.dart';
 
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 
-final lightThemeProvider = Provider<ThemeData>((ref) => AppTheme.light());
-final darkThemeProvider = Provider<ThemeData>((ref) => AppTheme.dark());
+final _lightTheme = AppTheme.light();
+final _darkTheme = AppTheme.dark();
+
+final lightThemeProvider = Provider<ThemeData>((ref) => _lightTheme);
+final darkThemeProvider = Provider<ThemeData>((ref) => _darkTheme);

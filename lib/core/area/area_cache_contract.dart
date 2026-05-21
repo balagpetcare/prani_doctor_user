@@ -11,6 +11,7 @@ abstract class AreaCacheContract {
   static String villagesKey(String unionId, String locale) => 'villages:$unionId:$locale';
   static String searchKey(String hash) => 'search:$hash';
   static const seedVersionKey = 'seed_version';
+  static const divisionsKeyBn = 'divisions:bn';
 
   /// Recommended TTL for offline reads (7 days) — refresh on app startup if stale.
   static const offlineTtl = Duration(days: 7);
@@ -30,10 +31,10 @@ abstract class AreaCacheContract {
 abstract class AreaOfflineReadiness {
   static const requiredKeys = [
     AreaCacheContract.seedVersionKey,
-    AreaCacheContract.divisionsKey('bn'),
+    AreaCacheContract.divisionsKeyBn,
   ];
 
   static bool isWarm(Map<String, dynamic> cacheSnapshot) {
-    return cacheSnapshot.containsKey(AreaCacheContract.divisionsKey('bn'));
+    return cacheSnapshot.containsKey(AreaCacheContract.divisionsKeyBn);
   }
 }

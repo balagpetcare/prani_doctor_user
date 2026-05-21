@@ -1,17 +1,27 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/notifications/data/notification_repository.dart';
+import '../../core/session/session_controller.dart';
 import '../app_routes.dart';
 
-class AppShellScaffold extends StatelessWidget {
+class AppShellScaffold extends ConsumerWidget {
   const AppShellScaffold({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final isAuthenticated = ref.watch(sessionControllerProvider).isAuthenticated;
+    final unread = isAuthenticated
+        ? ref.watch(unreadNotificationCountProvider).maybeWhen(
+              data: (count) => count,
+              orElse: () => 0,
+            )
+        : 0;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.appTitle)),
@@ -50,7 +60,11 @@ class AppShellScaffold extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.inbox_outlined),
+              leading: Badge(
+                isLabelVisible: unread > 0,
+                label: Text('$unread'),
+                child: const Icon(Icons.inbox_outlined),
+              ),
               title: Text(l10n.navInbox),
               onTap: () {
                 navigationShell.goBranch(2, initialLocation: true);
@@ -88,8 +102,16 @@ class AppShellScaffold extends StatelessWidget {
             label: l10n.navServices,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.inbox_outlined),
-            selectedIcon: const Icon(Icons.inbox),
+            icon: Badge(
+              isLabelVisible: unread > 0,
+              label: Text('$unread'),
+              child: const Icon(Icons.inbox_outlined),
+            ),
+            selectedIcon: Badge(
+              isLabelVisible: unread > 0,
+              label: Text('$unread'),
+              child: const Icon(Icons.inbox),
+            ),
             label: l10n.navInbox,
           ),
           NavigationDestination(
@@ -102,4 +124,3 @@ class AppShellScaffold extends StatelessWidget {
     );
   }
 }
-
