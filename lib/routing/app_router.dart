@@ -4,42 +4,68 @@ import 'package:go_router/go_router.dart';
 
 import '../core/session/session_controller.dart';
 import '../core/session/session_state.dart';
-import '../features/auth/presentation/auth_providers.dart';
 import '../features/auth/presentation/forgot_password_page.dart';
 import '../features/auth/presentation/login_page.dart';
 import '../features/auth/presentation/otp_page.dart';
 import '../features/auth/presentation/register_page.dart';
+import '../features/onboarding/presentation/onboarding_page.dart';
+import '../features/onboarding/presentation/onboarding_providers.dart';
 import '../features/auth/presentation/welcome_page.dart';
 import '../features/boot/boot_controller.dart';
 import '../features/boot/boot_state.dart';
 import '../features/boot/presentation/boot_page.dart';
 import '../features/milk/data/milk_dto.dart';
+import '../features/feed/presentation/feed_analytics_page.dart';
 import '../features/feed/presentation/feed_cost_page.dart';
+import '../features/feed/presentation/feed_detail_page.dart';
 import '../features/feed/presentation/feed_entry_form_page.dart';
 import '../features/feed/presentation/feed_entry_page.dart';
+import '../features/finance/presentation/finance_dashboard_page.dart';
+import '../features/finance/presentation/finance_detail_page.dart';
 import '../features/finance/presentation/finance_expense_form_page.dart';
 import '../features/finance/presentation/finance_expense_page.dart';
 import '../features/finance/presentation/finance_income_form_page.dart';
 import '../features/finance/presentation/finance_income_page.dart';
 import '../features/finance/presentation/finance_profit_page.dart';
+import '../features/finance/presentation/finance_reports_page.dart';
+import '../features/health/presentation/health_analytics_page.dart';
+import '../features/health/presentation/health_dashboard_page.dart';
 import '../features/health/presentation/health_detail_page.dart';
 import '../features/health/presentation/health_form_page.dart';
 import '../features/health/presentation/health_history_page.dart';
 import '../features/health/presentation/health_timeline_page.dart';
+import '../features/vaccine/presentation/vaccine_calendar_page.dart';
+import '../features/vaccine/presentation/vaccine_dashboard_page.dart';
+import '../features/vaccine/presentation/vaccine_detail_page.dart';
 import '../features/vaccine/presentation/vaccine_form_page.dart';
+import '../features/vaccine/presentation/vaccine_history_page.dart';
 import '../features/vaccine/presentation/vaccine_reminder_page.dart';
 import '../features/vaccine/presentation/vaccine_schedule_page.dart';
+import '../features/treatment/presentation/treatment_dashboard_page.dart';
 import '../features/treatment/presentation/treatment_detail_page.dart';
+import '../features/treatment/presentation/treatment_follow_up_page.dart';
 import '../features/treatment/presentation/treatment_form_page.dart';
 import '../features/treatment/presentation/treatment_list_page.dart';
+import '../features/treatment/presentation/treatment_medicine_plan_page.dart';
+import '../features/treatment/presentation/treatment_prescription_page.dart';
+import '../features/treatment/presentation/treatment_timeline_page.dart';
+import '../features/support/presentation/support_attachment_viewer_page.dart';
+import '../features/support/presentation/support_contact_page.dart';
+import '../features/support/presentation/support_faq_page.dart';
 import '../features/support/presentation/support_help_page.dart';
+import '../features/support/presentation/support_home_page.dart';
 import '../features/support/presentation/support_ticket_create_page.dart';
 import '../features/support/presentation/support_ticket_detail_page.dart';
 import '../features/support/presentation/support_ticket_list_page.dart';
 import '../features/ai/presentation/ai_chat_page.dart';
+import '../features/ai/presentation/ai_history_page.dart';
+import '../features/ai/presentation/ai_home_page.dart';
+import '../features/ai/presentation/ai_result_page.dart';
+import '../features/ai/presentation/ai_settings_page.dart';
 import '../features/ai/presentation/ai_voice_input_page.dart';
 import '../features/milk/presentation/milk_charts_page.dart';
 import '../features/milk/presentation/milk_daily_summary_page.dart';
+import '../features/milk/presentation/milk_detail_page.dart';
 import '../features/milk/presentation/milk_entry_form_page.dart';
 import '../features/milk/presentation/milk_entry_page.dart';
 import '../features/batches/presentation/batch_detail_page.dart';
@@ -51,16 +77,31 @@ import '../features/animals/presentation/animal_list_page.dart';
 import '../features/farm/presentation/farm_detail_page.dart';
 import '../features/farm/presentation/farm_form_page.dart';
 import '../features/farm/presentation/farm_list_page.dart';
+import '../features/farm/presentation/farm_settings_page.dart';
 import '../features/home/home_page.dart';
 import '../features/inbox/inbox_page.dart';
 import '../features/services/services_page.dart';
 import '../features/doctors/presentation/book_consultation_page.dart';
 import '../features/doctors/presentation/doctor_detail_page.dart';
+import '../features/notifications/presentation/notification_center_page.dart';
+import '../features/notifications/presentation/notification_deeplink_page.dart';
+import '../features/notifications/presentation/notification_detail_page.dart';
+import '../features/notifications/presentation/notification_permission_page.dart';
 import '../features/notifications/presentation/notification_settings_page.dart';
 import '../features/settings/presentation/privacy_page.dart';
 import '../features/settings/presentation/terms_page.dart';
+import '../features/settings/presentation/settings_account_page.dart';
+import '../features/settings/presentation/settings_preferences_page.dart';
+import '../features/settings/presentation/settings_app_page.dart';
+import '../features/settings/presentation/settings_language_page.dart';
+import '../features/settings/presentation/settings_theme_page.dart';
+import '../features/settings/presentation/settings_about_page.dart';
+import '../features/settings/presentation/connection_check_page.dart';
+import '../features/settings/presentation/settings_data_sync_page.dart';
 import '../features/settings/settings_page.dart';
+import '../features/profile/presentation/change_password_page.dart';
 import '../features/profile/presentation/profile_address_page.dart';
+import '../features/profile/presentation/profile_completion_page.dart';
 import '../features/profile/presentation/profile_edit_page.dart';
 import '../features/profile/presentation/profile_language_page.dart';
 import '../features/profile/presentation/profile_page.dart';
@@ -93,7 +134,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   final notifier = ref.watch(routerNotifierProvider);
   final session = ref.watch(sessionControllerProvider);
   final boot = ref.watch(bootControllerProvider);
-  final welcomeSeenAsync = ref.watch(welcomeSeenProvider);
+  final onboardingAsync = ref.watch(onboardingCompletedProvider);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
@@ -103,10 +144,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final loc = state.matchedLocation;
       final isBootRoute = loc == AppRoutes.boot;
       final isWelcomeRoute = loc == AppRoutes.welcome;
+      final isOnboardingRoute = loc == AppRoutes.onboarding;
       final isAuthRoute = _isPublicAuthRoute(loc);
 
       if (!boot.isReady) {
-        if (boot.forceUpdateRequired || boot.hasError) {
+        if (boot.forceUpdateRequired ||
+            boot.maintenanceActive ||
+            boot.optionalUpdatePending ||
+            boot.hasError) {
           return isBootRoute ? null : AppRoutes.boot;
         }
         return isBootRoute ? null : AppRoutes.boot;
@@ -114,12 +159,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
       if (isBootRoute) {
         if (session.isAuthenticated) return AppRoutes.home;
-        return _unauthenticatedEntry(ref, welcomeSeenAsync);
+        return _unauthenticatedEntry(ref, onboardingAsync);
       }
 
       if (!session.isAuthenticated) {
-        if (isAuthRoute || isWelcomeRoute) return null;
-        return _unauthenticatedEntry(ref, welcomeSeenAsync);
+        if (isAuthRoute || isOnboardingRoute || isWelcomeRoute) return null;
+        return _unauthenticatedEntry(ref, onboardingAsync);
       }
 
       if (session.isAuthenticated && isAuthRoute) {
@@ -136,6 +181,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         name: 'boot',
         builder: (context, state) => const BootPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.onboarding,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'onboarding',
+        builder: (context, state) => const OnboardingPage(),
       ),
       GoRoute(
         path: AppRoutes.welcome,
@@ -167,8 +218,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.home,
                 name: 'home',
-                pageBuilder: (context, state) => const NoTransitionPage<void>(
-                  child: HomePage(),
+                pageBuilder: (context, state) => NoTransitionPage<void>(
+                  child: HomePage(
+                    refreshOnOpen: state.uri.queryParameters['refresh'] == 'true',
+                  ),
                 ),
                 routes: [
                   GoRoute(
@@ -286,6 +339,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                         parentNavigatorKey: _rootNavigatorKey,
                         builder: (context, state) => const ProfileLanguagePage(),
                       ),
+                      GoRoute(
+                        path: 'complete',
+                        name: 'settingsProfileComplete',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) => const ProfileCompletionPage(),
+                      ),
+                      GoRoute(
+                        path: 'change-password',
+                        name: 'settingsProfileChangePassword',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) => const ChangePasswordPage(),
+                      ),
                     ],
                   ),
                   GoRoute(
@@ -305,6 +370,54 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     name: 'settingsTerms',
                     parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) => const TermsPage(),
+                  ),
+                  GoRoute(
+                    path: 'account',
+                    name: 'settingsAccount',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const SettingsAccountPage(),
+                  ),
+                  GoRoute(
+                    path: 'preferences',
+                    name: 'settingsPreferences',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const SettingsPreferencesPage(),
+                  ),
+                  GoRoute(
+                    path: 'app',
+                    name: 'settingsApp',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const SettingsAppPage(),
+                  ),
+                  GoRoute(
+                    path: 'language',
+                    name: 'settingsLanguage',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const SettingsLanguagePage(),
+                  ),
+                  GoRoute(
+                    path: 'theme',
+                    name: 'settingsTheme',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const SettingsThemePage(),
+                  ),
+                  GoRoute(
+                    path: 'about',
+                    name: 'settingsAbout',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const SettingsAboutPage(),
+                  ),
+                  GoRoute(
+                    path: 'data-sync',
+                    name: 'settingsDataSync',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const SettingsDataSyncPage(),
+                  ),
+                  GoRoute(
+                    path: 'connection',
+                    name: 'settingsConnection',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const ConnectionCheckPage(),
                   ),
                 ],
               ),
@@ -350,6 +463,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => FarmFormPage(
                   farmId: state.pathParameters['id'],
+                ),
+              ),
+              GoRoute(
+                path: 'settings',
+                name: 'farmSettings',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => FarmSettingsPage(
+                  farmId: state.pathParameters['id']!,
                 ),
               ),
             ],
@@ -451,12 +572,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const MilkChartsPage(),
           ),
           GoRoute(
-            path: ':id/edit',
-            name: 'milkEdit',
+            path: ':id',
+            name: 'milkDetail',
             parentNavigatorKey: _rootNavigatorKey,
-            builder: (context, state) => MilkEntryFormPage(
-              recordId: state.pathParameters['id'],
+            builder: (context, state) => MilkDetailPage(
+              recordId: state.pathParameters['id']!,
             ),
+            routes: [
+              GoRoute(
+                path: 'edit',
+                name: 'milkEdit',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => MilkEntryFormPage(
+                  recordId: state.pathParameters['id'],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -479,14 +610,42 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const FeedCostPage(),
           ),
           GoRoute(
-            path: ':id/edit',
-            name: 'feedEdit',
+            path: 'analytics',
+            name: 'feedAnalytics',
             parentNavigatorKey: _rootNavigatorKey,
-            builder: (context, state) => FeedEntryFormPage(
-              recordId: state.pathParameters['id'],
+            builder: (context, state) => const FeedAnalyticsPage(),
+          ),
+          GoRoute(
+            path: ':id',
+            name: 'feedDetail',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => FeedDetailPage(
+              recordId: state.pathParameters['id']!,
             ),
+            routes: [
+              GoRoute(
+                path: 'edit',
+                name: 'feedEdit',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => FeedEntryFormPage(
+                  recordId: state.pathParameters['id'],
+                ),
+              ),
+            ],
           ),
         ],
+      ),
+      GoRoute(
+        path: AppRoutes.finance,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'finance',
+        builder: (context, state) => const FinanceDashboardPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.financeReports,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'financeReports',
+        builder: (context, state) => const FinanceReportsPage(),
       ),
       GoRoute(
         path: AppRoutes.financeExpenses,
@@ -501,12 +660,23 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const FinanceExpenseFormPage(),
           ),
           GoRoute(
-            path: ':id/edit',
-            name: 'financeExpenseEdit',
+            path: ':id',
+            name: 'financeExpenseDetail',
             parentNavigatorKey: _rootNavigatorKey,
-            builder: (context, state) => FinanceExpenseFormPage(
-              recordId: state.pathParameters['id'],
+            builder: (context, state) => FinanceDetailPage(
+              recordId: state.pathParameters['id']!,
+              isExpense: true,
             ),
+            routes: [
+              GoRoute(
+                path: 'edit',
+                name: 'financeExpenseEdit',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => FinanceExpenseFormPage(
+                  recordId: state.pathParameters['id'],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -523,12 +693,23 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const FinanceIncomeFormPage(),
           ),
           GoRoute(
-            path: ':id/edit',
-            name: 'financeIncomeEdit',
+            path: ':id',
+            name: 'financeIncomeDetail',
             parentNavigatorKey: _rootNavigatorKey,
-            builder: (context, state) => FinanceIncomeFormPage(
-              recordId: state.pathParameters['id'],
+            builder: (context, state) => FinanceDetailPage(
+              recordId: state.pathParameters['id']!,
+              isExpense: false,
             ),
+            routes: [
+              GoRoute(
+                path: 'edit',
+                name: 'financeIncomeEdit',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => FinanceIncomeFormPage(
+                  recordId: state.pathParameters['id'],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -542,10 +723,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/health',
         parentNavigatorKey: _rootNavigatorKey,
         name: 'health',
-        redirect: (context, state) {
-          if (state.uri.path == '/health') return AppRoutes.healthHistory;
-          return null;
-        },
+        builder: (context, state) => const HealthDashboardPage(),
         routes: [
           GoRoute(
             path: 'history',
@@ -554,10 +732,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const HealthHistoryPage(),
           ),
           GoRoute(
+            path: 'records',
+            name: 'healthRecords',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const HealthHistoryPage(),
+          ),
+          GoRoute(
             path: 'timeline',
             name: 'healthTimeline',
             parentNavigatorKey: _rootNavigatorKey,
             builder: (context, state) => const HealthTimelinePage(),
+          ),
+          GoRoute(
+            path: 'analytics',
+            name: 'healthAnalytics',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const HealthAnalyticsPage(),
           ),
           GoRoute(
             path: 'create',
@@ -589,8 +779,26 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.vaccines,
         parentNavigatorKey: _rootNavigatorKey,
         name: 'vaccines',
-        builder: (context, state) => const VaccineSchedulePage(),
+        builder: (context, state) => const VaccineDashboardPage(),
         routes: [
+          GoRoute(
+            path: 'schedule',
+            name: 'vaccineSchedule',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const VaccineSchedulePage(),
+          ),
+          GoRoute(
+            path: 'history',
+            name: 'vaccineHistory',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const VaccineHistoryPage(),
+          ),
+          GoRoute(
+            path: 'calendar',
+            name: 'vaccineCalendar',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const VaccineCalendarPage(),
+          ),
           GoRoute(
             path: 'reminders',
             name: 'vaccineReminders',
@@ -604,12 +812,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const VaccineFormPage(),
           ),
           GoRoute(
-            path: ':id/edit',
-            name: 'vaccineEdit',
+            path: ':id',
+            name: 'vaccineDetail',
             parentNavigatorKey: _rootNavigatorKey,
-            builder: (context, state) => VaccineFormPage(
-              recordId: state.pathParameters['id'],
+            builder: (context, state) => VaccineDetailPage(
+              recordId: state.pathParameters['id']!,
             ),
+            routes: [
+              GoRoute(
+                path: 'edit',
+                name: 'vaccineEdit',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => VaccineFormPage(
+                  recordId: state.pathParameters['id'],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -617,8 +835,32 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.treatments,
         parentNavigatorKey: _rootNavigatorKey,
         name: 'treatments',
-        builder: (context, state) => const TreatmentListPage(),
+        builder: (context, state) => const TreatmentDashboardPage(),
         routes: [
+          GoRoute(
+            path: 'list',
+            name: 'treatmentList',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const TreatmentListPage(),
+          ),
+          GoRoute(
+            path: 'timeline',
+            name: 'treatmentTimeline',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const TreatmentTimelinePage(),
+          ),
+          GoRoute(
+            path: 'medicine-plan',
+            name: 'treatmentMedicinePlan',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const TreatmentMedicinePlanPage(),
+          ),
+          GoRoute(
+            path: 'follow-up',
+            name: 'treatmentFollowUp',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const TreatmentFollowUpPage(),
+          ),
           GoRoute(
             path: 'create',
             name: 'treatmentCreate',
@@ -641,9 +883,96 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   recordId: state.pathParameters['id'],
                 ),
               ),
+              GoRoute(
+                path: 'prescription',
+                name: 'treatmentPrescription',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => TreatmentPrescriptionPage(
+                  treatmentId: state.pathParameters['id']!,
+                ),
+              ),
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'notifications',
+        builder: (context, state) => const NotificationCenterPage(),
+        routes: [
+          GoRoute(
+            path: 'permission',
+            name: 'notificationPermission',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const NotificationPermissionPage(),
+          ),
+          GoRoute(
+            path: 'open',
+            name: 'notificationDeepLink',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const NotificationDeepLinkPage(),
+          ),
+          GoRoute(
+            path: ':id',
+            name: 'notificationDetail',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => NotificationDetailPage(
+              notificationId: state.pathParameters['id']!,
+            ),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: AppRoutes.ai,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiHome',
+        builder: (context, state) => const AiHomePage(),
+      ),
+      GoRoute(
+        path: AppRoutes.aiHistory,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiHistory',
+        builder: (context, state) => const AiHistoryPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.aiSettings,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiSettings',
+        builder: (context, state) => const AiSettingsPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.aiResult,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiResult',
+        builder: (context, state) => AiResultPage(result: triageResultFromExtra(state.extra)),
+      ),
+      GoRoute(
+        path: AppRoutes.support,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'supportHome',
+        builder: (context, state) => const SupportHomePage(),
+      ),
+      GoRoute(
+        path: AppRoutes.supportFaq,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'supportFaq',
+        builder: (context, state) => const SupportFaqPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.supportContact,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'supportContact',
+        builder: (context, state) => const SupportContactPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.supportAttachmentView,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'supportAttachmentView',
+        builder: (context, state) {
+          final page = supportAttachmentViewerFromState(state);
+          return page ?? const SupportHomePage();
+        },
       ),
       GoRoute(
         path: AppRoutes.supportTickets,
@@ -684,7 +1013,10 @@ bool _isPublicAuthRoute(String location) {
       location == AppRoutes.forgotPassword;
 }
 
-String _unauthenticatedEntry(Ref ref, AsyncValue<bool> welcomeSeenAsync) {
-  final seen = welcomeSeenAsync.maybeWhen(data: (value) => value, orElse: () => false);
-  return seen ? AppRoutes.login : AppRoutes.welcome;
+String? _unauthenticatedEntry(Ref ref, AsyncValue<bool> onboardingAsync) {
+  return onboardingAsync.when(
+    data: (completed) => completed ? AppRoutes.login : AppRoutes.onboarding,
+    loading: () => null,
+    error: (_, __) => AppRoutes.onboarding,
+  );
 }

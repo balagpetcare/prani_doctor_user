@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
 import '../../../routing/app_routes.dart';
+import '../../../core/branding/brand_assets.dart';
+import '../../../core/branding/brand_image.dart';
 import '../data/auth_preferences.dart';
 import '../data/social_auth_provider.dart';
 import 'auth_providers.dart';
@@ -31,8 +33,10 @@ class WelcomePage extends ConsumerWidget {
           child: Column(
             children: [
               const Spacer(),
-              Icon(Icons.pets, size: 88, color: theme.colorScheme.primary),
-              const SizedBox(height: 24),
+              BrandImage.logo(
+                asset: BrandAssets.primaryLogo,
+                height: 88,
+              ),              const SizedBox(height: 24),
               Text(
                 l10n.welcomeTitle,
                 style: theme.textTheme.headlineMedium?.copyWith(

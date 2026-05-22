@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../core/branding/brand_assets.dart';
+import '../../../core/branding/brand_image.dart';
 import '../area/presentation/area_picker.dart';
 import '../doctors/data/doctor_repository.dart';
 import '../doctors/data/provider_dto.dart';
@@ -100,7 +102,23 @@ class _ServicesPageState extends ConsumerState<ServicesPage> {
             error: (e, _) => Center(child: Text(e.toString())),
             data: (result) {
               if (result.doctors.isEmpty) {
-                return Center(child: Text(l10n.noDoctorsFound));
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        BrandImage(
+                          asset: BrandAssets.homeEmptyDoctors,
+                          height: 160,
+                          fit: BoxFit.contain,
+                          fallbackIcon: Icons.person_search_outlined,
+                        ),                        const SizedBox(height: 16),
+                        Text(l10n.noDoctorsFound, textAlign: TextAlign.center),
+                      ],
+                    ),
+                  ),
+                );
               }
               return RefreshIndicator(
                 onRefresh: () async => ref.invalidate(doctorListProvider),

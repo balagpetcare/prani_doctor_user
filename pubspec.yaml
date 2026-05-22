@@ -30,6 +30,7 @@ dependencies:
   image_picker: ^1.1.2
   file_picker: ^8.1.7
   speech_to_text: ^7.0.0
+  flutter_native_splash: ^2.4.4
 
 dev_dependencies:
   flutter_test:
@@ -37,7 +38,33 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   build_runner: ^2.4.13
   freezed: ^2.5.7
+  flutter_launcher_icons: ^0.14.3
 
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    - assets/brand/app_icons/
+    - assets/brand/logos/
+    - assets/brand/illustrations/
+    - assets/images/onboarding/
+    - assets/images/home/
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: assets/brand/app_icons/prani_doctor_app_icon.png
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: assets/brand/app_icons/prani_doctor_app_icon.png
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/brand/logos/prani_doctor_primary_logo.png
+  android: true
+  ios: false
+  android_gravity: center
+  ios_content_mode: scaleAspectFit
+  fullscreen: true
+  android_12:
+    color: "#FFFFFF"
+    image: assets/brand/logos/prani_doctor_primary_logo.png
