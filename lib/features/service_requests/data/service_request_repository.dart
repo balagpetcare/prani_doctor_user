@@ -190,20 +190,6 @@ class ServiceRequestRepository {
     }
   }
 
-  Future<ApiResult<List<AnimalProfileDto>>> listAnimals() async {
-    try {
-      final data = await getJson(_dio, ServiceRequestApiPaths.animals);
-      final items = (data['animals'] as List<dynamic>? ?? [])
-          .whereType<Map<String, dynamic>>()
-          .map(AnimalProfileDto.fromJson)
-          .toList();
-      return ApiResult.success(items);
-    } on AppException catch (e) {
-      return ApiResult.failure(e);
-    } catch (e) {
-      return ApiResult.failure(AppException(message: 'Could not load animals', cause: e));
-    }
-  }
 }
 
 List<ServiceRequestDto> filterRequestsBySegment(
@@ -261,14 +247,6 @@ final serviceRequestTimelineProvider =
 
 final serviceCategoriesProvider = FutureProvider<List<ServiceCategoryDto>>((ref) async {
   final result = await ref.read(serviceRequestRepositoryProvider).listCategories();
-  return result.when(
-    success: (data) => data,
-    failure: (e) => throw e,
-  );
-});
-
-final animalsProvider = FutureProvider<List<AnimalProfileDto>>((ref) async {
-  final result = await ref.read(serviceRequestRepositoryProvider).listAnimals();
   return result.when(
     success: (data) => data,
     failure: (e) => throw e,

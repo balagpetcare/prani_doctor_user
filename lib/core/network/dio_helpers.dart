@@ -28,6 +28,28 @@ Future<Map<String, dynamic>> patchJson(
   }
 }
 
+Future<Map<String, dynamic>> putJson(
+  Dio dio,
+  String path,
+  Map<String, dynamic> body,
+) async {
+  try {
+    final response = await dio.put<dynamic>(path, data: body);
+    return ApiEnvelope.unwrapData(response);
+  } on DioException catch (e) {
+    throw ApiEnvelope.fromDioException(e);
+  }
+}
+
+Future<Map<String, dynamic>> deleteJson(Dio dio, String path) async {
+  try {
+    final response = await dio.delete<dynamic>(path);
+    return ApiEnvelope.unwrapData(response);
+  } on DioException catch (e) {
+    throw ApiEnvelope.fromDioException(e);
+  }
+}
+
 Future<Map<String, dynamic>> getJson(
   Dio dio,
   String path, {

@@ -2,6 +2,7 @@
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../features/profile/presentation/profile_providers.dart';
 import '../routing/app_router.dart';
 import '../theme/theme_controller.dart';
 import '../features/notifications/notification_coordinator.dart';
@@ -15,6 +16,7 @@ class PraniDoctorApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final locale = ref.watch(profileLocaleControllerProvider);
     final light = ref.watch(lightThemeProvider);
     final dark = ref.watch(darkThemeProvider);
 
@@ -26,6 +28,7 @@ class PraniDoctorApp extends ConsumerWidget {
             onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
+            locale: locale,
             theme: light,
             darkTheme: dark,
             themeMode: themeMode,

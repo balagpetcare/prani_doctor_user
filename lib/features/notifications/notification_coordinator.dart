@@ -6,8 +6,9 @@ import '../../app/app_env.dart';
 import '../../core/session/session_controller.dart';
 import '../../core/session/session_state.dart';
 import '../../routing/app_router.dart';
-import '../../routing/app_routes.dart';
 import 'fcm_background.dart';
+import 'notification_deeplink.dart';
+import 'notification_analytics.dart';
 import 'notification_realtime.dart';
 import 'notification_service.dart';
 import 'push_registration.dart';
@@ -60,12 +61,9 @@ class _NotificationCoordinatorState extends ConsumerState<NotificationCoordinato
 
   void _handleNotificationTap(Map<String, dynamic>? metadata) {
     final router = ref.read(goRouterProvider);
-    final requestId = metadata?['serviceRequestId'];
-    if (requestId is String && requestId.isNotEmpty) {
-      router.go(AppRoutes.serviceRequestDetail(requestId));
-      return;
-    }
-    router.go(AppRoutes.inbox);
+    final route = NotificationDeepLink.resolve(metadata: metadata);
+    NotificationAnalytics.pushTap(route: route);
+    router.go(route);
   }
 
   @override

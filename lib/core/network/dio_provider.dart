@@ -4,8 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/app_env.dart';
 import '../../features/auth/data/auth_api_paths.dart';
-import '../../features/auth/data/auth_dto.dart';
-import '../network/dio_helpers.dart';
+import '../auth/token_refresh.dart';
 import '../session/session_controller.dart';
 
 final dioProvider = Provider<Dio>((ref) {
@@ -45,7 +44,10 @@ final dioProvider = Provider<Dio>((ref) {
             is401 && !AuthApiPaths.isUnauthenticatedPath(path);
 
         if (canRefresh && error.requestOptions.extra['_retried'] != true) {
-          final refreshed = await _refreshSession(ref, dio);
+          final refreshed = await refreshAccessToken(
+            dio: dio,
+            session: ref.read(sessionControllerProvider.notifier),
+          );
           if (refreshed) {
             final token = await ref
                 .read(sessionControllerProvider.notifier)
@@ -76,20 +78,3 @@ final dioProvider = Provider<Dio>((ref) {
 
   return dio;
 });
-
-Future<bool> _refreshSession(Ref ref, Dio dio) async {
-  final session = ref.read(sessionControllerProvider.notifier);
-  final refreshToken = await session.readRefreshToken();
-  if (refreshToken == null || refreshToken.isEmpty) return false;
-
-  try {
-    final data = await postJson(dio, AuthApiPaths.refresh, {
-      'refreshToken': refreshToken,
-    });
-    await session.applyAuthTokens(AuthTokensDto.fromJson(data));
-    return true;
-  } catch (_) {
-    await session.signOut();
-    return false;
-  }
-}

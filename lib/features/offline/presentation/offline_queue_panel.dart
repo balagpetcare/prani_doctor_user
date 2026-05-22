@@ -98,6 +98,50 @@ class OfflineQueuePanel extends ConsumerWidget {
         return l10n.offlineItemLead;
       case OutboxKind.profilePatch:
         return l10n.offlineItemProfile;
+      case OutboxKind.animalCreate:
+      case OutboxKind.animalPatch:
+        return l10n.selectAnimal;
+      case OutboxKind.batchCreate:
+      case OutboxKind.batchPatch:
+      case OutboxKind.batchMove:
+      case OutboxKind.batchMerge:
+        return l10n.offlineItemBatch;
+      case OutboxKind.milkCreate:
+      case OutboxKind.milkPatch:
+      case OutboxKind.milkDelete:
+        return l10n.offlineItemMilk;
+      case OutboxKind.feedCreate:
+      case OutboxKind.feedPatch:
+      case OutboxKind.feedDelete:
+        return l10n.offlineItemFeed;
+      case OutboxKind.financeExpenseCreate:
+      case OutboxKind.financeExpensePatch:
+      case OutboxKind.financeExpenseDelete:
+        return l10n.offlineItemFinanceExpense;
+      case OutboxKind.financeIncomeCreate:
+      case OutboxKind.financeIncomePatch:
+      case OutboxKind.financeIncomeDelete:
+        return l10n.offlineItemFinanceIncome;
+      case OutboxKind.healthCreate:
+      case OutboxKind.healthPatch:
+      case OutboxKind.healthDelete:
+        return l10n.offlineItemHealth;
+      case OutboxKind.vaccineCreate:
+      case OutboxKind.vaccinePatch:
+      case OutboxKind.vaccineDelete:
+        return l10n.offlineItemVaccine;
+      case OutboxKind.treatmentCreate:
+      case OutboxKind.treatmentPatch:
+      case OutboxKind.treatmentDelete:
+        return l10n.offlineItemTreatment;
+      case OutboxKind.supportTicketCreate:
+      case OutboxKind.supportTicketReply:
+      case OutboxKind.supportTicketPatch:
+        return l10n.offlineItemSupport;
+      case OutboxKind.aiChatMessage:
+        return l10n.offlineItemAiChat;
+      case OutboxKind.settingsSync:
+        return l10n.offlineItemSettingsSync;
     }
   }
 }

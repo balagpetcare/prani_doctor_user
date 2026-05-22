@@ -17,6 +17,18 @@ class MobileMeAddressDto {
   final String? line1;
   final String? postalCode;
 
+  factory MobileMeAddressDto.fromJson(Map<String, dynamic> json) {
+    return MobileMeAddressDto(
+      divisionId: json['divisionId'] as String?,
+      districtId: json['districtId'] as String?,
+      upazilaId: json['upazilaId'] as String?,
+      unionId: json['unionId'] as String?,
+      villageId: json['villageId'] as String?,
+      line1: json['line1'] as String?,
+      postalCode: json['postalCode'] as String?,
+    );
+  }
+
   Map<String, dynamic> toPatchJson() {
     return {
       if (divisionId != null) 'divisionId': divisionId,
@@ -28,6 +40,8 @@ class MobileMeAddressDto {
       if (postalCode != null) 'postalCode': postalCode,
     };
   }
+
+  Map<String, dynamic> toJson() => toPatchJson();
 }
 
 class MobileMeDto {
@@ -61,15 +75,7 @@ class MobileMeDto {
     MobileMeAddressDto? address;
     final rawAddress = json['address'];
     if (rawAddress is Map<String, dynamic>) {
-      address = MobileMeAddressDto(
-        divisionId: rawAddress['divisionId'] as String?,
-        districtId: rawAddress['districtId'] as String?,
-        upazilaId: rawAddress['upazilaId'] as String?,
-        unionId: rawAddress['unionId'] as String?,
-        villageId: rawAddress['villageId'] as String?,
-        line1: rawAddress['line1'] as String?,
-        postalCode: rawAddress['postalCode'] as String?,
-      );
+      address = MobileMeAddressDto.fromJson(rawAddress);
     }
 
     return MobileMeDto(
@@ -85,6 +91,50 @@ class MobileMeDto {
       profileComplete: json['profileComplete'] as bool?,
       address: address,
     );
+  }
+
+  MobileMeDto copyWith({
+    String? name,
+    String? email,
+    String? area,
+    String? locale,
+    String? profilePhotoUrl,
+    String? coverPhotoUrl,
+    bool? profileComplete,
+    MobileMeAddressDto? address,
+  }) {
+    return MobileMeDto(
+      id: id,
+      name: name ?? this.name,
+      phone: phone,
+      email: email ?? this.email,
+      area: area ?? this.area,
+      locale: locale ?? this.locale,
+      role: role,
+      profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
+      coverPhotoUrl: coverPhotoUrl ?? this.coverPhotoUrl,
+      profileComplete: profileComplete ?? this.profileComplete,
+      address: address ?? this.address,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'phone': phone,
+        'email': email,
+        if (area != null) 'area': area,
+        'locale': locale,
+        'role': role,
+        if (profilePhotoUrl != null) 'profilePhotoUrl': profilePhotoUrl,
+        if (coverPhotoUrl != null) 'coverPhotoUrl': coverPhotoUrl,
+        if (profileComplete != null) 'profileComplete': profileComplete,
+        if (address != null) 'address': address!.toJson(),
+      };
+
+  MobileMeDto mergeAddress(MobileMeAddressDto? cachedAddress) {
+    if (address != null || cachedAddress == null) return this;
+    return copyWith(address: cachedAddress);
   }
 }
 

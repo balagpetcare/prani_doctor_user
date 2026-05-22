@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/session/session_controller.dart';
 import 'data/notification_repository.dart';
+import 'notification_analytics.dart';
 import 'notification_service.dart';
 
 const _appVersion = '1.0.0';
@@ -36,6 +37,7 @@ class PushRegistrationService {
           pushToken: token,
           appVersion: _appVersion,
         );
+    NotificationAnalytics.pushTokenRegistered();
   }
 }
 

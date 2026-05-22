@@ -1,13 +1,22 @@
 class OtpRequestResultDto {
-  const OtpRequestResultDto({required this.sent, required this.otpTtlSeconds});
+  const OtpRequestResultDto({
+    required this.sent,
+    required this.otpTtlSeconds,
+    this.resendCooldownSeconds = 60,
+  });
 
   final bool sent;
   final int otpTtlSeconds;
+  final int resendCooldownSeconds;
 
   factory OtpRequestResultDto.fromJson(Map<String, dynamic> json) {
+    final ttl = json['otpTtlSeconds'] as int? ?? 300;
     return OtpRequestResultDto(
       sent: json['sent'] as bool? ?? true,
-      otpTtlSeconds: json['otpTtlSeconds'] as int? ?? 300,
+      otpTtlSeconds: ttl,
+      resendCooldownSeconds: json['cooldownSeconds'] as int? ??
+          json['resendCooldownSeconds'] as int? ??
+          60,
     );
   }
 }

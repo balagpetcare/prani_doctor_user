@@ -32,6 +32,8 @@ class LocalCacheService implements LocalCacheContract {
     return null;
   }
 
+  Future<void> delete(String key) => _store.delete(_entryKey(key));
+
   @override
   Future<void> evictExpired() async {
     // Minimal: entries expire on read.

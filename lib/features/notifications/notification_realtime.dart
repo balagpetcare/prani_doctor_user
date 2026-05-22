@@ -6,6 +6,7 @@ import '../../core/session/session_controller.dart';
 import '../../core/session/session_state.dart';
 import 'data/notification_repository.dart';
 import 'notification_service.dart';
+import 'presentation/notification_providers.dart';
 
 const notificationPollInterval = Duration(seconds: 30);
 
@@ -50,6 +51,7 @@ class NotificationRealtimeNotifier extends Notifier<int?> {
         _lastUnread = count;
         state = count;
         ref.invalidate(unreadNotificationCountProvider);
+        ref.invalidate(notificationListProvider);
 
         if (previous != null && count > previous) {
           await _showLatestUnread();

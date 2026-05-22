@@ -9,6 +9,8 @@ class AppEnv {
     required this.logNetwork,
     required this.enablePush,
     required this.privacyPolicyUrl,
+    required this.minimumAppVersion,
+    required this.updateUrl,
   });
 
   factory AppEnv.fromEnvironment() {
@@ -16,6 +18,8 @@ class AppEnv {
     const logNetwork = bool.fromEnvironment('LOG_NETWORK', defaultValue: false);
     const enablePush = bool.fromEnvironment('ENABLE_PUSH', defaultValue: true);
     const privacyFromEnv = String.fromEnvironment('PRIVACY_POLICY_URL');
+    const minimumVersionFromEnv = String.fromEnvironment('MINIMUM_APP_VERSION');
+    const updateUrlFromEnv = String.fromEnvironment('UPDATE_URL');
 
     final apiBaseUrl = apiFromEnv.isNotEmpty
         ? apiFromEnv
@@ -30,6 +34,8 @@ class AppEnv {
       logNetwork: logNetwork && kDebugMode,
       enablePush: enablePush,
       privacyPolicyUrl: privacyPolicyUrl,
+      minimumAppVersion: minimumVersionFromEnv,
+      updateUrl: updateUrlFromEnv,
     );
   }
 
@@ -37,6 +43,12 @@ class AppEnv {
   final bool logNetwork;
   final bool enablePush;
   final String privacyPolicyUrl;
+
+  /// Optional compile-time minimum version for force-update (until API exposes it).
+  final String minimumAppVersion;
+
+  /// Play Store / App Store URL opened from force-update screen.
+  final String updateUrl;
 
   bool get isConfigured =>
       apiBaseUrl.isNotEmpty && !apiBaseUrl.contains('example.com');

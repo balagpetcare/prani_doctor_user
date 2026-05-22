@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
-import '../../../core/offline/network_errors.dart';
-import '../../area/presentation/area_picker.dart';
 import '../data/mobile_me_dto.dart';
-import '../data/profile_repository.dart';
+import '../data/profile_validation.dart';
 import 'profile_providers.dart';
+import 'widgets/profile_feedback.dart';
 
 class ProfileEditPage extends ConsumerStatefulWidget {
   const ProfileEditPage({super.key});
@@ -19,14 +19,10 @@ class ProfileEditPage extends ConsumerStatefulWidget {
 class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-
-  String? _divisionId;
-  String? _districtId;
-  String? _upazilaId;
-  String? _unionId;
-  String? _villageId;
   bool _loading = false;
+  bool _uploading = false;
   bool _initialized = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -39,43 +35,63 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     if (_initialized) return;
     _nameController.text = profile.name;
     _emailController.text = profile.email;
-    _divisionId = profile.address?.divisionId;
-    _districtId = profile.address?.districtId;
-    _upazilaId = profile.address?.upazilaId;
-    _unionId = profile.address?.unionId;
-    _villageId = profile.address?.villageId;
     _initialized = true;
+  }
+
+  Future<void> _pickAvatar(MobileMeDto profile) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 85,
+    );
+    if (picked == null || !mounted) return;
+
+    setState(() {
+      _uploading = true;
+      _error = null;
+    });
+    final uploadError =
+        await ref.read(mobileMeProvider.notifier).uploadAvatar(picked.path);
+    if (!mounted) return;
+    setState(() => _uploading = false);
+    if (uploadError != null) {
+      setState(() => _error = uploadError);
+    }
   }
 
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context)!;
-    final name = _nameController.text.trim();
-    if (name.isEmpty) {
-      _showError(l10n.fieldRequired);
+    final nameError =
+        ProfileValidation.validateName(_nameController.text, requiredMessage: l10n.fieldRequired);
+    final emailError = ProfileValidation.validateEmail(_emailController.text);
+    final validationError = nameError ?? emailError;
+    if (validationError != null) {
+      setState(() => _error = validationError);
       return;
     }
 
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
     final patch = PatchMobileMeInput(
-      name: name,
+      name: _nameController.text.trim(),
       email: _emailController.text.trim(),
-      address: MobileMeAddressDto(
-        divisionId: _divisionId,
-        districtId: _districtId,
-        upazilaId: _upazilaId,
-        unionId: _unionId,
-        villageId: _villageId,
-      ),
     );
-    final result = await ref.read(profileRepositoryProvider).patchMe(patch);
+    final error = await ref.read(mobileMeProvider.notifier).save(patch);
+
     if (!mounted) return;
     setState(() => _loading = false);
 
-    final offlineQueued = result.when(
-      success: (_) => false,
-      failure: (e) => e.code == offlineQueuedCode,
-    );
-    if (offlineQueued) {
+    if (error == null) {
+      context.pop();
+      return;
+    }
+
+    if (error == l10n.savedOffline || error.contains('offline')) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.savedOffline)),
       );
@@ -83,19 +99,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
       return;
     }
 
-    final error = result.when(
-      success: (_) => null,
-      failure: (e) => e.message,
-    );
-    if (error != null) {
-      _showError(error);
-      return;
-    }
-    context.pop();
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    setState(() => _error = error);
   }
 
   @override
@@ -106,12 +110,13 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.profileEditTitle)),
       body: profileAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => Center(child: Text(l10n.profileLoadError)),
+        loading: () => ProfileFeedback.loading(),
+        error: (_, __) => ProfileFeedback.error(
+          context,
+          onRetry: () => ref.read(mobileMeProvider.notifier).reload(forceRefresh: true),
+        ),
         data: (profile) {
-          if (profile == null) {
-            return Center(child: Text(l10n.profileLoadError));
-          }
+          if (profile == null) return ProfileFeedback.empty(context);
           _initFromProfile(profile);
 
           return SingleChildScrollView(
@@ -119,6 +124,32 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                ProfileFeedback.banner(context, _error ?? ''),
+                Center(
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      ProfileAvatar(
+                        photoUrl: profile.profilePhotoUrl,
+                        name: profile.name,
+                        radius: 48,
+                      ),
+                      IconButton.filledTonal(
+                        onPressed: _uploading || _loading
+                            ? null
+                            : () => _pickAvatar(profile),
+                        icon: _uploading
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.camera_alt, size: 18),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
                 TextField(
                   controller: _nameController,
                   decoration: InputDecoration(labelText: l10n.nameLabel),
@@ -132,48 +163,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                   enabled: !_loading,
                 ),
                 const SizedBox(height: 12),
-                Text(
-                  profile.phone,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  l10n.locationSectionTitle,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 12),
-                if (profile.area != null && profile.area!.isNotEmpty) ...[
-                  Text(profile.area!, style: Theme.of(context).textTheme.bodySmall),
-                  const SizedBox(height: 12),
-                ],
-                AreaPicker(
-                  divisionLabel: l10n.divisionLabel,
-                  districtLabel: l10n.districtLabel,
-                  upazilaLabel: l10n.upazilaLabel,
-                  unionLabel: l10n.unionLabel,
-                  villageLabel: l10n.villageLabel,
-                  initialDivisionId: _divisionId,
-                  initialDistrictId: _districtId,
-                  initialUpazilaId: _upazilaId,
-                  initialUnionId: _unionId,
-                  initialVillageId: _villageId,
-                  onChanged: ({
-                    divisionId,
-                    districtId,
-                    upazilaId,
-                    unionId,
-                    villageId,
-                    selectedLabel,
-                  }) {
-                    setState(() {
-                      _divisionId = divisionId;
-                      _districtId = districtId;
-                      _upazilaId = upazilaId;
-                      _unionId = unionId;
-                      _villageId = villageId;
-                    });
-                  },
-                ),
+                Text(profile.phone, style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(height: 24),
                 FilledButton(
                   onPressed: _loading ? null : _save,

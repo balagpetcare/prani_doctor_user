@@ -9,6 +9,7 @@ abstract final class AuthApiPaths {
   static const refresh = '/api/mobile/auth/refresh';
 
   static bool isUnauthenticatedPath(String path) {
-    return path.contains('/api/mobile/auth/');
+    return path.contains('/api/mobile/auth/') ||
+        path.contains('/api/mobile/app-config');
   }
 }

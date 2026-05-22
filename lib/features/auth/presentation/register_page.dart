@@ -4,7 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
 import '../../../routing/app_routes.dart';
+import '../../notifications/push_registration.dart';
 import '../data/auth_repository.dart';
+import 'auth_navigation.dart';
+import 'widgets/auth_feedback.dart';
+import 'widgets/social_login_buttons.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -15,6 +19,8 @@ class RegisterPage extends ConsumerStatefulWidget {
 
 class _RegisterPageState extends ConsumerState<RegisterPage> {
   bool _loading = false;
+  bool _rememberSession = true;
+  String? _error;
 
   final _nameController = TextEditingController();
   final _mobileController = TextEditingController();
@@ -38,32 +44,34 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     final email = _emailController.text.trim();
 
     if (name.isEmpty || mobile.isEmpty || password.isEmpty) {
-      _showError(l10n.fieldRequired);
+      setState(() => _error = l10n.fieldRequired);
       return;
     }
 
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
     try {
+      final pushToken = await ref.read(pushRegistrationProvider).fetchPushToken();
       final result = await ref.read(authRepositoryProvider).register(
             name: name,
             mobile: mobile,
             password: password,
             email: email.isEmpty ? null : email,
+            pushToken: pushToken,
+            rememberSession: _rememberSession,
           );
       result.when(
         success: (_) {
-          if (mounted) context.go(AppRoutes.home);
+          if (mounted) navigateAfterAuth(context, ref);
         },
-        failure: (e) => _showError(e.message),
+        failure: (e) => setState(() => _error = e.message),
       );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
-  }
-
-  void _showError(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -77,6 +85,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            AuthErrorBanner(message: _error ?? ''),
             TextField(
               controller: _nameController,
               textCapitalization: TextCapitalization.words,
@@ -104,17 +113,21 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               decoration: InputDecoration(labelText: l10n.passwordLabel),
               enabled: !_loading,
             ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _loading ? null : _submit,
-              child: _loading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(l10n.createAccount),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.rememberSession),
+              value: _rememberSession,
+              onChanged:
+                  _loading ? null : (v) => setState(() => _rememberSession = v ?? true),
             ),
+            const SizedBox(height: 8),
+            AuthLoadingButton(
+              loading: _loading,
+              label: l10n.createAccount,
+              onPressed: _submit,
+            ),
+            const SizedBox(height: 16),
+            const SocialLoginButtons(),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,

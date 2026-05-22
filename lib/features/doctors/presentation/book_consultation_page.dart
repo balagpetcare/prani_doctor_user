@@ -5,6 +5,7 @@ import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
 import '../../area/presentation/area_picker.dart';
 import '../../service_requests/data/service_request_dto.dart';
+import '../../animals/data/animal_repository.dart';
 import '../../service_requests/data/service_request_repository.dart';
 import '../data/doctor_repository.dart';
 import '../data/provider_api_paths.dart';
@@ -215,7 +216,7 @@ class _BookConsultationPageState extends ConsumerState<BookConsultationPage> {
                           .map(
                             (a) => DropdownMenuItem(
                               value: a.id,
-                              child: Text('${a.name} (${a.animalType})'),
+                              child: Text('${a.name} (${a.animalType ?? a.species})'),
                             ),
                           )
                           .toList(),
