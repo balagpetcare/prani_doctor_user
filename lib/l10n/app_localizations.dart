@@ -130,11 +130,113 @@ abstract class AppLocalizations {
   /// **'Menu'**
   String get drawerTitle;
 
+  /// No description provided for @drawerFarmSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Farm'**
+  String get drawerFarmSection;
+
+  /// No description provided for @drawerFatteningSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Fattening'**
+  String get drawerFatteningSection;
+
+  /// No description provided for @drawerMilkSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Milk production'**
+  String get drawerMilkSection;
+
+  /// No description provided for @drawerAnimalsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Animals'**
+  String get drawerAnimalsSection;
+
+  /// No description provided for @drawerRecordsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get drawerRecordsSection;
+
+  /// No description provided for @drawerFarmDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Farm dashboard'**
+  String get drawerFarmDashboard;
+
+  /// No description provided for @drawerGrowthRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth'**
+  String get drawerGrowthRecords;
+
+  /// No description provided for @exitAppTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit app?'**
+  String get exitAppTitle;
+
+  /// No description provided for @exitAppMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to close PraniDoctor?'**
+  String get exitAppMessage;
+
+  /// No description provided for @exitAppConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit'**
+  String get exitAppConfirm;
+
+  /// No description provided for @logoutConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out?'**
+  String get logoutConfirmTitle;
+
+  /// No description provided for @logoutConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You will need to sign in again to access your account.'**
+  String get logoutConfirmMessage;
+
   /// No description provided for @loginTitle.
   ///
   /// In en, this message translates to:
   /// **'Sign in'**
   String get loginTitle;
+
+  /// No description provided for @loginWelcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get loginWelcomeBack;
+
+  /// No description provided for @loginWelcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to manage your farm, animals, and veterinary care.'**
+  String get loginWelcomeSubtitle;
+
+  /// No description provided for @loginLastLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Last signed in with {identifier}'**
+  String loginLastLogin(String identifier);
+
+  /// No description provided for @authGoogleSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get authGoogleSignIn;
+
+  /// No description provided for @authGoogleComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in coming soon'**
+  String get authGoogleComingSoon;
 
   /// No description provided for @loginDevContinue.
   ///
@@ -310,6 +412,102 @@ abstract class AppLocalizations {
   /// **'Profile incomplete'**
   String get profileIncomplete;
 
+  /// No description provided for @profileAccountInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account information'**
+  String get profileAccountInfoTitle;
+
+  /// No description provided for @profileCompletionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your profile'**
+  String get profileCompletionTitle;
+
+  /// No description provided for @profileCompletionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your name and location so we can personalize services for your farm.'**
+  String get profileCompletionSubtitle;
+
+  /// No description provided for @profileCompletionNameStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name'**
+  String get profileCompletionNameStep;
+
+  /// No description provided for @profileCompletionAddressStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Farm location'**
+  String get profileCompletionAddressStep;
+
+  /// No description provided for @profileCompletionPhotoStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile photo'**
+  String get profileCompletionPhotoStep;
+
+  /// No description provided for @profileCompletionOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get profileCompletionOptional;
+
+  /// No description provided for @profileCompletionContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to home'**
+  String get profileCompletionContinue;
+
+  /// No description provided for @profileCompletionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your name and location (union required; village optional) before using the app.'**
+  String get profileCompletionHint;
+
+  /// No description provided for @profileChangePasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get profileChangePasswordTitle;
+
+  /// No description provided for @profileChangePasswordBody.
+  ///
+  /// In en, this message translates to:
+  /// **'In-app password change is not available yet. Reset your password or contact support for help.'**
+  String get profileChangePasswordBody;
+
+  /// No description provided for @profileChangePasswordForgotLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset via forgot password'**
+  String get profileChangePasswordForgotLink;
+
+  /// No description provided for @profileNameTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Name must be 120 characters or fewer.'**
+  String get profileNameTooLong;
+
+  /// No description provided for @profileEmailTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Email must be 200 characters or fewer.'**
+  String get profileEmailTooLong;
+
+  /// No description provided for @profileAddressLineTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Address line must be 500 characters or fewer.'**
+  String get profileAddressLineTooLong;
+
+  /// No description provided for @profilePostalTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Postal code must be 20 characters or fewer.'**
+  String get profilePostalTooLong;
+
   /// No description provided for @addressTitle.
   ///
   /// In en, this message translates to:
@@ -331,8 +529,32 @@ abstract class AppLocalizations {
   /// No description provided for @addressRequired.
   ///
   /// In en, this message translates to:
-  /// **'Select your village to save address'**
+  /// **'Select division, district, upazila, and union to save address'**
   String get addressRequired;
+
+  /// No description provided for @addressHierarchyRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Division, district, upazila, and union are required'**
+  String get addressHierarchyRequired;
+
+  /// No description provided for @areaVillageOptionalHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Village is optional — type a name if yours is not listed'**
+  String get areaVillageOptionalHelper;
+
+  /// No description provided for @areaVillageNotFoundOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Village not found (optional)'**
+  String get areaVillageNotFoundOptional;
+
+  /// No description provided for @areaVillageManualHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter village (optional)'**
+  String get areaVillageManualHint;
 
   /// No description provided for @languageTitle.
   ///
@@ -393,6 +615,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No villages for this union'**
   String get areaEmptyVillages;
+
+  /// No description provided for @areaSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name…'**
+  String get areaSearchHint;
+
+  /// No description provided for @areaSearchNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No locations match your search'**
+  String get areaSearchNoResults;
+
+  /// No description provided for @areaSearchVillagesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search villages'**
+  String get areaSearchVillagesTitle;
+
+  /// No description provided for @areaSelectedLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected location'**
+  String get areaSelectedLocation;
+
+  /// No description provided for @areaSelectLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your location'**
+  String get areaSelectLevel;
+
+  /// No description provided for @areaRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh locations'**
+  String get areaRefresh;
 
   /// No description provided for @locationSectionTitle.
   ///
@@ -1018,6 +1276,36 @@ abstract class AppLocalizations {
   /// **'Please update PraniDoctor from your app store.'**
   String get bootUpdateUnavailable;
 
+  /// No description provided for @bootOptionalUpdateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get bootOptionalUpdateTitle;
+
+  /// No description provided for @bootOptionalUpdateVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed: {current} · Latest: {recommended}'**
+  String bootOptionalUpdateVersion(String current, String recommended);
+
+  /// No description provided for @bootUpdateLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get bootUpdateLater;
+
+  /// No description provided for @bootMaintenanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Under maintenance'**
+  String get bootMaintenanceTitle;
+
+  /// No description provided for @bootMaintenanceDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'PraniDoctor is temporarily unavailable. Please try again shortly.'**
+  String get bootMaintenanceDefault;
+
   /// No description provided for @welcomeTitle.
   ///
   /// In en, this message translates to:
@@ -1101,6 +1389,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Support phone is unavailable offline. Try again when connected.'**
   String get forgotPasswordUnavailable;
+
+  /// No description provided for @forgotPasswordUseOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with OTP instead'**
+  String get forgotPasswordUseOtp;
+
+  /// No description provided for @authInvalidPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid Bangladesh mobile number (01XXXXXXXXX).'**
+  String get authInvalidPhone;
+
+  /// No description provided for @authInvalidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address.'**
+  String get authInvalidEmail;
+
+  /// No description provided for @authInvalidOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 4–6 digit code from SMS.'**
+  String get authInvalidOtp;
+
+  /// No description provided for @authPasswordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters.'**
+  String get authPasswordTooShort;
 
   /// No description provided for @socialLoginComingSoon.
   ///
@@ -1209,6 +1527,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your session expired. Please sign in again.'**
   String get dashboardUnauthorized;
+
+  /// No description provided for @dashboardGreetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get dashboardGreetingMorning;
+
+  /// No description provided for @dashboardGreetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get dashboardGreetingAfternoon;
+
+  /// No description provided for @dashboardGreetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get dashboardGreetingEvening;
+
+  /// No description provided for @dashboardSectionError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this section'**
+  String get dashboardSectionError;
+
+  /// No description provided for @dashboardSectionOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'This section is unavailable offline'**
+  String get dashboardSectionOffline;
+
+  /// No description provided for @dashboardUpcomingAppointments.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming appointments'**
+  String get dashboardUpcomingAppointments;
+
+  /// No description provided for @dashboardNoAppointments.
+  ///
+  /// In en, this message translates to:
+  /// **'No active appointments'**
+  String get dashboardNoAppointments;
+
+  /// No description provided for @dashboardAppointmentFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Service request'**
+  String get dashboardAppointmentFallback;
+
+  /// No description provided for @dashboardViewAllAppointments.
+  ///
+  /// In en, this message translates to:
+  /// **'View all appointments'**
+  String get dashboardViewAllAppointments;
+
+  /// No description provided for @dashboardRecentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent activity'**
+  String get dashboardRecentActivity;
+
+  /// No description provided for @dashboardNoActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent notifications'**
+  String get dashboardNoActivity;
+
+  /// No description provided for @dashboardViewAllActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'View all notifications'**
+  String get dashboardViewAllActivity;
+
+  /// No description provided for @dashboardHealthAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Health alerts'**
+  String get dashboardHealthAlerts;
+
+  /// No description provided for @dashboardNoHealthAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'No vaccine reminders right now'**
+  String get dashboardNoHealthAlerts;
+
+  /// No description provided for @dashboardHealthOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue vaccines'**
+  String get dashboardHealthOverdue;
+
+  /// No description provided for @dashboardHealthUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Due soon'**
+  String get dashboardHealthUpcoming;
+
+  /// No description provided for @dashboardViewHealthAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'View vaccine reminders'**
+  String get dashboardViewHealthAlerts;
+
+  /// No description provided for @dashboardSupportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get dashboardSupportTitle;
+
+  /// No description provided for @dashboardSupportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact us or open a support ticket'**
+  String get dashboardSupportSubtitle;
+
+  /// No description provided for @dashboardSupportHelpSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse help articles and FAQs'**
+  String get dashboardSupportHelpSubtitle;
+
+  /// No description provided for @dashboardSupportTickets.
+  ///
+  /// In en, this message translates to:
+  /// **'My support tickets'**
+  String get dashboardSupportTickets;
+
+  /// No description provided for @dashboardEmergencyPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency: {phone}'**
+  String dashboardEmergencyPhone(String phone);
+
+  /// No description provided for @dashboardAiTechnicianTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician dashboard'**
+  String get dashboardAiTechnicianTitle;
+
+  /// No description provided for @dashboardAiTodayRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s requests'**
+  String get dashboardAiTodayRequests;
+
+  /// No description provided for @dashboardAiPendingRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending requests'**
+  String get dashboardAiPendingRequests;
+
+  /// No description provided for @dashboardAiCompletedServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed services'**
+  String get dashboardAiCompletedServices;
+
+  /// No description provided for @dashboardAiRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get dashboardAiRating;
 
   /// No description provided for @farmListTitle.
   ///
@@ -1336,6 +1816,96 @@ abstract class AppLocalizations {
   /// **'Upload failed'**
   String get farmUploadFailed;
 
+  /// No description provided for @farmSaveDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Save draft'**
+  String get farmSaveDraft;
+
+  /// No description provided for @farmDraftSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft saved'**
+  String get farmDraftSaved;
+
+  /// No description provided for @farmFilterNeedsLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs location'**
+  String get farmFilterNeedsLocation;
+
+  /// No description provided for @farmSortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get farmSortLabel;
+
+  /// No description provided for @farmSortNameAsc.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (A–Z)'**
+  String get farmSortNameAsc;
+
+  /// No description provided for @farmSortNameDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (Z–A)'**
+  String get farmSortNameDesc;
+
+  /// No description provided for @farmSortAnimalsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Most animals'**
+  String get farmSortAnimalsDesc;
+
+  /// No description provided for @farmSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Farm settings'**
+  String get farmSettingsTitle;
+
+  /// No description provided for @farmRefreshData.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh farm data'**
+  String get farmRefreshData;
+
+  /// No description provided for @farmRefreshStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Refreshing farm data…'**
+  String get farmRefreshStarted;
+
+  /// No description provided for @farmActiveFarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Active farm'**
+  String get farmActiveFarm;
+
+  /// No description provided for @farmActiveFarmHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Used as default for records and dashboard'**
+  String get farmActiveFarmHint;
+
+  /// No description provided for @farmSetActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as active farm'**
+  String get farmSetActive;
+
+  /// No description provided for @farmSingleFarmNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Your farm is linked to your profile location. Multiple farms and delete are not available yet.'**
+  String get farmSingleFarmNotice;
+
+  /// No description provided for @farmCardStats.
+  ///
+  /// In en, this message translates to:
+  /// **'{total} animals · {active} active'**
+  String farmCardStats(int total, int active);
+
   /// No description provided for @animalListTitle.
   ///
   /// In en, this message translates to:
@@ -1353,6 +1923,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add animal'**
   String get animalAddTitle;
+
+  /// No description provided for @animalFormStepBasics.
+  ///
+  /// In en, this message translates to:
+  /// **'Basics'**
+  String get animalFormStepBasics;
+
+  /// No description provided for @animalFormStepDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get animalFormStepDetails;
+
+  /// No description provided for @animalFormStepMetrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Metrics'**
+  String get animalFormStepMetrics;
+
+  /// No description provided for @animalFormStepNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get animalFormStepNotes;
+
+  /// No description provided for @animalFormStepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String animalFormStepOf(int current, int total);
+
+  /// No description provided for @animalFormNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get animalFormNext;
+
+  /// No description provided for @animalFormBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get animalFormBack;
+
+  /// No description provided for @animalBreedSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search breed'**
+  String get animalBreedSearchHint;
+
+  /// No description provided for @animalHealthScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Health score'**
+  String get animalHealthScore;
+
+  /// No description provided for @animalHealthScorePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get animalHealthScorePlaceholder;
+
+  /// No description provided for @animalNextReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Next reminder'**
+  String get animalNextReminder;
+
+  /// No description provided for @animalNextReminderPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming reminders'**
+  String get animalNextReminderPlaceholder;
+
+  /// No description provided for @animalQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Animal QR'**
+  String get animalQrCode;
+
+  /// No description provided for @animalQrPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code coming soon'**
+  String get animalQrPlaceholder;
+
+  /// No description provided for @animalOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get animalOverviewTitle;
+
+  /// No description provided for @animalDocumentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get animalDocumentsTitle;
+
+  /// No description provided for @animalDocumentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents uploaded'**
+  String get animalDocumentsEmpty;
+
+  /// No description provided for @animalVaccinesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccines'**
+  String get animalVaccinesTitle;
+
+  /// No description provided for @animalReportsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get animalReportsTitle;
+
+  /// No description provided for @animalDoctorHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor visits'**
+  String get animalDoctorHistoryTitle;
 
   /// No description provided for @animalEditTitle.
   ///
@@ -1497,6 +2187,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Draft saved'**
   String get animalDraftSaved;
+
+  /// No description provided for @animalSummaryTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get animalSummaryTotal;
+
+  /// No description provided for @animalSummaryActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get animalSummaryActive;
+
+  /// No description provided for @animalSummaryLivestock.
+  ///
+  /// In en, this message translates to:
+  /// **'Livestock'**
+  String get animalSummaryLivestock;
+
+  /// No description provided for @animalFilterInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get animalFilterInactive;
+
+  /// No description provided for @animalFilterPets.
+  ///
+  /// In en, this message translates to:
+  /// **'Pets'**
+  String get animalFilterPets;
+
+  /// No description provided for @animalSortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get animalSortLabel;
+
+  /// No description provided for @animalSortRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently added'**
+  String get animalSortRecent;
+
+  /// No description provided for @animalSortNameAsc.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (A–Z)'**
+  String get animalSortNameAsc;
+
+  /// No description provided for @animalSortNameDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (Z–A)'**
+  String get animalSortNameDesc;
+
+  /// No description provided for @animalSortType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get animalSortType;
+
+  /// No description provided for @animalStatusInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get animalStatusInactive;
+
+  /// No description provided for @animalDeactivateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate animal'**
+  String get animalDeactivateTitle;
+
+  /// No description provided for @animalDeactivateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This animal will be marked inactive. You can still view it using the Inactive filter.'**
+  String get animalDeactivateMessage;
+
+  /// No description provided for @animalDeactivateConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get animalDeactivateConfirm;
+
+  /// No description provided for @animalViewPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'View full photo'**
+  String get animalViewPhoto;
+
+  /// No description provided for @animalVaccinesShortcut.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccines'**
+  String get animalVaccinesShortcut;
+
+  /// No description provided for @animalTreatmentsShortcut.
+  ///
+  /// In en, this message translates to:
+  /// **'Treatments'**
+  String get animalTreatmentsShortcut;
+
+  /// No description provided for @animalWeightInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid weight in kg'**
+  String get animalWeightInvalid;
+
+  /// No description provided for @animalAgeInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid age in years'**
+  String get animalAgeInvalid;
 
   /// No description provided for @animalUploadCamera.
   ///
@@ -1786,6 +2590,78 @@ abstract class AppLocalizations {
   /// **'Create batch'**
   String get batchCreateAction;
 
+  /// No description provided for @batchSummaryTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total batches'**
+  String get batchSummaryTotal;
+
+  /// No description provided for @batchSummaryWithAnimals.
+  ///
+  /// In en, this message translates to:
+  /// **'With animals'**
+  String get batchSummaryWithAnimals;
+
+  /// No description provided for @batchSummaryPendingSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending sync'**
+  String get batchSummaryPendingSync;
+
+  /// No description provided for @batchSortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get batchSortLabel;
+
+  /// No description provided for @batchSortRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently updated'**
+  String get batchSortRecent;
+
+  /// No description provided for @batchSortNameAsc.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (A–Z)'**
+  String get batchSortNameAsc;
+
+  /// No description provided for @batchSortNameDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (Z–A)'**
+  String get batchSortNameDesc;
+
+  /// No description provided for @batchSortAnimalsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Most animals'**
+  String get batchSortAnimalsDesc;
+
+  /// No description provided for @batchDeleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete batch'**
+  String get batchDeleteAction;
+
+  /// No description provided for @batchDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this batch? Animals will not be deleted.'**
+  String get batchDeleteConfirm;
+
+  /// No description provided for @batchDeleteSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch deleted'**
+  String get batchDeleteSuccess;
+
+  /// No description provided for @batchEmptyStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty'**
+  String get batchEmptyStatus;
+
   /// No description provided for @offlineItemBatch.
   ///
   /// In en, this message translates to:
@@ -2037,6 +2913,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Record milk'**
   String get milkQuickAction;
+
+  /// No description provided for @milkDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Milk record details'**
+  String get milkDetailTitle;
+
+  /// No description provided for @milkSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search records'**
+  String get milkSearchHint;
+
+  /// No description provided for @milkNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No records match your filters'**
+  String get milkNoResults;
+
+  /// No description provided for @milkFromDate.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get milkFromDate;
+
+  /// No description provided for @milkToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get milkToDate;
+
+  /// No description provided for @milkFilterAllAnimals.
+  ///
+  /// In en, this message translates to:
+  /// **'All animals'**
+  String get milkFilterAllAnimals;
+
+  /// No description provided for @milkFilterAllSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'All sessions'**
+  String get milkFilterAllSessions;
+
+  /// No description provided for @milkSummaryToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get milkSummaryToday;
+
+  /// No description provided for @milkSummaryEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries'**
+  String get milkSummaryEntries;
+
+  /// No description provided for @milkSummaryPendingSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending sync'**
+  String get milkSummaryPendingSync;
+
+  /// No description provided for @milkDeleteSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Record deleted'**
+  String get milkDeleteSuccess;
 
   /// No description provided for @offlineItemMilk.
   ///
@@ -2379,6 +3321,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Record feed'**
   String get feedQuickAction;
+
+  /// No description provided for @feedDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed record details'**
+  String get feedDetailTitle;
+
+  /// No description provided for @feedNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No records match your filters'**
+  String get feedNoResults;
+
+  /// No description provided for @feedFromDate.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get feedFromDate;
+
+  /// No description provided for @feedToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get feedToDate;
+
+  /// No description provided for @feedFilterAllAnimals.
+  ///
+  /// In en, this message translates to:
+  /// **'All animals'**
+  String get feedFilterAllAnimals;
+
+  /// No description provided for @feedFilterAllGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'All groups'**
+  String get feedFilterAllGroups;
+
+  /// No description provided for @feedFilterAllTargets.
+  ///
+  /// In en, this message translates to:
+  /// **'All targets'**
+  String get feedFilterAllTargets;
+
+  /// No description provided for @feedSummaryCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Period cost'**
+  String get feedSummaryCost;
+
+  /// No description provided for @feedSummaryEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries'**
+  String get feedSummaryEntries;
+
+  /// No description provided for @feedSummaryPendingSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending sync'**
+  String get feedSummaryPendingSync;
+
+  /// No description provided for @feedDeleteSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Record deleted'**
+  String get feedDeleteSuccess;
 
   /// No description provided for @offlineItemFeed.
   ///
@@ -2794,6 +3802,72 @@ abstract class AppLocalizations {
   /// **'Other'**
   String get financeSourceOther;
 
+  /// No description provided for @financeDashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finance'**
+  String get financeDashboardTitle;
+
+  /// No description provided for @financeLedgerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent transactions'**
+  String get financeLedgerTitle;
+
+  /// No description provided for @financeLedgerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions yet. Add income or expenses to build your ledger.'**
+  String get financeLedgerEmpty;
+
+  /// No description provided for @financeExpenseDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense details'**
+  String get financeExpenseDetailTitle;
+
+  /// No description provided for @financeIncomeDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Income details'**
+  String get financeIncomeDetailTitle;
+
+  /// No description provided for @financeNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No records match your filters'**
+  String get financeNoResults;
+
+  /// No description provided for @financeFromDate.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get financeFromDate;
+
+  /// No description provided for @financeToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get financeToDate;
+
+  /// No description provided for @financeSummaryEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries'**
+  String get financeSummaryEntries;
+
+  /// No description provided for @financeSummaryPendingSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending sync'**
+  String get financeSummaryPendingSync;
+
+  /// No description provided for @financeDeleteSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Record deleted'**
+  String get financeDeleteSuccess;
+
   /// No description provided for @offlineItemFinanceExpense.
   ///
   /// In en, this message translates to:
@@ -3064,6 +4138,126 @@ abstract class AppLocalizations {
   /// **'Record health'**
   String get healthQuickAction;
 
+  /// No description provided for @healthDashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get healthDashboardTitle;
+
+  /// No description provided for @healthRecordsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical records'**
+  String get healthRecordsTitle;
+
+  /// No description provided for @healthAnalyticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health analytics'**
+  String get healthAnalyticsTitle;
+
+  /// No description provided for @healthRecentEventsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent events'**
+  String get healthRecentEventsTitle;
+
+  /// No description provided for @healthFromDate.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get healthFromDate;
+
+  /// No description provided for @healthToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get healthToDate;
+
+  /// No description provided for @healthSummaryTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total events'**
+  String get healthSummaryTotal;
+
+  /// No description provided for @healthSummaryDisease.
+  ///
+  /// In en, this message translates to:
+  /// **'Disease / diagnosis'**
+  String get healthSummaryDisease;
+
+  /// No description provided for @healthSummaryCheckup.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkups'**
+  String get healthSummaryCheckup;
+
+  /// No description provided for @healthSummaryTreatment.
+  ///
+  /// In en, this message translates to:
+  /// **'Treatments'**
+  String get healthSummaryTreatment;
+
+  /// No description provided for @healthSummaryEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries'**
+  String get healthSummaryEntries;
+
+  /// No description provided for @healthSummaryPendingSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending sync'**
+  String get healthSummaryPendingSync;
+
+  /// No description provided for @healthNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No records match your filters'**
+  String get healthNoResults;
+
+  /// No description provided for @healthDeleteSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Health record deleted'**
+  String get healthDeleteSuccess;
+
+  /// No description provided for @healthTreatmentLinkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked treatment'**
+  String get healthTreatmentLinkLabel;
+
+  /// No description provided for @healthVaccineRefLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccine reference'**
+  String get healthVaccineRefLabel;
+
+  /// No description provided for @healthAnalyticsTypeBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Event type breakdown'**
+  String get healthAnalyticsTypeBreakdown;
+
+  /// No description provided for @healthAnalyticsDiseaseFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Disease frequency'**
+  String get healthAnalyticsDiseaseFrequency;
+
+  /// No description provided for @healthAnalyticsNoDiseases.
+  ///
+  /// In en, this message translates to:
+  /// **'No disease names recorded in this period'**
+  String get healthAnalyticsNoDiseases;
+
+  /// No description provided for @healthAnalyticsMonthlyTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly event trend'**
+  String get healthAnalyticsMonthlyTrend;
+
   /// No description provided for @offlineItemHealth.
   ///
   /// In en, this message translates to:
@@ -3315,6 +4509,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Completed'**
   String get vaccineStatusCompleted;
+
+  /// No description provided for @vaccineDashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccines'**
+  String get vaccineDashboardTitle;
+
+  /// No description provided for @vaccineHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccine history'**
+  String get vaccineHistoryTitle;
+
+  /// No description provided for @vaccineCalendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccine calendar'**
+  String get vaccineCalendarTitle;
+
+  /// No description provided for @vaccineDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccine record'**
+  String get vaccineDetailTitle;
+
+  /// No description provided for @vaccineSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search vaccines'**
+  String get vaccineSearchHint;
+
+  /// No description provided for @vaccineFromDate.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get vaccineFromDate;
+
+  /// No description provided for @vaccineToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get vaccineToDate;
+
+  /// No description provided for @vaccineSummaryCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get vaccineSummaryCompleted;
+
+  /// No description provided for @vaccineSummaryUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get vaccineSummaryUpcoming;
+
+  /// No description provided for @vaccineSummaryOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get vaccineSummaryOverdue;
+
+  /// No description provided for @vaccineSummaryEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries'**
+  String get vaccineSummaryEntries;
+
+  /// No description provided for @vaccineSummaryPendingSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending sync'**
+  String get vaccineSummaryPendingSync;
+
+  /// No description provided for @vaccineNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No vaccines match your filters'**
+  String get vaccineNoResults;
+
+  /// No description provided for @vaccineDeleteSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccine record deleted'**
+  String get vaccineDeleteSuccess;
+
+  /// No description provided for @vaccineNextDueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next due date'**
+  String get vaccineNextDueLabel;
+
+  /// No description provided for @vaccineNextDueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Next due'**
+  String get vaccineNextDueTitle;
+
+  /// No description provided for @vaccineReminderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} for {animal}'**
+  String vaccineReminderBody(Object animal, Object name);
+
+  /// No description provided for @vaccineCalendarLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled this month'**
+  String get vaccineCalendarLegend;
 
   /// No description provided for @offlineItemVaccine.
   ///
@@ -3604,6 +4906,114 @@ abstract class AppLocalizations {
   /// **'Cancelled'**
   String get treatmentStatusCancelled;
 
+  /// No description provided for @treatmentDashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Treatments'**
+  String get treatmentDashboardTitle;
+
+  /// No description provided for @treatmentTimelineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Treatment timeline'**
+  String get treatmentTimelineTitle;
+
+  /// No description provided for @treatmentMedicinePlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine plan'**
+  String get treatmentMedicinePlanTitle;
+
+  /// No description provided for @treatmentFollowUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up'**
+  String get treatmentFollowUpTitle;
+
+  /// No description provided for @treatmentFollowUpAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Update follow-up'**
+  String get treatmentFollowUpAction;
+
+  /// No description provided for @treatmentFollowUpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} for {animal}'**
+  String treatmentFollowUpBody(Object title, Object animal);
+
+  /// No description provided for @treatmentNoFollowUp.
+  ///
+  /// In en, this message translates to:
+  /// **'No follow-ups due soon'**
+  String get treatmentNoFollowUp;
+
+  /// No description provided for @treatmentViewPrescription.
+  ///
+  /// In en, this message translates to:
+  /// **'View full prescription'**
+  String get treatmentViewPrescription;
+
+  /// No description provided for @treatmentFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get treatmentFilterAll;
+
+  /// No description provided for @treatmentFromDate.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get treatmentFromDate;
+
+  /// No description provided for @treatmentToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get treatmentToDate;
+
+  /// No description provided for @treatmentSummaryActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get treatmentSummaryActive;
+
+  /// No description provided for @treatmentSummaryCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get treatmentSummaryCompleted;
+
+  /// No description provided for @treatmentSummaryOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue follow-up'**
+  String get treatmentSummaryOverdue;
+
+  /// No description provided for @treatmentSummaryEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries'**
+  String get treatmentSummaryEntries;
+
+  /// No description provided for @treatmentSummaryPendingSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending sync'**
+  String get treatmentSummaryPendingSync;
+
+  /// No description provided for @treatmentNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No treatments match your filters'**
+  String get treatmentNoResults;
+
+  /// No description provided for @treatmentDeleteSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Treatment deleted'**
+  String get treatmentDeleteSuccess;
+
   /// No description provided for @treatmentMedicineCount.
   ///
   /// In en, this message translates to:
@@ -3729,6 +5139,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unread notification'**
   String get notificationUnreadLabel;
+
+  /// No description provided for @notificationCenterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification center'**
+  String get notificationCenterTitle;
+
+  /// No description provided for @notificationViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get notificationViewAll;
+
+  /// No description provided for @notificationRecentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent notifications'**
+  String get notificationRecentTitle;
+
+  /// No description provided for @notificationSummaryUnread.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get notificationSummaryUnread;
+
+  /// No description provided for @notificationSummaryRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Loaded'**
+  String get notificationSummaryRecent;
+
+  /// No description provided for @notificationDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification'**
+  String get notificationDetailTitle;
+
+  /// No description provided for @notificationDetailNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification not found'**
+  String get notificationDetailNotFound;
+
+  /// No description provided for @notificationMarkRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as read'**
+  String get notificationMarkRead;
+
+  /// No description provided for @notificationOpenAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get notificationOpenAction;
+
+  /// No description provided for @notificationSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search notifications'**
+  String get notificationSearchHint;
+
+  /// No description provided for @notificationFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get notificationFilterAll;
+
+  /// No description provided for @notificationFilterUnread.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get notificationFilterUnread;
+
+  /// No description provided for @notificationPermissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification permission'**
+  String get notificationPermissionTitle;
+
+  /// No description provided for @notificationPermissionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications to receive appointment updates, reminders, and service alerts on this device.'**
+  String get notificationPermissionBody;
+
+  /// No description provided for @notificationPermissionRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications'**
+  String get notificationPermissionRequest;
+
+  /// No description provided for @notificationPermissionOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open app settings'**
+  String get notificationPermissionOpenSettings;
+
+  /// No description provided for @notificationPermissionGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications enabled'**
+  String get notificationPermissionGranted;
+
+  /// No description provided for @notificationPermissionGrantedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are enabled'**
+  String get notificationPermissionGrantedStatus;
+
+  /// No description provided for @notificationPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are disabled'**
+  String get notificationPermissionDenied;
+
+  /// No description provided for @notificationPermissionDeniedPermanent.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications blocked — enable in system settings'**
+  String get notificationPermissionDeniedPermanent;
+
+  /// No description provided for @notificationPermissionUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification permission status unknown'**
+  String get notificationPermissionUnknown;
 
   /// No description provided for @supportTicketListTitle.
   ///
@@ -4072,6 +5608,66 @@ abstract class AppLocalizations {
   /// **'FAQ'**
   String get supportFaqTitle;
 
+  /// No description provided for @supportHomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get supportHomeTitle;
+
+  /// No description provided for @supportRecentTicketsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent tickets'**
+  String get supportRecentTicketsTitle;
+
+  /// No description provided for @supportSummaryOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get supportSummaryOpen;
+
+  /// No description provided for @supportSummaryPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get supportSummaryPending;
+
+  /// No description provided for @supportSummaryResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolved'**
+  String get supportSummaryResolved;
+
+  /// No description provided for @supportSummaryClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get supportSummaryClosed;
+
+  /// No description provided for @supportFaqSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search FAQ'**
+  String get supportFaqSearchHint;
+
+  /// No description provided for @supportFaqEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching questions'**
+  String get supportFaqEmpty;
+
+  /// No description provided for @supportContactBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach our team by phone, WhatsApp, email, or open a support ticket.'**
+  String get supportContactBody;
+
+  /// No description provided for @supportOpenAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Open attachment'**
+  String get supportOpenAttachment;
+
   /// No description provided for @offlineItemSupport.
   ///
   /// In en, this message translates to:
@@ -4300,6 +5896,126 @@ abstract class AppLocalizations {
   /// **'No speech detected — try again'**
   String get aiEmptyTranscript;
 
+  /// No description provided for @aiHomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Assistant'**
+  String get aiHomeTitle;
+
+  /// No description provided for @aiHomeActiveSession.
+  ///
+  /// In en, this message translates to:
+  /// **'You have an active conversation.'**
+  String get aiHomeActiveSession;
+
+  /// No description provided for @aiHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation history'**
+  String get aiHistoryTitle;
+
+  /// No description provided for @aiSessionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Session'**
+  String get aiSessionLabel;
+
+  /// No description provided for @aiClearHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear and start new chat'**
+  String get aiClearHistory;
+
+  /// No description provided for @aiSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI settings'**
+  String get aiSettingsTitle;
+
+  /// No description provided for @aiSettingsLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get aiSettingsLanguage;
+
+  /// No description provided for @aiSettingsSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Show suggested prompts'**
+  String get aiSettingsSuggestions;
+
+  /// No description provided for @aiSettingsMemory.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember conversations'**
+  String get aiSettingsMemory;
+
+  /// No description provided for @aiSettingsMemoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep recent chats on this device'**
+  String get aiSettingsMemoryHint;
+
+  /// No description provided for @aiSaveSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Save settings'**
+  String get aiSaveSettings;
+
+  /// No description provided for @aiSettingsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings saved'**
+  String get aiSettingsSaved;
+
+  /// No description provided for @aiResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI result'**
+  String get aiResultTitle;
+
+  /// No description provided for @aiResultEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No result to display'**
+  String get aiResultEmpty;
+
+  /// No description provided for @aiRegenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate'**
+  String get aiRegenerate;
+
+  /// No description provided for @aiCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get aiCopied;
+
+  /// No description provided for @aiPendingSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending sync'**
+  String get aiPendingSync;
+
+  /// No description provided for @aiEscalationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Human help may be needed'**
+  String get aiEscalationHint;
+
+  /// No description provided for @aiEscalateSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact support'**
+  String get aiEscalateSupport;
+
+  /// No description provided for @aiViewResult.
+  ///
+  /// In en, this message translates to:
+  /// **'View full result'**
+  String get aiViewResult;
+
   /// No description provided for @settingsRetry.
   ///
   /// In en, this message translates to:
@@ -4366,11 +6082,767 @@ abstract class AppLocalizations {
   /// **'Terms accepted'**
   String get settingsTermsAccepted;
 
+  /// No description provided for @settingsAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account settings'**
+  String get settingsAccountTitle;
+
+  /// No description provided for @settingsAccountManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage account'**
+  String get settingsAccountManageTitle;
+
+  /// No description provided for @settingsPreferencesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get settingsPreferencesTitle;
+
+  /// No description provided for @settingsPreferencesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Language, theme, and notifications'**
+  String get settingsPreferencesSubtitle;
+
+  /// No description provided for @settingsPreferencesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Your preferences'**
+  String get settingsPreferencesSection;
+
+  /// No description provided for @settingsAppTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'App settings'**
+  String get settingsAppTitle;
+
+  /// No description provided for @settingsAppSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'App behavior and sync'**
+  String get settingsAppSubtitle;
+
+  /// No description provided for @settingsAppSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Application'**
+  String get settingsAppSection;
+
+  /// No description provided for @settingsThemeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get settingsThemeTitle;
+
+  /// No description provided for @settingsThemeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get settingsThemeLight;
+
+  /// No description provided for @settingsThemeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get settingsThemeDark;
+
+  /// No description provided for @settingsThemeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System default'**
+  String get settingsThemeSystem;
+
+  /// No description provided for @settingsThemeSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme saved'**
+  String get settingsThemeSaved;
+
+  /// No description provided for @settingsLanguageSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Language saved'**
+  String get settingsLanguageSaved;
+
+  /// No description provided for @settingsAboutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsAboutTitle;
+
+  /// No description provided for @settingsAboutSupportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get settingsAboutSupportTitle;
+
+  /// No description provided for @settingsAboutLegalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal'**
+  String get settingsAboutLegalTitle;
+
+  /// No description provided for @settingsDataSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data & sync'**
+  String get settingsDataSyncTitle;
+
+  /// No description provided for @settingsLastSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Last settings sync'**
+  String get settingsLastSyncTitle;
+
+  /// No description provided for @settingsLastSyncNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Not synced yet'**
+  String get settingsLastSyncNever;
+
+  /// No description provided for @settingsPendingSettingsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 settings change pending} other{{count} settings changes pending}}'**
+  String settingsPendingSettingsCount(int count);
+
+  /// No description provided for @settingsHubAccountSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get settingsHubAccountSection;
+
+  /// No description provided for @settingsHubAppSection.
+  ///
+  /// In en, this message translates to:
+  /// **'App'**
+  String get settingsHubAppSection;
+
+  /// No description provided for @settingsHubLegalSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal & privacy'**
+  String get settingsHubLegalSection;
+
+  /// No description provided for @settingsHubSupportSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Support & about'**
+  String get settingsHubSupportSection;
+
+  /// No description provided for @networkConnectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection check'**
+  String get networkConnectionTitle;
+
+  /// No description provided for @networkConnectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify phone can reach the PC backend over WiFi'**
+  String get networkConnectionSubtitle;
+
+  /// No description provided for @networkApiUrlLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'API URL'**
+  String get networkApiUrlLabel;
+
+  /// No description provided for @networkApiSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'URL source'**
+  String get networkApiSourceLabel;
+
+  /// No description provided for @networkApiPortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'API port'**
+  String get networkApiPortLabel;
+
+  /// No description provided for @networkWebUrlLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Web URL'**
+  String get networkWebUrlLabel;
+
+  /// No description provided for @networkTimeoutLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeouts'**
+  String get networkTimeoutLabel;
+
+  /// No description provided for @networkRunChecks.
+  ///
+  /// In en, this message translates to:
+  /// **'Run checks'**
+  String get networkRunChecks;
+
+  /// No description provided for @networkReconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect & sync'**
+  String get networkReconnect;
+
+  /// No description provided for @networkLastChecked.
+  ///
+  /// In en, this message translates to:
+  /// **'Last checked'**
+  String get networkLastChecked;
+
+  /// No description provided for @networkChecksPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Run checks to test the connection'**
+  String get networkChecksPending;
+
+  /// No description provided for @networkProbeLive.
+  ///
+  /// In en, this message translates to:
+  /// **'API health (/live)'**
+  String get networkProbeLive;
+
+  /// No description provided for @networkProbeAppConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile app-config'**
+  String get networkProbeAppConfig;
+
+  /// No description provided for @networkProbeAuth.
+  ///
+  /// In en, this message translates to:
+  /// **'Auth profile (/me)'**
+  String get networkProbeAuth;
+
+  /// No description provided for @networkProbeRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh token'**
+  String get networkProbeRefresh;
+
+  /// No description provided for @networkProbeUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload / storage'**
+  String get networkProbeUpload;
+
   /// No description provided for @offlineItemSettingsSync.
   ///
   /// In en, this message translates to:
   /// **'Settings sync'**
   String get offlineItemSettingsSync;
+
+  /// No description provided for @profileEditPersonalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal information'**
+  String get profileEditPersonalInfo;
+
+  /// No description provided for @profileEditAddressSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get profileEditAddressSection;
+
+  /// No description provided for @profileEditPreviewSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get profileEditPreviewSection;
+
+  /// No description provided for @profileSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving profile…'**
+  String get profileSaving;
+
+  /// No description provided for @profileUploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading…'**
+  String get profileUploading;
+
+  /// No description provided for @profileUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated'**
+  String get profileUpdatedSuccess;
+
+  /// No description provided for @profileDiscardChangesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard changes?'**
+  String get profileDiscardChangesTitle;
+
+  /// No description provided for @profileDiscardChangesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You have unsaved changes. Leave without saving?'**
+  String get profileDiscardChangesBody;
+
+  /// No description provided for @profileDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get profileDiscard;
+
+  /// No description provided for @profileKeepEditing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get profileKeepEditing;
+
+  /// No description provided for @profileCoverUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload cover'**
+  String get profileCoverUpload;
+
+  /// No description provided for @profileAvatarChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change photo'**
+  String get profileAvatarChange;
+
+  /// No description provided for @profileRemovePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get profileRemovePhoto;
+
+  /// No description provided for @profileRemoveCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove cover'**
+  String get profileRemoveCover;
+
+  /// No description provided for @profilePreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get profilePreviewTitle;
+
+  /// No description provided for @profilePhoneReadonly.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number cannot be changed here'**
+  String get profilePhoneReadonly;
+
+  /// No description provided for @profileUpdatedButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated'**
+  String get profileUpdatedButton;
+
+  /// No description provided for @homeVaccineDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Vaccine due'**
+  String get homeVaccineDue;
+
+  /// No description provided for @homeTasksLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks'**
+  String get homeTasksLabel;
+
+  /// No description provided for @homeViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get homeViewAll;
+
+  /// No description provided for @homeNoAnimalsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No animals yet. Add your first animal to get started.'**
+  String get homeNoAnimalsYet;
+
+  /// No description provided for @homeHealthTasksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming health tasks'**
+  String get homeHealthTasksTitle;
+
+  /// No description provided for @homeNoHealthTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming health tasks right now.'**
+  String get homeNoHealthTasks;
+
+  /// No description provided for @homeBookDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Book doctor'**
+  String get homeBookDoctor;
+
+  /// No description provided for @homeNearbyServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby services'**
+  String get homeNearbyServices;
+
+  /// No description provided for @homeUploadReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload report'**
+  String get homeUploadReport;
+
+  /// No description provided for @homeHealthHistoryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Health history'**
+  String get homeHealthHistoryAction;
+
+  /// No description provided for @homeDrawerDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get homeDrawerDashboard;
+
+  /// No description provided for @homeDrawerOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get homeDrawerOrders;
+
+  /// No description provided for @homeMarketplaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Marketplace'**
+  String get homeMarketplaceTitle;
+
+  /// No description provided for @homeMarketplaceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse farm supplies and services from trusted sellers.'**
+  String get homeMarketplaceSubtitle;
+
+  /// No description provided for @homeCommunityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Community'**
+  String get homeCommunityTitle;
+
+  /// No description provided for @homeCommunitySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect with farmers and share knowledge.'**
+  String get homeCommunitySubtitle;
+
+  /// No description provided for @homeDrawerPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments'**
+  String get homeDrawerPayments;
+
+  /// No description provided for @homeNoDoctorsNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'No doctors found nearby. Try adjusting your location filters.'**
+  String get homeNoDoctorsNearby;
+
+  /// No description provided for @homePlaceholderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This section is coming soon. Check back in a future update.'**
+  String get homePlaceholderBody;
+
+  /// No description provided for @homeReportsExportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Export CSV or PDF from the full reports screen.'**
+  String get homeReportsExportHint;
+
+  /// No description provided for @homeMarketplaceEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No services available in your area yet.'**
+  String get homeMarketplaceEmpty;
+
+  /// No description provided for @homeMarketplaceCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get homeMarketplaceCategories;
+
+  /// No description provided for @homeCommunityEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No community tips yet. Visit help for guides.'**
+  String get homeCommunityEmpty;
+
+  /// No description provided for @homeOrdersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders yet. Book a service to get started.'**
+  String get homeOrdersEmpty;
+
+  /// No description provided for @homeOrdersPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get homeOrdersPending;
+
+  /// No description provided for @homeOrdersCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get homeOrdersCompleted;
+
+  /// No description provided for @homeOrdersCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get homeOrdersCancelled;
+
+  /// No description provided for @homeOrdersRecentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent orders'**
+  String get homeOrdersRecentTitle;
+
+  /// No description provided for @homeSearchPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'ডাক্তার, সার্ভিস, AI, চিকিৎসা সার্চ করুন'**
+  String get homeSearchPlaceholder;
+
+  /// No description provided for @homeSearchVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice search'**
+  String get homeSearchVoice;
+
+  /// No description provided for @homeSearchListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening…'**
+  String get homeSearchListening;
+
+  /// No description provided for @homeSearchStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get homeSearchStop;
+
+  /// No description provided for @homeSearchRecentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent searches'**
+  String get homeSearchRecentTitle;
+
+  /// No description provided for @homeSearchRecentEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent searches yet.'**
+  String get homeSearchRecentEmpty;
+
+  /// No description provided for @homeSearchSourcesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search in'**
+  String get homeSearchSourcesTitle;
+
+  /// No description provided for @homeSearchSourceDoctors.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctors'**
+  String get homeSearchSourceDoctors;
+
+  /// No description provided for @homeSearchSourceAi.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Assistant'**
+  String get homeSearchSourceAi;
+
+  /// No description provided for @homeSearchSourceServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get homeSearchSourceServices;
+
+  /// No description provided for @homeSearchSourceAnimals.
+  ///
+  /// In en, this message translates to:
+  /// **'Animals'**
+  String get homeSearchSourceAnimals;
+
+  /// No description provided for @homeSearchSourceMarketplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Marketplace'**
+  String get homeSearchSourceMarketplace;
+
+  /// No description provided for @homeSearchSourceReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get homeSearchSourceReports;
+
+  /// No description provided for @homeSearchSourceCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Community'**
+  String get homeSearchSourceCommunity;
+
+  /// No description provided for @homeSearchSourceEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency'**
+  String get homeSearchSourceEmergency;
+
+  /// No description provided for @homeSearchNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found.'**
+  String get homeSearchNoResults;
+
+  /// No description provided for @homeGreetingMorningBn.
+  ///
+  /// In en, this message translates to:
+  /// **'সুপ্রভাত'**
+  String get homeGreetingMorningBn;
+
+  /// No description provided for @homeGreetingAfternoonBn.
+  ///
+  /// In en, this message translates to:
+  /// **'শুভ অপরাহ্ন'**
+  String get homeGreetingAfternoonBn;
+
+  /// No description provided for @homeGreetingEveningBn.
+  ///
+  /// In en, this message translates to:
+  /// **'শুভ সন্ধ্যা'**
+  String get homeGreetingEveningBn;
+
+  /// No description provided for @homeChangeCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Change cover'**
+  String get homeChangeCover;
+
+  /// No description provided for @homeActionAiDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Doctor'**
+  String get homeActionAiDoctor;
+
+  /// No description provided for @homeActionCallDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Call doctor'**
+  String get homeActionCallDoctor;
+
+  /// No description provided for @homeActionAiTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Technician'**
+  String get homeActionAiTechnician;
+
+  /// No description provided for @homeActionVideoCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Video call'**
+  String get homeActionVideoCall;
+
+  /// No description provided for @homeInstantCareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Instant care'**
+  String get homeInstantCareTitle;
+
+  /// No description provided for @homeInstantCareSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the fastest way to get help.'**
+  String get homeInstantCareSubtitle;
+
+  /// No description provided for @homeCareAiDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Doctor'**
+  String get homeCareAiDoctor;
+
+  /// No description provided for @homeCareAiDoctorEta.
+  ///
+  /// In en, this message translates to:
+  /// **'Typical response: under 1 min'**
+  String get homeCareAiDoctorEta;
+
+  /// No description provided for @homeCareCallDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Call doctor'**
+  String get homeCareCallDoctor;
+
+  /// No description provided for @homeCareCallDoctorEta.
+  ///
+  /// In en, this message translates to:
+  /// **'Typical response: 5–15 min'**
+  String get homeCareCallDoctorEta;
+
+  /// No description provided for @homeCareEmergencyVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency visit'**
+  String get homeCareEmergencyVisit;
+
+  /// No description provided for @homeCareEmergencyVisitEta.
+  ///
+  /// In en, this message translates to:
+  /// **'Typical response: 15–30 min'**
+  String get homeCareEmergencyVisitEta;
+
+  /// No description provided for @homeCareVideoConsultation.
+  ///
+  /// In en, this message translates to:
+  /// **'Video consultation'**
+  String get homeCareVideoConsultation;
+
+  /// No description provided for @homeCareVideoConsultationEta.
+  ///
+  /// In en, this message translates to:
+  /// **'Typical response: 10–20 min'**
+  String get homeCareVideoConsultationEta;
+
+  /// No description provided for @homeCareNearestService.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest service'**
+  String get homeCareNearestService;
+
+  /// No description provided for @homeCareNearestServiceEta.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on your location'**
+  String get homeCareNearestServiceEta;
+
+  /// No description provided for @homeCareChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat support'**
+  String get homeCareChat;
+
+  /// No description provided for @homeCareChatEta.
+  ///
+  /// In en, this message translates to:
+  /// **'Typical response: under 5 min'**
+  String get homeCareChatEta;
+
+  /// No description provided for @profileMemberSince.
+  ///
+  /// In en, this message translates to:
+  /// **'PraniDoctor member'**
+  String get profileMemberSince;
+
+  /// No description provided for @offlineModeBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'অফলাইন মোড — সর্বশেষ সংরক্ষিত তথ্য দেখানো হচ্ছে'**
+  String get offlineModeBanner;
 }
 
 class _AppLocalizationsDelegate

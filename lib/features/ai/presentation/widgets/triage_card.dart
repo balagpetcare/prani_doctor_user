@@ -19,21 +19,45 @@ class TriageCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(l10n.aiTriageTitle, style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              l10n.aiTriageTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 12),
             _Row(label: l10n.aiPossibleConcern, value: result.possibleConcern),
-            _Row(label: l10n.aiUrgencyLabel, value: _urgencyLabel(l10n, result.urgency)),
-            _Row(label: l10n.aiRecommendedAction, value: result.recommendedAction),
-            _Row(label: l10n.aiDoctorSuggestion, value: result.doctorSuggestion),
+            _Row(
+              label: l10n.aiUrgencyLabel,
+              value: _urgencyLabel(l10n, result.urgency),
+            ),
+            _Row(
+              label: l10n.aiRecommendedAction,
+              value: result.recommendedAction,
+            ),
+            _Row(
+              label: l10n.aiDoctorSuggestion,
+              value: result.doctorSuggestion,
+            ),
             const SizedBox(height: 8),
-            Text(result.disclaimer, style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              result.disclaimer,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             const SizedBox(height: 8),
-            Text(l10n.aiDisclaimer, style: Theme.of(context).textTheme.labelSmall),
+            Text(
+              l10n.aiDisclaimer,
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
             if (result.escalationRequired) ...[
               const SizedBox(height: 12),
               FilledButton.tonal(
-                onPressed: () => context.push(AppRoutes.services),
-                child: Text(l10n.aiFindVet),
+                onPressed: () =>
+                    context.push(AppRoutes.aiResult, extra: result),
+                child: Text(l10n.aiViewResult),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: () => context.push(AppRoutes.supportTicketCreate),
+                child: Text(l10n.aiEscalateSupport),
               ),
             ],
           ],

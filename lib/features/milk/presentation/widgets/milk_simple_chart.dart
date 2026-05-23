@@ -102,11 +102,15 @@ class MilkSessionSplitChart extends StatelessWidget {
               children: [
                 Expanded(
                   flex: (morningFraction * 100).round().clamp(1, 100),
-                  child: ColoredBox(color: Theme.of(context).colorScheme.primary),
+                  child: ColoredBox(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
                 Expanded(
                   flex: ((1 - morningFraction) * 100).round().clamp(1, 100),
-                  child: ColoredBox(color: Theme.of(context).colorScheme.secondary),
+                  child: ColoredBox(
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
                 ),
               ],
             ),

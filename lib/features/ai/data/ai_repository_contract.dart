@@ -4,7 +4,10 @@ import 'ai_dto.dart';
 abstract class AiRepositoryContract {
   Future<AiHistoryResult?> readCachedHistory({String? sessionId});
 
-  Future<ApiResult<AiHistoryResult>> getHistory({String? sessionId, bool forceRefresh = false});
+  Future<ApiResult<AiHistoryResult>> getHistory({
+    String? sessionId,
+    bool forceRefresh = false,
+  });
 
   Future<ApiResult<AiChatResponse>> sendMessage(AiSendMessageInput input);
 
@@ -13,6 +16,22 @@ abstract class AiRepositoryContract {
   Future<ApiResult<void>> clearHistory({String? sessionId});
 
   Future<ApiResult<int>> syncPending();
+
+  Future<ApiResult<void>> escalate({
+    String? sessionId,
+    String reason = 'DOCTOR_REQUEST',
+    String? handoffNote,
+  });
+
+  Future<String?> readDraft();
+
+  Future<void> saveDraft(String text);
+
+  Future<void> clearDraft();
+
+  Future<AiSettings> readSettings();
+
+  Future<void> saveSettings(AiSettings settings);
 
   Future<ApiResult<VoiceSttResult>> normalizeVoiceTranscript({
     required String transcript,

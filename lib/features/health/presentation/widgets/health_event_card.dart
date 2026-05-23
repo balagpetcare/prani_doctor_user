@@ -17,7 +17,9 @@ class HealthEventCard extends StatelessWidget {
     return Card(
       child: ListTile(
         leading: const Icon(Icons.medical_services_outlined),
-        title: Text('${healthEventTypeLabel(l10n, event.eventType)} · ${event.title}'),
+        title: Text(
+          '${healthEventTypeLabel(l10n, event.eventType)} · ${event.title}',
+        ),
         subtitle: Text(
           [
             event.targetLabel,

@@ -4,6 +4,7 @@ abstract final class ProviderApiPaths {
   static const doctors = '/api/mobile/providers/doctors';
   static String doctor(String id) => '/api/mobile/providers/doctors/$id';
 }
+
 /// Matches backend `ServiceRequestType` for doctor flows.
 abstract final class DoctorServiceTypes {
   DoctorServiceTypes._();

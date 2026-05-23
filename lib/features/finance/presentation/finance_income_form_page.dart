@@ -8,6 +8,7 @@ import '../../farm/presentation/farm_providers.dart';
 import '../data/finance_dto.dart';
 import '../data/finance_repository.dart';
 import '../data/finance_validation.dart';
+import 'finance_navigation.dart';
 import 'finance_providers.dart';
 import 'widgets/finance_labels.dart';
 
@@ -17,7 +18,8 @@ class FinanceIncomeFormPage extends ConsumerStatefulWidget {
   final String? recordId;
 
   @override
-  ConsumerState<FinanceIncomeFormPage> createState() => _FinanceIncomeFormPageState();
+  ConsumerState<FinanceIncomeFormPage> createState() =>
+      _FinanceIncomeFormPageState();
 }
 
 class _FinanceIncomeFormPageState extends ConsumerState<FinanceIncomeFormPage> {
@@ -52,7 +54,9 @@ class _FinanceIncomeFormPageState extends ConsumerState<FinanceIncomeFormPage> {
       return;
     }
     if (widget.recordId != null) {
-      final record = await ref.read(financeIncomeRecordProvider(widget.recordId!).future);
+      final record = await ref.read(
+        financeIncomeRecordProvider(widget.recordId!).future,
+      );
       _applyInput(
         IncomeInput(
           farmRef: record.farmRef,
@@ -90,18 +94,29 @@ class _FinanceIncomeFormPageState extends ConsumerState<FinanceIncomeFormPage> {
   }
 
   Future<void> _saveDraft() async {
-    await ref.read(financeRepositoryProvider).saveIncomeDraft(_currentInput(), recordId: widget.recordId);
+    await ref
+        .read(financeRepositoryProvider)
+        .saveIncomeDraft(_currentInput(), recordId: widget.recordId);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.financeDraftSaved)),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.financeDraftSaved),
+        ),
       );
     }
   }
 
   Future<void> _submit() async {
+    if (_loading) return;
     final l10n = AppLocalizations.of(context)!;
-    final amountError = FinanceValidation.validateAmount(_amountController.text, message: l10n.financeAmountRequired);
-    final dateError = FinanceValidation.validateDate(_recordedDate, message: l10n.financeDateInvalid);
+    final amountError = FinanceValidation.validateAmount(
+      _amountController.text,
+      message: l10n.financeAmountRequired,
+    );
+    final dateError = FinanceValidation.validateDate(
+      _recordedDate,
+      message: l10n.financeDateInvalid,
+    );
     final error = amountError ?? dateError;
     if (error != null) {
       setState(() => _error = error);
@@ -123,18 +138,17 @@ class _FinanceIncomeFormPageState extends ConsumerState<FinanceIncomeFormPage> {
     setState(() => _loading = false);
 
     result.when(
-      success: (_) {
-        ref.invalidate(financeIncomeListProvider);
-        ref.invalidate(financeProfitProvider);
-        ref.invalidate(financeChartsProvider);
-        ref.invalidate(financeReportsProvider);
+      success: (record) {
+        FinanceNavigation.afterIncomeSave(ref, recordId: record.id);
         context.pop();
       },
       failure: (e) {
         if (e.code == offlineQueuedCode) {
-          ref.invalidate(financeIncomeListProvider);
+          FinanceNavigation.afterIncomeSave(ref, recordId: widget.recordId);
           context.pop();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.financeOfflineSaved)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.financeOfflineSaved)));
           return;
         }
         setState(() => _error = e.message);
@@ -152,8 +166,14 @@ class _FinanceIncomeFormPageState extends ConsumerState<FinanceIncomeFormPage> {
         title: Text(l10n.financeDeleteTitle),
         content: Text(l10n.financeIncomeDeleteConfirm),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.financeDeleteAction)),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.financeDeleteAction),
+          ),
         ],
       ),
     );
@@ -165,17 +185,16 @@ class _FinanceIncomeFormPageState extends ConsumerState<FinanceIncomeFormPage> {
     setState(() => _loading = false);
     result.when(
       success: (_) {
-        ref.invalidate(financeIncomeListProvider);
-        ref.invalidate(financeProfitProvider);
-        ref.invalidate(financeChartsProvider);
-        ref.invalidate(financeReportsProvider);
+        FinanceNavigation.afterDelete(ref);
         context.pop();
       },
       failure: (e) {
         if (e.code == offlineQueuedCode) {
-          ref.invalidate(financeIncomeListProvider);
+          FinanceNavigation.afterDelete(ref);
           context.pop();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.financeOfflineSaved)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.financeOfflineSaved)));
           return;
         }
         setState(() => _error = e.message);
@@ -201,11 +220,19 @@ class _FinanceIncomeFormPageState extends ConsumerState<FinanceIncomeFormPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEdit ? l10n.financeIncomeEditTitle : l10n.financeIncomeAddTitle),
+        title: Text(
+          isEdit ? l10n.financeIncomeEditTitle : l10n.financeIncomeAddTitle,
+        ),
         actions: [
           if (isEdit)
-            IconButton(onPressed: _loading ? null : _delete, icon: const Icon(Icons.delete_outline)),
-          TextButton(onPressed: _loading ? null : _saveDraft, child: Text(l10n.financeSaveDraft)),
+            IconButton(
+              onPressed: _loading ? null : _delete,
+              icon: const Icon(Icons.delete_outline),
+            ),
+          TextButton(
+            onPressed: _loading ? null : _saveDraft,
+            child: Text(l10n.financeSaveDraft),
+          ),
         ],
       ),
       body: ListView(
@@ -214,18 +241,27 @@ class _FinanceIncomeFormPageState extends ConsumerState<FinanceIncomeFormPage> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ),
           farmsAsync.when(
             loading: () => const LinearProgressIndicator(),
-            error: (_, __) => Text(l10n.financeFarmLoadError),
+            error: (_, _) => Text(l10n.financeFarmLoadError),
             data: (state) {
               if (state.farms.isEmpty) return Text(l10n.financeNoFarm);
               return DropdownButtonFormField<String>(
                 initialValue: _farmRef ?? state.farms.first.id,
                 decoration: InputDecoration(labelText: l10n.financeFarmLabel),
-                items: state.farms.map((f) => DropdownMenuItem(value: f.id, child: Text(f.name))).toList(),
-                onChanged: _loading ? null : (v) => setState(() => _farmRef = v),
+                items: state.farms
+                    .map(
+                      (f) => DropdownMenuItem(value: f.id, child: Text(f.name)),
+                    )
+                    .toList(),
+                onChanged: _loading
+                    ? null
+                    : (v) => setState(() => _farmRef = v),
               );
             },
           ),
@@ -234,9 +270,16 @@ class _FinanceIncomeFormPageState extends ConsumerState<FinanceIncomeFormPage> {
             initialValue: _source,
             decoration: InputDecoration(labelText: l10n.financeSourceLabel),
             items: IncomeSource.values
-                .map((s) => DropdownMenuItem(value: s, child: Text(incomeSourceLabel(l10n, s))))
+                .map(
+                  (s) => DropdownMenuItem(
+                    value: s,
+                    child: Text(incomeSourceLabel(l10n, s)),
+                  ),
+                )
                 .toList(),
-            onChanged: _loading ? null : (v) => setState(() => _source = v ?? IncomeSource.other),
+            onChanged: _loading
+                ? null
+                : (v) => setState(() => _source = v ?? IncomeSource.other),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -249,7 +292,10 @@ class _FinanceIncomeFormPageState extends ConsumerState<FinanceIncomeFormPage> {
             contentPadding: EdgeInsets.zero,
             title: Text(l10n.financeDateLabel),
             subtitle: Text(_recordedDate.toLocal().toString().split(' ').first),
-            trailing: IconButton(onPressed: _loading ? null : _pickDate, icon: const Icon(Icons.calendar_today)),
+            trailing: IconButton(
+              onPressed: _loading ? null : _pickDate,
+              icon: const Icon(Icons.calendar_today),
+            ),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -261,8 +307,14 @@ class _FinanceIncomeFormPageState extends ConsumerState<FinanceIncomeFormPage> {
           FilledButton(
             onPressed: _loading ? null : _submit,
             child: _loading
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : Text(isEdit ? l10n.financeSaveChanges : l10n.financeCreateAction),
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(
+                    isEdit ? l10n.financeSaveChanges : l10n.financeCreateAction,
+                  ),
           ),
         ],
       ),

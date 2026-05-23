@@ -14,7 +14,8 @@ class OtpRequestResultDto {
     return OtpRequestResultDto(
       sent: json['sent'] as bool? ?? true,
       otpTtlSeconds: ttl,
-      resendCooldownSeconds: json['cooldownSeconds'] as int? ??
+      resendCooldownSeconds:
+          json['cooldownSeconds'] as int? ??
           json['resendCooldownSeconds'] as int? ??
           60,
     );

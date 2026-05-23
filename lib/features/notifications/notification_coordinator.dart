@@ -1,12 +1,14 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/app_env.dart';
+import '../../core/firebase/firebase_bootstrap.dart';
+import '../../core/session/session_auth.dart';
 import '../../core/session/session_controller.dart';
 import '../../core/session/session_state.dart';
 import '../../routing/app_router.dart';
-import 'fcm_background.dart';
 import 'notification_deeplink.dart';
 import 'notification_analytics.dart';
 import 'notification_realtime.dart';
@@ -19,44 +21,50 @@ class NotificationCoordinator extends ConsumerStatefulWidget {
   final Widget child;
 
   @override
-  ConsumerState<NotificationCoordinator> createState() => _NotificationCoordinatorState();
+  ConsumerState<NotificationCoordinator> createState() =>
+      _NotificationCoordinatorState();
 }
 
-class _NotificationCoordinatorState extends ConsumerState<NotificationCoordinator> {
-  var _initialized = false;
+class _NotificationCoordinatorState
+    extends ConsumerState<NotificationCoordinator> {
+  var _setupStarted = false;
+  var _setupComplete = false;
+  var _initialPushDone = false;
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(_setup);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_setupLazy());
+    });
   }
 
-  Future<void> _setup() async {
-    if (_initialized) return;
-    _initialized = true;
+  Future<void> _setupLazy() async {
+    if (_setupStarted || _setupComplete) return;
+    _setupStarted = true;
 
     final env = AppEnv.fromEnvironment();
     final service = ref.read(notificationServiceProvider);
 
     await service.initialize(
-      enablePush: env.enablePush,
+      enablePush: env.enablePush && isFirebaseReady,
       enableLocal: true,
       onTap: _handleNotificationTap,
       onTokenRefresh: (token) =>
           ref.read(pushRegistrationProvider).register(pushToken: token),
     );
 
+    if (!mounted) return;
+
     ref.read(notificationRealtimeProvider);
 
-    if (ref.read(sessionControllerProvider).isAuthenticated) {
+    final session = ref.read(sessionControllerProvider);
+    if (SessionAuth.canCallProtectedApis(session)) {
       await ref.read(pushRegistrationProvider).register();
+      _initialPushDone = true;
     }
 
-    ref.listen<SessionState>(sessionControllerProvider, (previous, next) async {
-      if (next.isAuthenticated && (previous == null || !previous.isAuthenticated)) {
-        await ref.read(pushRegistrationProvider).register();
-      }
-    });
+    _setupComplete = true;
   }
 
   void _handleNotificationTap(Map<String, dynamic>? metadata) {
@@ -67,9 +75,22 @@ class _NotificationCoordinatorState extends ConsumerState<NotificationCoordinato
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
-}
+  Widget build(BuildContext context) {
+    ref.listen<SessionState>(sessionControllerProvider, (previous, next) {
+      final readyAuthed = SessionAuth.canCallProtectedApis(next);
+      final wasReadyAuthed =
+          previous != null && SessionAuth.canCallProtectedApis(previous);
+      if (readyAuthed && !wasReadyAuthed) {
+        unawaited(ref.read(pushRegistrationProvider).register());
+      }
+    });
 
-void registerFcmBackgroundHandler() {
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    if (!_initialPushDone &&
+        SessionAuth.canCallProtectedApis(ref.read(sessionControllerProvider))) {
+      _initialPushDone = true;
+      unawaited(ref.read(pushRegistrationProvider).register());
+    }
+
+    return widget.child;
+  }
 }

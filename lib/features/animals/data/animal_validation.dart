@@ -1,9 +1,13 @@
 class AnimalValidation {
   AnimalValidation._();
 
-  static String? validateNameOrTag({String? name, String? tag, required String message}) {
-    final nameOk = name != null && name.trim().length >= 1;
-    final tagOk = tag != null && tag.trim().length >= 1;
+  static String? validateNameOrTag({
+    String? name,
+    String? tag,
+    required String message,
+  }) {
+    final nameOk = name != null && name.trim().isNotEmpty;
+    final tagOk = tag != null && tag.trim().isNotEmpty;
     if (!nameOk && !tagOk) return message;
     return null;
   }
@@ -13,17 +17,23 @@ class AnimalValidation {
     return null;
   }
 
-  static String? validateWeight(String? raw) {
+  static String? validateWeight(
+    String? raw, {
+    String invalidMessage = 'Invalid weight',
+  }) {
     if (raw == null || raw.trim().isEmpty) return null;
     final value = double.tryParse(raw.trim());
-    if (value == null || value <= 0) return 'Invalid weight';
+    if (value == null || value <= 0) return invalidMessage;
     return null;
   }
 
-  static String? validateAgeYears(String? raw) {
+  static String? validateAgeYears(
+    String? raw, {
+    String invalidMessage = 'Invalid age',
+  }) {
     if (raw == null || raw.trim().isEmpty) return null;
     final value = int.tryParse(raw.trim());
-    if (value == null || value < 0 || value > 80) return 'Invalid age';
+    if (value == null || value < 0 || value > 80) return invalidMessage;
     return null;
   }
 }

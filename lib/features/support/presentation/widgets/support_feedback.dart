@@ -35,7 +35,10 @@ abstract final class SupportFeedback {
           children: [
             Text(l10n.supportEmpty, textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onCreate, child: Text(l10n.supportCreateTicket)),
+            FilledButton(
+              onPressed: onCreate,
+              child: Text(l10n.supportCreateTicket),
+            ),
           ],
         ),
       ),
@@ -50,7 +53,10 @@ abstract final class SupportFeedback {
     );
   }
 
-  static Widget submissionOverlay(BuildContext context, {required String message}) {
+  static Widget submissionOverlay(
+    BuildContext context, {
+    required String message,
+  }) {
     return ColoredBox(
       color: Colors.black26,
       child: Center(

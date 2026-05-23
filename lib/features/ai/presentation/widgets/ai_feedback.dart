@@ -12,7 +12,9 @@ abstract final class AiFeedback {
         (index) => Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: Align(
-            alignment: index.isEven ? Alignment.centerLeft : Alignment.centerRight,
+            alignment: index.isEven
+                ? Alignment.centerLeft
+                : Alignment.centerRight,
             child: Container(
               width: 220,
               height: 48,
@@ -37,7 +39,11 @@ abstract final class AiFeedback {
     );
   }
 
-  static Widget error(BuildContext context, {required String message, required VoidCallback onRetry}) {
+  static Widget error(
+    BuildContext context, {
+    required String message,
+    required VoidCallback onRetry,
+  }) {
     final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(

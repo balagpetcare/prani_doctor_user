@@ -22,7 +22,7 @@ class DashboardRepository implements DashboardRepositoryContract {
 
   Future<ApiResult<DashboardContext>>? _fetchInFlight;
 
-  static const _maxAttempts = 2;
+  static const _maxAttempts = 1;
 
   @override
   Future<DashboardContext?> readCachedDashboard() async {
@@ -56,7 +56,9 @@ class DashboardRepository implements DashboardRepositoryContract {
     }
   }
 
-  Future<ApiResult<DashboardContext>> _fetch({required bool forceRefresh}) async {
+  Future<ApiResult<DashboardContext>> _fetch({
+    required bool forceRefresh,
+  }) async {
     AppException? lastError;
 
     for (var attempt = 1; attempt <= _maxAttempts; attempt++) {

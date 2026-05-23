@@ -6,7 +6,11 @@ class NotificationFeedback {
 
   static Widget loading() => const NotificationSkeleton();
 
-  static Widget error(BuildContext context, {required VoidCallback onRetry, String? message}) {
+  static Widget error(
+    BuildContext context, {
+    required VoidCallback onRetry,
+    String? message,
+  }) {
     final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
@@ -14,11 +18,21 @@ class NotificationFeedback {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 16),
-            Text(message ?? l10n.notificationLoadError, textAlign: TextAlign.center),
+            Text(
+              message ?? l10n.notificationLoadError,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onRetry, child: Text(l10n.notificationRetry)),
+            FilledButton(
+              onPressed: onRetry,
+              child: Text(l10n.notificationRetry),
+            ),
           ],
         ),
       ),
@@ -46,7 +60,10 @@ class NotificationFeedback {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(12),
-      child: Text(l10n.notificationOfflineHint, style: Theme.of(context).textTheme.bodySmall),
+      child: Text(
+        l10n.notificationOfflineHint,
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
     );
   }
 }
@@ -60,10 +77,13 @@ class NotificationSkeleton extends StatelessWidget {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: 6,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (_, __) => Container(
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemBuilder: (_, _) => Container(
         height: 88,
-        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(12),
+        ),
       ),
     );
   }

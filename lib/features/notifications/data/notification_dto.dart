@@ -55,16 +55,19 @@ class MobileNotificationDto {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'type': type,
-        'title': title,
-        'body': body,
-        'readAt': readAt,
-        'createdAt': createdAt,
-        if (metadata != null) 'metadata': metadata,
-      };
+    'id': id,
+    'type': type,
+    'title': title,
+    'body': body,
+    'readAt': readAt,
+    'createdAt': createdAt,
+    if (metadata != null) 'metadata': metadata,
+  };
 
-  factory MobileNotificationDto.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory MobileNotificationDto.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     return MobileNotificationDto(
       id: json['id'] as String,
       type: json['type'] as String? ?? '',
@@ -122,8 +125,10 @@ class NotificationSettingsDto {
     return NotificationSettingsDto(
       pushEnabled: pushEnabled ?? this.pushEnabled,
       marketingEnabled: marketingEnabled ?? this.marketingEnabled,
-      treatmentReminderEnabled: treatmentReminderEnabled ?? this.treatmentReminderEnabled,
-      vaccineReminderEnabled: vaccineReminderEnabled ?? this.vaccineReminderEnabled,
+      treatmentReminderEnabled:
+          treatmentReminderEnabled ?? this.treatmentReminderEnabled,
+      vaccineReminderEnabled:
+          vaccineReminderEnabled ?? this.vaccineReminderEnabled,
       orderServiceEnabled: orderServiceEnabled ?? this.orderServiceEnabled,
       updatedAt: updatedAt,
       fromCache: fromCache ?? this.fromCache,
@@ -131,19 +136,23 @@ class NotificationSettingsDto {
   }
 
   Map<String, dynamic> toJson() => {
-        'pushEnabled': pushEnabled,
-        'marketingEnabled': marketingEnabled,
-        'treatmentReminderEnabled': treatmentReminderEnabled,
-        'vaccineReminderEnabled': vaccineReminderEnabled,
-        'orderServiceEnabled': orderServiceEnabled,
-        'updatedAt': updatedAt,
-      };
+    'pushEnabled': pushEnabled,
+    'marketingEnabled': marketingEnabled,
+    'treatmentReminderEnabled': treatmentReminderEnabled,
+    'vaccineReminderEnabled': vaccineReminderEnabled,
+    'orderServiceEnabled': orderServiceEnabled,
+    'updatedAt': updatedAt,
+  };
 
-  factory NotificationSettingsDto.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory NotificationSettingsDto.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     return NotificationSettingsDto(
       pushEnabled: json['pushEnabled'] as bool? ?? true,
       marketingEnabled: json['marketingEnabled'] as bool? ?? false,
-      treatmentReminderEnabled: json['treatmentReminderEnabled'] as bool? ?? true,
+      treatmentReminderEnabled:
+          json['treatmentReminderEnabled'] as bool? ?? true,
       vaccineReminderEnabled: json['vaccineReminderEnabled'] as bool? ?? true,
       orderServiceEnabled: json['orderServiceEnabled'] as bool? ?? true,
       updatedAt: json['updatedAt'] as String? ?? '',
@@ -178,10 +187,7 @@ class DeviceRegistrationResultDto {
 enum NotificationTimeGroup { today, yesterday, earlier }
 
 class NotificationGroupedSection {
-  const NotificationGroupedSection({
-    required this.group,
-    required this.items,
-  });
+  const NotificationGroupedSection({required this.group, required this.items});
 
   final NotificationTimeGroup group;
   final List<MobileNotificationDto> items;

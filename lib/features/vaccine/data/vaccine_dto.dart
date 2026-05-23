@@ -89,7 +89,11 @@ class VaccineRecord {
     );
   }
 
-  factory VaccineRecord.fromJson(Map<String, dynamic> json, {bool fromCache = false, bool pendingSync = false}) {
+  factory VaccineRecord.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+    bool pendingSync = false,
+  }) {
     return VaccineRecord(
       id: json['id'] as String,
       customerId: json['customerId'] as String? ?? '',
@@ -98,39 +102,50 @@ class VaccineRecord {
       farmRef: json['farmRef'] as String?,
       vaccineName: json['vaccineName'] as String? ?? '',
       vaccineType: json['vaccineType'] as String?,
-      scheduledDate: DateTime.tryParse(json['scheduledDate'] as String? ?? '') ?? DateTime.now(),
+      scheduledDate:
+          DateTime.tryParse(json['scheduledDate'] as String? ?? '') ??
+          DateTime.now(),
       administeredDate: json['administeredDate'] == null
           ? null
           : DateTime.tryParse(json['administeredDate'] as String),
-      nextDueDate: json['nextDueDate'] == null ? null : DateTime.tryParse(json['nextDueDate'] as String),
-      status: VaccineStatusApi.fromApi(json['status'] as String? ?? 'SCHEDULED'),
+      nextDueDate: json['nextDueDate'] == null
+          ? null
+          : DateTime.tryParse(json['nextDueDate'] as String),
+      status: VaccineStatusApi.fromApi(
+        json['status'] as String? ?? 'SCHEDULED',
+      ),
       batchNumber: json['batchNumber'] as String?,
       notes: json['notes'] as String?,
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+          DateTime.now(),
       pendingSync: pendingSync,
       fromCache: fromCache,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'customerId': customerId,
-        if (animalId != null) 'animalId': animalId,
-        if (animalName != null) 'animalName': animalName,
-        if (farmRef != null) 'farmRef': farmRef,
-        'vaccineName': vaccineName,
-        if (vaccineType != null) 'vaccineType': vaccineType,
-        'scheduledDate': _dateOnly(scheduledDate),
-        if (administeredDate != null) 'administeredDate': _dateOnly(administeredDate!),
-        if (nextDueDate != null) 'nextDueDate': _dateOnly(nextDueDate!),
-        'status': status.apiValue,
-        if (batchNumber != null) 'batchNumber': batchNumber,
-        if (notes != null) 'notes': notes,
-        'createdAt': createdAt.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
-        'pendingSync': pendingSync,
-      };
+    'id': id,
+    'customerId': customerId,
+    if (animalId != null) 'animalId': animalId,
+    if (animalName != null) 'animalName': animalName,
+    if (farmRef != null) 'farmRef': farmRef,
+    'vaccineName': vaccineName,
+    if (vaccineType != null) 'vaccineType': vaccineType,
+    'scheduledDate': _dateOnly(scheduledDate),
+    if (administeredDate != null)
+      'administeredDate': _dateOnly(administeredDate!),
+    if (nextDueDate != null) 'nextDueDate': _dateOnly(nextDueDate!),
+    'status': status.apiValue,
+    if (batchNumber != null) 'batchNumber': batchNumber,
+    if (notes != null) 'notes': notes,
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+    'pendingSync': pendingSync,
+  };
 }
 
 String _dateOnly(DateTime d) =>
@@ -160,30 +175,35 @@ class VaccineInput {
   final String? notes;
 
   Map<String, dynamic> toCreateJson() => {
-        if (farmRef != null && farmRef!.isNotEmpty) 'farmRef': farmRef,
-        if (animalId != null && animalId!.isNotEmpty) 'animalId': animalId,
-        'vaccineName': vaccineName.trim(),
-        if (vaccineType != null && vaccineType!.trim().isNotEmpty) 'vaccineType': vaccineType!.trim(),
-        'scheduledDate': _dateOnly(scheduledDate),
-        if (administeredDate != null) 'administeredDate': _dateOnly(administeredDate!),
-        if (nextDueDate != null) 'nextDueDate': _dateOnly(nextDueDate!),
-        if (batchNumber != null && batchNumber!.trim().isNotEmpty) 'batchNumber': batchNumber!.trim(),
-        if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
-      };
+    if (farmRef != null && farmRef!.isNotEmpty) 'farmRef': farmRef,
+    if (animalId != null && animalId!.isNotEmpty) 'animalId': animalId,
+    'vaccineName': vaccineName.trim(),
+    if (vaccineType != null && vaccineType!.trim().isNotEmpty)
+      'vaccineType': vaccineType!.trim(),
+    'scheduledDate': _dateOnly(scheduledDate),
+    if (administeredDate != null)
+      'administeredDate': _dateOnly(administeredDate!),
+    if (nextDueDate != null) 'nextDueDate': _dateOnly(nextDueDate!),
+    if (batchNumber != null && batchNumber!.trim().isNotEmpty)
+      'batchNumber': batchNumber!.trim(),
+    if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
+  };
 
   Map<String, dynamic> toPatchJson() => toCreateJson();
 
   Map<String, dynamic> toDraftJson() => {
-        'farmRef': farmRef,
-        'animalId': animalId,
-        'vaccineName': vaccineName,
-        'vaccineType': vaccineType,
-        'scheduledDate': _dateOnly(scheduledDate),
-        'administeredDate': administeredDate == null ? null : _dateOnly(administeredDate!),
-        'nextDueDate': nextDueDate == null ? null : _dateOnly(nextDueDate!),
-        'batchNumber': batchNumber,
-        'notes': notes,
-      };
+    'farmRef': farmRef,
+    'animalId': animalId,
+    'vaccineName': vaccineName,
+    'vaccineType': vaccineType,
+    'scheduledDate': _dateOnly(scheduledDate),
+    'administeredDate': administeredDate == null
+        ? null
+        : _dateOnly(administeredDate!),
+    'nextDueDate': nextDueDate == null ? null : _dateOnly(nextDueDate!),
+    'batchNumber': batchNumber,
+    'notes': notes,
+  };
 
   factory VaccineInput.fromDraftJson(Map<String, dynamic> json) {
     return VaccineInput(
@@ -191,11 +211,15 @@ class VaccineInput {
       animalId: json['animalId'] as String?,
       vaccineName: json['vaccineName'] as String? ?? '',
       vaccineType: json['vaccineType'] as String?,
-      scheduledDate: DateTime.tryParse(json['scheduledDate'] as String? ?? '') ?? DateTime.now(),
+      scheduledDate:
+          DateTime.tryParse(json['scheduledDate'] as String? ?? '') ??
+          DateTime.now(),
       administeredDate: json['administeredDate'] == null
           ? null
           : DateTime.tryParse(json['administeredDate'] as String),
-      nextDueDate: json['nextDueDate'] == null ? null : DateTime.tryParse(json['nextDueDate'] as String),
+      nextDueDate: json['nextDueDate'] == null
+          ? null
+          : DateTime.tryParse(json['nextDueDate'] as String),
       batchNumber: json['batchNumber'] as String?,
       notes: json['notes'] as String?,
     );
@@ -209,6 +233,7 @@ class VaccinePageResult {
     required this.page,
     required this.limit,
     required this.hasMore,
+    this.pendingSyncCount = 0,
     this.fromCache = false,
   });
 
@@ -217,7 +242,28 @@ class VaccinePageResult {
   final int page;
   final int limit;
   final bool hasMore;
+  final int pendingSyncCount;
   final bool fromCache;
+
+  VaccinePageResult copyWith({
+    List<VaccineRecord>? records,
+    int? total,
+    int? page,
+    int? limit,
+    bool? hasMore,
+    int? pendingSyncCount,
+    bool? fromCache,
+  }) {
+    return VaccinePageResult(
+      records: records ?? this.records,
+      total: total ?? this.total,
+      page: page ?? this.page,
+      limit: limit ?? this.limit,
+      hasMore: hasMore ?? this.hasMore,
+      pendingSyncCount: pendingSyncCount ?? this.pendingSyncCount,
+      fromCache: fromCache ?? this.fromCache,
+    );
+  }
 }
 
 class VaccineRemindersData {
@@ -233,7 +279,10 @@ class VaccineRemindersData {
   final VaccineRecord? nextDue;
   final bool fromCache;
 
-  factory VaccineRemindersData.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory VaccineRemindersData.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     final reminders = json['reminders'];
     if (reminders is! Map<String, dynamic>) {
       return const VaccineRemindersData(overdue: [], upcoming: []);
@@ -248,9 +297,53 @@ class VaccineRemindersData {
           .map((j) => VaccineRecord.fromJson(j, fromCache: fromCache))
           .toList(),
       nextDue: reminders['nextDue'] is Map<String, dynamic>
-          ? VaccineRecord.fromJson(reminders['nextDue'] as Map<String, dynamic>, fromCache: fromCache)
+          ? VaccineRecord.fromJson(
+              reminders['nextDue'] as Map<String, dynamic>,
+              fromCache: fromCache,
+            )
           : null,
       fromCache: fromCache,
     );
   }
+}
+
+class VaccineSummaryData {
+  const VaccineSummaryData({
+    required this.completed,
+    required this.upcoming,
+    required this.overdue,
+    required this.pendingSyncCount,
+    this.fromCache = false,
+  });
+
+  final int completed;
+  final int upcoming;
+  final int overdue;
+  final int pendingSyncCount;
+  final bool fromCache;
+
+  static VaccineSummaryData fromSources({
+    required List<VaccineRecord> allRecords,
+    required VaccineRemindersData reminders,
+    bool fromCache = false,
+  }) {
+    final completed = allRecords
+        .where((r) => r.status == VaccineStatus.completed)
+        .length;
+    final pending = allRecords.where((r) => r.pendingSync).length;
+    return VaccineSummaryData(
+      completed: completed,
+      upcoming: reminders.upcoming.length,
+      overdue: reminders.overdue.length,
+      pendingSyncCount: pending,
+      fromCache: fromCache,
+    );
+  }
+}
+
+class VaccineCalendarDay {
+  const VaccineCalendarDay({required this.date, required this.records});
+
+  final DateTime date;
+  final List<VaccineRecord> records;
 }

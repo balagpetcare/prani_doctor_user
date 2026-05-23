@@ -10,6 +10,7 @@ class AuthPreferences {
   final CacheStore _store;
 
   static const _welcomeSeenKey = 'auth.welcomeSeen';
+  static const _onboardingCompletedKey = 'onboarding.completed';
   static const _rememberSessionKey = 'auth.rememberSession';
   static const _lastPhoneKey = 'auth.lastPhone';
 
@@ -18,6 +19,13 @@ class AuthPreferences {
   }
 
   Future<void> setWelcomeSeen(bool value) => _store.put(_welcomeSeenKey, value);
+
+  Future<bool> isOnboardingCompleted() async {
+    return _store.read<bool>(_onboardingCompletedKey) ?? false;
+  }
+
+  Future<void> setOnboardingCompleted(bool value) =>
+      _store.put(_onboardingCompletedKey, value);
 
   Future<bool> rememberSession() async {
     return _store.read<bool>(_rememberSessionKey) ?? true;

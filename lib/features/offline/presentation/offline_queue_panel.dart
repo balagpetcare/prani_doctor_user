@@ -22,17 +22,20 @@ class OfflineQueuePanel extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(l10n.offlineSyncTitle, style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              l10n.offlineSyncTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             pendingAsync.when(
               loading: () => const LinearProgressIndicator(),
-              error: (_, __) => Text(l10n.offlineSyncError),
+              error: (_, _) => Text(l10n.offlineSyncError),
               data: (count) => Text(l10n.offlinePendingCount(count)),
             ),
             const SizedBox(height: 12),
             outboxAsync.when(
               loading: () => const SizedBox.shrink(),
-              error: (_, __) => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
               data: (items) {
                 if (items.isEmpty) {
                   return Text(l10n.offlineQueueEmpty);
@@ -62,7 +65,9 @@ class OfflineQueuePanel extends ConsumerWidget {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () async {
-                      await ref.read(syncCoordinatorProvider).syncNow(foreground: true);
+                      await ref
+                          .read(syncCoordinatorProvider)
+                          .syncNow(foreground: true);
                       ref.invalidate(_localOutboxItemsProvider);
                       ref.invalidate(offlineSyncStatusProvider);
                       ref.invalidate(localOutboxCountProvider);
@@ -74,7 +79,9 @@ class OfflineQueuePanel extends ConsumerWidget {
                 Expanded(
                   child: FilledButton.tonal(
                     onPressed: () async {
-                      await ref.read(syncCoordinatorProvider).retryDead(includeDead: true);
+                      await ref
+                          .read(syncCoordinatorProvider)
+                          .retryDead(includeDead: true);
                       ref.invalidate(_localOutboxItemsProvider);
                       ref.invalidate(offlineSyncStatusProvider);
                       ref.invalidate(localOutboxCountProvider);

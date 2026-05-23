@@ -26,7 +26,7 @@ class FeedEntryCard extends StatelessWidget {
           ].join(' · '),
         ),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () => context.push(AppRoutes.feedEdit(record.id)),
+        onTap: () => context.push(AppRoutes.feedDetail(record.id)),
       ),
     );
   }

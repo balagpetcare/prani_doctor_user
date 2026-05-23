@@ -17,34 +17,55 @@ class MilkChartsPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.milkChartsTitle)),
       body: chartsAsync.when(
-        loading: () => MilkFeedback.loading(),
+        loading: MilkFeedback.loading,
         error: (e, _) => MilkFeedback.error(
           context,
           message: e.toString(),
           onRetry: () => ref.invalidate(milkChartsProvider),
         ),
         data: (charts) {
-          final dailyLabels = charts.dailyProduction.map((d) => d.date.substring(5)).toList();
-          final dailyValues = charts.dailyProduction.map((d) => d.totalLiters).toList();
-          final weeklyLabels = charts.weeklyTrend.map((w) => w.label.substring(5)).toList();
-          final weeklyValues = charts.weeklyTrend.map((w) => w.totalLiters).toList();
-          final monthlyLabels = charts.monthlyTrend.map((m) => m.label).toList();
-          final monthlyValues = charts.monthlyTrend.map((m) => m.totalLiters).toList();
+          final dailyLabels = charts.dailyProduction
+              .map((d) => d.date.substring(5))
+              .toList();
+          final dailyValues = charts.dailyProduction
+              .map((d) => d.totalLiters)
+              .toList();
+          final weeklyLabels = charts.weeklyTrend
+              .map((w) => w.label.substring(5))
+              .toList();
+          final weeklyValues = charts.weeklyTrend
+              .map((w) => w.totalLiters)
+              .toList();
+          final monthlyLabels = charts.monthlyTrend
+              .map((m) => m.label)
+              .toList();
+          final monthlyValues = charts.monthlyTrend
+              .map((m) => m.totalLiters)
+              .toList();
 
           return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(milkChartsProvider),
+            onRefresh: () async {
+              ref.invalidate(milkChartsProvider);
+              await ref.read(milkChartsProvider.future);
+            },
             child: ListView(
               padding: const EdgeInsets.all(16),
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 if (charts.fromCache) MilkFeedback.offlineHint(context),
-                Text(l10n.milkDailyProductionTitle, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  l10n.milkDailyProductionTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 if (dailyValues.isEmpty)
                   Text(l10n.milkEmpty)
                 else
                   MilkSimpleBarChart(labels: dailyLabels, values: dailyValues),
                 const SizedBox(height: 24),
-                Text(l10n.milkWeeklyTrendTitle, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  l10n.milkWeeklyTrendTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 if (weeklyValues.isEmpty)
                   Text(l10n.milkEmpty)
                 else
@@ -54,7 +75,10 @@ class MilkChartsPage extends ConsumerWidget {
                     barColor: Theme.of(context).colorScheme.tertiary,
                   ),
                 const SizedBox(height: 24),
-                Text(l10n.milkMonthlyTrendTitle, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  l10n.milkMonthlyTrendTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 if (monthlyValues.isEmpty)
                   Text(l10n.milkEmpty)
                 else
@@ -64,7 +88,10 @@ class MilkChartsPage extends ConsumerWidget {
                     barColor: Theme.of(context).colorScheme.secondary,
                   ),
                 const SizedBox(height: 24),
-                Text(l10n.milkSessionSplitTitle, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  l10n.milkSessionSplitTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
                 MilkSessionSplitChart(
                   morningLiters: charts.morningLiters,

@@ -10,4 +10,6 @@ abstract class ProfileRepositoryContract {
   Future<ApiResult<String>> uploadProfilePhoto(String filePath);
 
   Future<MobileMeAddressDto?> readCachedAddress();
+
+  Future<MobileMeDto?> readCachedProfile();
 }

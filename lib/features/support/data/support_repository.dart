@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/api_result.dart';
 import '../../../core/error/app_exception.dart';
-import '../../../core/network/api_envelope.dart';
 import '../../../core/network/dio_helpers.dart';
 import '../../../core/network/dio_provider.dart';
 import '../../../core/offline/local_cache_contract.dart';
 import '../../../core/offline/network_errors.dart';
+import '../../shared/upload/services/upload_service.dart';
 import '../../offline/data/local_cache_service.dart';
 import '../../offline/data/outbox_item.dart';
 import '../../offline/data/outbox_service.dart';
@@ -17,11 +17,12 @@ import 'support_dto.dart';
 import 'support_repository_contract.dart';
 
 class SupportRepository implements SupportRepositoryContract {
-  SupportRepository(this._dio, this._cache, this._outbox);
+  SupportRepository(this._dio, this._cache, this._outbox, this._uploads);
 
   final Dio _dio;
   final LocalCacheService _cache;
   final OutboxService _outbox;
+  final UploadService _uploads;
 
   Future<ApiResult<SupportTicketPageResult>>? _listInFlight;
   Future<ApiResult<SupportHelpData>>? _helpInFlight;
@@ -41,17 +42,13 @@ class SupportRepository implements SupportRepositoryContract {
   }
 
   Future<void> _writeTicketsCache(SupportTicketPageResult page) async {
-    await _cache.write(
-      LocalCacheContract.supportTicketsListKey,
-      {
-        'tickets': page.tickets.map((t) => t.toJson()).toList(),
-        'total': page.total,
-        'page': page.page,
-        'limit': page.limit,
-        'hasMore': page.hasMore,
-      },
-      LocalCacheContract.profileTtl,
-    );
+    await _cache.write(LocalCacheContract.supportTicketsListKey, {
+      'tickets': page.tickets.map((t) => t.toJson()).toList(),
+      'total': page.total,
+      'page': page.page,
+      'limit': page.limit,
+      'hasMore': page.hasMore,
+    }, LocalCacheContract.profileTtl);
   }
 
   @override
@@ -76,10 +73,28 @@ class SupportRepository implements SupportRepositoryContract {
   Future<SupportHelpData?> readCachedHelp() async {
     final cached = await _cache.read(LocalCacheContract.supportHelpKey);
     if (cached == null) return null;
-    return SupportHelpData.fromJson(cached, fromCache: true);
+    return SupportHelpData.fromJson(
+      Map<String, dynamic>.from(cached),
+      fromCache: true,
+    );
   }
 
-  Future<void> _enqueue(OutboxKind kind, Map<String, dynamic> payload, String keySuffix) async {
+  @override
+  Future<SupportTicketDetail?> readCachedTicketDetail(String id) async {
+    final cached = await _cache.read(
+      LocalCacheContract.supportTicketDetailKey(id),
+    );
+    if (cached == null) return null;
+    final raw = cached['ticket'];
+    if (raw is! Map<String, dynamic>) return null;
+    return SupportTicketDetail.fromJson(raw, fromCache: true);
+  }
+
+  Future<void> _enqueue(
+    OutboxKind kind,
+    Map<String, dynamic> payload,
+    String keySuffix,
+  ) async {
     final sequence = (await _outbox.listAll()).length + 1;
     await _outbox.enqueue(
       OutboxItem(
@@ -104,7 +119,9 @@ class SupportRepository implements SupportRepositoryContract {
       createdAt: ticket.createdAt,
       updatedAt: ticket.updatedAt,
       closedAt: ticket.closedAt,
-      lastMessagePreview: ticket.messages.isNotEmpty ? ticket.messages.last.body : ticket.description,
+      lastMessagePreview: ticket.messages.isNotEmpty
+          ? ticket.messages.last.body
+          : ticket.description,
       attachmentCount: ticket.attachments.length,
       pendingSync: ticket.pendingSync,
     );
@@ -136,7 +153,9 @@ class SupportRepository implements SupportRepositoryContract {
     int limit = 20,
     bool forceRefresh = false,
   }) async {
-    if (!forceRefresh && page == 1 && _listInFlight != null) return _listInFlight!;
+    if (!forceRefresh && page == 1 && _listInFlight != null) {
+      return _listInFlight!;
+    }
     final future = _loadList(
       status: status,
       category: category,
@@ -170,7 +189,11 @@ class SupportRepository implements SupportRepositoryContract {
         if (priority != null) 'priority': priority.apiValue,
         if (search.trim().isNotEmpty) 'search': search.trim(),
       };
-      final data = await getJson(_dio, SupportApiPaths.tickets, queryParameters: query);
+      final data = await getJson(
+        _dio,
+        SupportApiPaths.tickets,
+        queryParameters: query,
+      );
       final pageResult = _parseListPage(data);
       if (page == 1) await _writeTicketsCache(pageResult);
       return ApiResult.success(pageResult);
@@ -189,7 +212,9 @@ class SupportRepository implements SupportRepositoryContract {
       final data = await getJson(_dio, SupportApiPaths.ticket(id));
       final raw = data['ticket'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Ticket not found'));
+        return const ApiResult.failure(
+          AppException(message: 'Ticket not found'),
+        );
       }
       final ticket = SupportTicketDetail.fromJson(raw);
       await _cache.write(
@@ -199,10 +224,15 @@ class SupportRepository implements SupportRepositoryContract {
       );
       return ApiResult.success(ticket);
     } on AppException catch (e) {
-      final cached = await _cache.read(LocalCacheContract.supportTicketDetailKey(id));
+      final cached = await _cache.read(
+        LocalCacheContract.supportTicketDetailKey(id),
+      );
       if (cached != null) {
         return ApiResult.success(
-          SupportTicketDetail.fromJson(cached['ticket'] as Map<String, dynamic>, fromCache: true),
+          SupportTicketDetail.fromJson(
+            cached['ticket'] as Map<String, dynamic>,
+            fromCache: true,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -210,7 +240,9 @@ class SupportRepository implements SupportRepositoryContract {
   }
 
   @override
-  Future<ApiResult<SupportTicketDetail>> createTicket(SupportTicketInput input) async {
+  Future<ApiResult<SupportTicketDetail>> createTicket(
+    SupportTicketInput input,
+  ) async {
     final body = input.toCreateJson();
     final tempId = 'local-support-${DateTime.now().millisecondsSinceEpoch}';
     final optimistic = SupportTicketDetail(
@@ -239,14 +271,20 @@ class SupportRepository implements SupportRepositoryContract {
       final data = await postJson(_dio, SupportApiPaths.tickets, body);
       final raw = data['ticket'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid create response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid create response'),
+        );
       }
       final ticket = SupportTicketDetail.fromJson(raw);
       await _optimisticUpsertTicket(ticket);
       return ApiResult.success(ticket);
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
-        await _enqueue(OutboxKind.supportTicketCreate, input.toOutboxJson(), tempId);
+        await _enqueue(
+          OutboxKind.supportTicketCreate,
+          input.toOutboxJson(),
+          tempId,
+        );
         await _optimisticUpsertTicket(optimistic);
         return ApiResult.success(optimistic);
       }
@@ -258,22 +296,35 @@ class SupportRepository implements SupportRepositoryContract {
   Future<ApiResult<SupportTicketDetail>> reply(SupportReplyInput input) async {
     final body = {
       'body': input.body.trim(),
-      if (input.attachmentFileIds.isNotEmpty) 'attachmentFileIds': input.attachmentFileIds,
+      if (input.attachmentFileIds.isNotEmpty)
+        'attachmentFileIds': input.attachmentFileIds,
     };
 
     try {
-      final data = await postJson(_dio, SupportApiPaths.reply(input.ticketId), body);
+      final data = await postJson(
+        _dio,
+        SupportApiPaths.reply(input.ticketId),
+        body,
+      );
       final raw = data['ticket'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid reply response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid reply response'),
+        );
       }
       final ticket = SupportTicketDetail.fromJson(raw);
       await _optimisticUpsertTicket(ticket);
       return ApiResult.success(ticket);
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
-        await _enqueue(OutboxKind.supportTicketReply, input.toJson(), input.ticketId);
-        final cached = await _cache.read(LocalCacheContract.supportTicketDetailKey(input.ticketId));
+        await _enqueue(
+          OutboxKind.supportTicketReply,
+          input.toJson(),
+          input.ticketId,
+        );
+        final cached = await _cache.read(
+          LocalCacheContract.supportTicketDetailKey(input.ticketId),
+        );
         if (cached != null) {
           final existing = SupportTicketDetail.fromJson(
             cached['ticket'] as Map<String, dynamic>,
@@ -321,25 +372,33 @@ class SupportRepository implements SupportRepositoryContract {
     return _patchStatus(id, SupportTicketStatus.open);
   }
 
-  Future<ApiResult<SupportTicketDetail>> _patchStatus(String id, SupportTicketStatus status) async {
+  Future<ApiResult<SupportTicketDetail>> _patchStatus(
+    String id,
+    SupportTicketStatus status,
+  ) async {
     final apiStatus = status == SupportTicketStatus.closed ? 'CLOSED' : 'OPEN';
     try {
-      final data = await patchJson(_dio, SupportApiPaths.ticket(id), {'status': apiStatus});
+      final data = await patchJson(_dio, SupportApiPaths.ticket(id), {
+        'status': apiStatus,
+      });
       final raw = data['ticket'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid patch response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid patch response'),
+        );
       }
       final ticket = SupportTicketDetail.fromJson(raw);
       await _optimisticUpsertTicket(ticket);
       return ApiResult.success(ticket);
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
-        await _enqueue(
-          OutboxKind.supportTicketPatch,
-          {'id': id, 'status': apiStatus},
-          id,
+        await _enqueue(OutboxKind.supportTicketPatch, {
+          'id': id,
+          'status': apiStatus,
+        }, id);
+        final cached = await _cache.read(
+          LocalCacheContract.supportTicketDetailKey(id),
         );
-        final cached = await _cache.read(LocalCacheContract.supportTicketDetailKey(id));
         if (cached != null) {
           final existing = SupportTicketDetail.fromJson(
             cached['ticket'] as Map<String, dynamic>,
@@ -354,7 +413,9 @@ class SupportRepository implements SupportRepositoryContract {
             status: status,
             createdAt: existing.createdAt,
             updatedAt: DateTime.now(),
-            closedAt: status == SupportTicketStatus.closed ? DateTime.now() : null,
+            closedAt: status == SupportTicketStatus.closed
+                ? DateTime.now()
+                : null,
             pendingSync: true,
             fromCache: true,
             messages: existing.messages,
@@ -370,7 +431,9 @@ class SupportRepository implements SupportRepositoryContract {
   }
 
   @override
-  Future<ApiResult<SupportHelpData>> getHelp({bool forceRefresh = false}) async {
+  Future<ApiResult<SupportHelpData>> getHelp({
+    bool forceRefresh = false,
+  }) async {
     if (!forceRefresh && _helpInFlight != null) return _helpInFlight!;
     final future = _loadHelp();
     _helpInFlight = future;
@@ -403,22 +466,22 @@ class SupportRepository implements SupportRepositoryContract {
     String filePath, {
     void Function(int sent, int total)? onProgress,
   }) async {
-    try {
-      final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(filePath),
-      });
-      final response = await _dio.post<dynamic>(
-        SupportApiPaths.upload,
-        data: formData,
-        onSendProgress: onProgress,
-      );
-      final data = ApiEnvelope.unwrapData(response);
-      return ApiResult.success(SupportUploadResult.fromJson(data, localPath: filePath));
-    } on AppException catch (e) {
-      return ApiResult.failure(e);
-    } on DioException catch (e) {
-      return ApiResult.failure(ApiEnvelope.fromDioException(e));
-    }
+    final result = await _uploads.uploadSupportAttachment(
+      filePath,
+      onProgress: onProgress,
+    );
+    return result.when(
+      success: (upload) => ApiResult.success(
+        SupportUploadResult.fromJson({
+          'fileId': upload.fileId,
+          'downloadUrl': upload.url,
+          'originalName': upload.originalName ?? 'file',
+          'mimeType': upload.mimeType,
+          'sizeBytes': upload.sizeBytes,
+        }, localPath: filePath),
+      ),
+      failure: ApiResult.failure,
+    );
   }
 }
 
@@ -427,5 +490,6 @@ final supportRepositoryProvider = Provider<SupportRepository>((ref) {
     ref.watch(dioProvider),
     ref.watch(localCacheServiceProvider),
     ref.watch(outboxServiceProvider),
+    ref.watch(uploadServiceProvider),
   );
 });

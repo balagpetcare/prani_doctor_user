@@ -17,7 +17,7 @@ class MilkDailySummaryPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.milkSummaryTitle)),
       body: summaryAsync.when(
-        loading: () => MilkFeedback.loading(),
+        loading: MilkFeedback.loading,
         error: (e, _) => MilkFeedback.error(
           context,
           message: e.toString(),
@@ -25,7 +25,10 @@ class MilkDailySummaryPage extends ConsumerWidget {
         ),
         data: (summary) {
           return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(milkSummaryProvider),
+            onRefresh: () async {
+              ref.invalidate(milkSummaryProvider);
+              await ref.read(milkSummaryProvider.future);
+            },
             child: ListView(
               padding: const EdgeInsets.all(16),
               physics: const AlwaysScrollableScrollPhysics(),
@@ -35,8 +38,8 @@ class MilkDailySummaryPage extends ConsumerWidget {
                   children: [
                     IconButton(
                       onPressed: () {
-                        ref.read(milkSummaryDateProvider.notifier).state =
-                            date.subtract(const Duration(days: 1));
+                        ref.read(milkSummaryDateProvider.notifier).state = date
+                            .subtract(const Duration(days: 1));
                         ref.invalidate(milkSummaryProvider);
                       },
                       icon: const Icon(Icons.chevron_left),
@@ -49,7 +52,10 @@ class MilkDailySummaryPage extends ConsumerWidget {
                       ),
                     ),
                     IconButton(
-                      onPressed: date.isBefore(DateTime.now().subtract(const Duration(days: 1)))
+                      onPressed:
+                          date.isBefore(
+                            DateTime.now().subtract(const Duration(days: 1)),
+                          )
                           ? () {
                               ref.read(milkSummaryDateProvider.notifier).state =
                                   date.add(const Duration(days: 1));
@@ -66,21 +72,31 @@ class MilkDailySummaryPage extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(l10n.milkTodayTotal, style: Theme.of(context).textTheme.titleMedium),
+                        Text(
+                          l10n.milkTodayTotal,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                         const SizedBox(height: 8),
                         Text(
                           l10n.milkLiters(summary.totalLiters),
                           style: Theme.of(context).textTheme.headlineMedium,
                         ),
                         const SizedBox(height: 8),
-                        Text('${l10n.milkSessionMorning}: ${summary.morningLiters.toStringAsFixed(2)} L'),
-                        Text('${l10n.milkSessionEvening}: ${summary.eveningLiters.toStringAsFixed(2)} L'),
+                        Text(
+                          '${l10n.milkSessionMorning}: ${summary.morningLiters.toStringAsFixed(2)} L',
+                        ),
+                        Text(
+                          '${l10n.milkSessionEvening}: ${summary.eveningLiters.toStringAsFixed(2)} L',
+                        ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                Text(l10n.milkPerAnimalTitle, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  l10n.milkPerAnimalTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 if (summary.byAnimal.isEmpty)
                   Text(l10n.milkEmpty)
                 else
@@ -94,7 +110,10 @@ class MilkDailySummaryPage extends ConsumerWidget {
                     ),
                   ),
                 const SizedBox(height: 16),
-                Text(l10n.milkPerDayTitle, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  l10n.milkPerDayTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 if (summary.byDay.isEmpty)
                   Text(l10n.milkEmpty)
                 else

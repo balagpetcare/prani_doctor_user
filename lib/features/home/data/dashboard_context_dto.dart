@@ -1,10 +1,7 @@
 /// Dashboard routing context from `GET /api/mobile/profile/dashboard-context`.
+import '../../../core/util/safe_numeric.dart';
 
-enum DashboardType {
-  general,
-  aiTechnician,
-  doctor,
-}
+enum DashboardType { general, aiTechnician, doctor }
 
 DashboardType dashboardTypeFromApiString(Object? raw) {
   if (raw is! String) return DashboardType.general;
@@ -37,15 +34,17 @@ class DashboardContextRating {
     final avg = json['average'];
     final c = json['count'];
     return DashboardContextRating(
-      average: avg is num ? avg.toDouble() : (avg is String ? double.tryParse(avg) : null),
+      average: avg is num
+          ? avg.toDouble()
+          : (avg is String ? double.tryParse(avg) : null),
       count: c is int ? c : int.tryParse('$c') ?? 0,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        if (average != null) 'average': average,
-        'count': count,
-      };
+    if (average != null) 'average': average,
+    'count': count,
+  };
 }
 
 class DashboardContextUser {
@@ -77,12 +76,12 @@ class DashboardContextUser {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'phone': phone,
-        'email': email,
-        if (avatarUrl != null) 'avatarUrl': avatarUrl,
-      };
+    'id': id,
+    'name': name,
+    'phone': phone,
+    'email': email,
+    if (avatarUrl != null) 'avatarUrl': avatarUrl,
+  };
 }
 
 class FarmSummary {
@@ -115,11 +114,12 @@ class FarmSummary {
   }
 
   Map<String, dynamic> toJson() => {
-        'animalCount': animalCount,
-        'activeAnimalCount': activeAnimalCount,
-        if (primaryVillageId != null) 'primaryVillageId': primaryVillageId,
-        if (primaryVillageLabelBn != null) 'primaryVillageLabelBn': primaryVillageLabelBn,
-      };
+    'animalCount': animalCount,
+    'activeAnimalCount': activeAnimalCount,
+    if (primaryVillageId != null) 'primaryVillageId': primaryVillageId,
+    if (primaryVillageLabelBn != null)
+      'primaryVillageLabelBn': primaryVillageLabelBn,
+  };
 }
 
 class DashboardContextAiTechnician {
@@ -145,14 +145,14 @@ class DashboardContextAiTechnician {
 
   factory DashboardContextAiTechnician.fromJson(Object? json) {
     if (json is! Map<String, dynamic>) {
-      return DashboardContextAiTechnician(
+      return const DashboardContextAiTechnician(
         id: '',
         status: '',
-        serviceAreas: const [],
+        serviceAreas: [],
         todayRequestCount: 0,
         pendingRequestCount: 0,
         completedServiceCount: 0,
-        rating: const DashboardContextRating(average: null, count: 0),
+        rating: DashboardContextRating(average: null, count: 0),
       );
     }
     final areas = json['serviceAreas'];
@@ -175,15 +175,15 @@ class DashboardContextAiTechnician {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'status': status,
-        if (displayName != null) 'displayName': displayName,
-        'serviceAreas': serviceAreas,
-        'todayRequestCount': todayRequestCount,
-        'pendingRequestCount': pendingRequestCount,
-        'completedServiceCount': completedServiceCount,
-        'rating': rating.toJson(),
-      };
+    'id': id,
+    'status': status,
+    if (displayName != null) 'displayName': displayName,
+    'serviceAreas': serviceAreas,
+    'todayRequestCount': todayRequestCount,
+    'pendingRequestCount': pendingRequestCount,
+    'completedServiceCount': completedServiceCount,
+    'rating': rating.toJson(),
+  };
 }
 
 class DashboardContext {
@@ -206,8 +206,7 @@ class DashboardContext {
   final bool fromCache;
 
   bool get isEmpty =>
-      user.id.isEmpty &&
-      (farmSummary == null || farmSummary!.animalCount == 0);
+      user.id.isEmpty && (farmSummary == null || farmSummary!.animalCount == 0);
 
   DashboardContext copyWith({bool? fromCache}) {
     return DashboardContext(
@@ -247,7 +246,8 @@ class DashboardContext {
         : null;
     if (appStatusStr == null && rawDashStr == 'AI_TECHNICIAN_REJECTED') {
       appStatusStr = 'REJECTED';
-    } else if (appStatusStr == null && rawDashStr == 'AI_TECHNICIAN_SUSPENDED') {
+    } else if (appStatusStr == null &&
+        rawDashStr == 'AI_TECHNICIAN_SUSPENDED') {
       appStatusStr = 'SUSPENDED';
     } else if (appStatusStr == null && rawDashStr == 'AI_TECHNICIAN_PENDING') {
       appStatusStr = 'UNDER_REVIEW';
@@ -258,8 +258,9 @@ class DashboardContext {
       dashboardType: type,
       user: DashboardContextUser.fromJson(json['user']),
       farmSummary: farmRaw == null ? null : FarmSummary.fromJson(farmRaw),
-      aiTechnician:
-          aiRaw == null ? null : DashboardContextAiTechnician.fromJson(aiRaw),
+      aiTechnician: aiRaw == null
+          ? null
+          : DashboardContextAiTechnician.fromJson(aiRaw),
       hasAiTechnicianApplication: hasAi,
       aiTechnicianApplicationStatus: appStatusStr,
       fromCache: fromCache,
@@ -267,14 +268,14 @@ class DashboardContext {
   }
 
   Map<String, dynamic> toJson() => {
-        'dashboardType': _dashboardTypeApiValue(dashboardType),
-        'user': user.toJson(),
-        if (farmSummary != null) 'farmSummary': farmSummary!.toJson(),
-        if (aiTechnician != null) 'aiTechnician': aiTechnician!.toJson(),
-        'hasAiTechnicianApplication': hasAiTechnicianApplication,
-        if (aiTechnicianApplicationStatus != null)
-          'aiTechnicianApplicationStatus': aiTechnicianApplicationStatus,
-      };
+    'dashboardType': _dashboardTypeApiValue(dashboardType),
+    'user': user.toJson(),
+    if (farmSummary != null) 'farmSummary': farmSummary!.toJson(),
+    if (aiTechnician != null) 'aiTechnician': aiTechnician!.toJson(),
+    'hasAiTechnicianApplication': hasAiTechnicianApplication,
+    if (aiTechnicianApplicationStatus != null)
+      'aiTechnicianApplicationStatus': aiTechnicianApplicationStatus,
+  };
 }
 
 String _dashboardTypeApiValue(DashboardType type) {
@@ -305,6 +306,6 @@ String? _nullableString(Object? v) {
 
 int _int(Object? v) {
   if (v is int) return v;
-  if (v is num) return v.round();
+  if (v is num) return safeInt(v);
   return int.tryParse('$v') ?? 0;
 }

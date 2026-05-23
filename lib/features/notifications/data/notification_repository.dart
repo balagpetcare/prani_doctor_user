@@ -34,30 +34,32 @@ class NotificationRepository implements NotificationRepositoryContract {
   }
 
   Future<void> _writeListCache(NotificationListResultDto page) async {
-    await _cache.write(
-      LocalCacheContract.notificationsListKey,
-      {
-        'items': page.items.map((i) => i.toJson()).toList(),
-        'total': page.total,
-      },
-      LocalCacheContract.profileTtl,
-    );
+    await _cache.write(LocalCacheContract.notificationsListKey, {
+      'items': page.items.map((i) => i.toJson()).toList(),
+      'total': page.total,
+    }, LocalCacheContract.profileTtl);
   }
 
   @override
   Future<NotificationListResultDto?> readCachedList() async {
-    return _parseListCache(await _cache.read(LocalCacheContract.notificationsListKey));
+    return _parseListCache(
+      await _cache.read(LocalCacheContract.notificationsListKey),
+    );
   }
 
   @override
   Future<int?> readCachedUnreadCount() async {
-    final cached = await _cache.read(LocalCacheContract.notificationsUnreadCountKey);
+    final cached = await _cache.read(
+      LocalCacheContract.notificationsUnreadCountKey,
+    );
     return cached?['count'] as int?;
   }
 
   @override
   Future<NotificationSettingsDto?> readCachedSettings() async {
-    final cached = await _cache.read(LocalCacheContract.notificationSettingsKey);
+    final cached = await _cache.read(
+      LocalCacheContract.notificationSettingsKey,
+    );
     if (cached == null) return null;
     return NotificationSettingsDto.fromJson(cached, fromCache: true);
   }
@@ -69,8 +71,14 @@ class NotificationRepository implements NotificationRepositoryContract {
     bool unreadOnly = false,
     bool forceRefresh = false,
   }) async {
-    if (!forceRefresh && offset == 0 && _listInFlight != null) return _listInFlight!;
-    final future = _loadList(limit: limit, offset: offset, unreadOnly: unreadOnly);
+    if (!forceRefresh && offset == 0 && _listInFlight != null) {
+      return _listInFlight!;
+    }
+    final future = _loadList(
+      limit: limit,
+      offset: offset,
+      unreadOnly: unreadOnly,
+    );
     if (offset == 0) _listInFlight = future;
     try {
       return await future;
@@ -135,9 +143,15 @@ class NotificationRepository implements NotificationRepositoryContract {
     final cached = await readCachedList();
     if (cached == null) return;
     final updated = cached.items
-        .map((n) => n.id == id ? n.copyWith(readAt: DateTime.now().toIso8601String()) : n)
+        .map(
+          (n) => n.id == id
+              ? n.copyWith(readAt: DateTime.now().toIso8601String())
+              : n,
+        )
         .toList();
-    await _writeListCache(NotificationListResultDto(items: updated, total: cached.total));
+    await _writeListCache(
+      NotificationListResultDto(items: updated, total: cached.total),
+    );
   }
 
   Future<void> _optimisticRemove(String id) async {
@@ -156,7 +170,9 @@ class NotificationRepository implements NotificationRepositoryContract {
       final data = await patchJson(_dio, NotificationApiPaths.markRead(id), {});
       final notification = data['notification'];
       if (notification is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid response'),
+        );
       }
       return ApiResult.success(MobileNotificationDto.fromJson(notification));
     } on AppException catch (e) {
@@ -171,9 +187,15 @@ class NotificationRepository implements NotificationRepositoryContract {
       final cached = await readCachedList();
       if (cached != null) {
         final updated = cached.items
-            .map((n) => n.copyWith(readAt: n.readAt ?? DateTime.now().toIso8601String()))
+            .map(
+              (n) => n.copyWith(
+                readAt: n.readAt ?? DateTime.now().toIso8601String(),
+              ),
+            )
             .toList();
-        await _writeListCache(NotificationListResultDto(items: updated, total: cached.total));
+        await _writeListCache(
+          NotificationListResultDto(items: updated, total: cached.total),
+        );
       }
       await _cache.write(
         LocalCacheContract.notificationsUnreadCountKey,
@@ -198,12 +220,16 @@ class NotificationRepository implements NotificationRepositoryContract {
   }
 
   @override
-  Future<ApiResult<NotificationSettingsDto>> getSettings({bool forceRefresh = false}) async {
+  Future<ApiResult<NotificationSettingsDto>> getSettings({
+    bool forceRefresh = false,
+  }) async {
     try {
       final data = await getJson(_dio, NotificationApiPaths.settings);
       final raw = data['settings'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid settings response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid settings response'),
+        );
       }
       final settings = NotificationSettingsDto.fromJson(raw);
       await _cache.write(
@@ -220,17 +246,25 @@ class NotificationRepository implements NotificationRepositoryContract {
   }
 
   @override
-  Future<ApiResult<NotificationSettingsDto>> saveSettings(NotificationSettingsDto settings) async {
+  Future<ApiResult<NotificationSettingsDto>> saveSettings(
+    NotificationSettingsDto settings,
+  ) async {
     await _cache.write(
       LocalCacheContract.notificationSettingsKey,
       settings.toJson(),
       LocalCacheContract.profileTtl,
     );
     try {
-      final data = await putJson(_dio, NotificationApiPaths.settings, settings.toJson());
+      final data = await putJson(
+        _dio,
+        NotificationApiPaths.settings,
+        settings.toJson(),
+      );
       final raw = data['settings'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid settings response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid settings response'),
+        );
       }
       final saved = NotificationSettingsDto.fromJson(raw);
       await _cache.write(
@@ -261,7 +295,8 @@ class DeviceRepository {
         'deviceKey': deviceKey,
         'platform': platform,
         if (pushToken != null && pushToken.isNotEmpty) 'pushToken': pushToken,
-        if (appVersion != null && appVersion.isNotEmpty) 'appVersion': appVersion,
+        if (appVersion != null && appVersion.isNotEmpty)
+          'appVersion': appVersion,
       });
       return ApiResult.success(DeviceRegistrationResultDto.fromJson(data));
     } on AppException catch (e) {
@@ -274,18 +309,15 @@ class DeviceRepository {
   }
 }
 
-final notificationRepositoryProvider = Provider<NotificationRepositoryContract>((ref) {
-  return NotificationRepository(
-    ref.watch(dioProvider),
-    ref.watch(localCacheServiceProvider),
-  );
-});
+final notificationRepositoryProvider = Provider<NotificationRepositoryContract>(
+  (ref) {
+    return NotificationRepository(
+      ref.watch(dioProvider),
+      ref.watch(localCacheServiceProvider),
+    );
+  },
+);
 
 final deviceRepositoryProvider = Provider<DeviceRepository>((ref) {
   return DeviceRepository(ref.watch(dioProvider));
-});
-
-final unreadNotificationCountProvider = FutureProvider<int>((ref) async {
-  final result = await ref.read(notificationRepositoryProvider).getUnreadCount();
-  return result.when(success: (count) => count, failure: (e) => throw e);
 });

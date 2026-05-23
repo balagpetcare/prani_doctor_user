@@ -4,13 +4,13 @@ enum IncomeSource { milkSales, animalSales, subsidy, service, other }
 
 extension ExpenseCategoryApi on ExpenseCategory {
   String get apiValue => switch (this) {
-        ExpenseCategory.feed => 'FEED',
-        ExpenseCategory.medicine => 'MEDICINE',
-        ExpenseCategory.labor => 'LABOR',
-        ExpenseCategory.equipment => 'EQUIPMENT',
-        ExpenseCategory.transport => 'TRANSPORT',
-        ExpenseCategory.other => 'OTHER',
-      };
+    ExpenseCategory.feed => 'FEED',
+    ExpenseCategory.medicine => 'MEDICINE',
+    ExpenseCategory.labor => 'LABOR',
+    ExpenseCategory.equipment => 'EQUIPMENT',
+    ExpenseCategory.transport => 'TRANSPORT',
+    ExpenseCategory.other => 'OTHER',
+  };
 
   static ExpenseCategory fromApi(String value) {
     return ExpenseCategory.values.firstWhere(
@@ -22,12 +22,12 @@ extension ExpenseCategoryApi on ExpenseCategory {
 
 extension IncomeSourceApi on IncomeSource {
   String get apiValue => switch (this) {
-        IncomeSource.milkSales => 'MILK_SALES',
-        IncomeSource.animalSales => 'ANIMAL_SALES',
-        IncomeSource.subsidy => 'SUBSIDY',
-        IncomeSource.service => 'SERVICE',
-        IncomeSource.other => 'OTHER',
-      };
+    IncomeSource.milkSales => 'MILK_SALES',
+    IncomeSource.animalSales => 'ANIMAL_SALES',
+    IncomeSource.subsidy => 'SUBSIDY',
+    IncomeSource.service => 'SERVICE',
+    IncomeSource.other => 'OTHER',
+  };
 
   static IncomeSource fromApi(String value) {
     return IncomeSource.values.firstWhere(
@@ -108,34 +108,42 @@ class FinanceRecord {
       customerId: json['customerId'] as String? ?? '',
       type: json['type'] as String? ?? 'EXPENSE',
       amountBdt: double.tryParse(json['amountBdt']?.toString() ?? '') ?? 0,
-      recordedDate: DateTime.tryParse(json['recordedDate'] as String? ?? '') ?? DateTime.now(),
+      recordedDate:
+          DateTime.tryParse(json['recordedDate'] as String? ?? '') ??
+          DateTime.now(),
       category: json['category'] == null
           ? null
           : ExpenseCategoryApi.fromApi(json['category'] as String),
-      source: json['source'] == null ? null : IncomeSourceApi.fromApi(json['source'] as String),
+      source: json['source'] == null
+          ? null
+          : IncomeSourceApi.fromApi(json['source'] as String),
       farmRef: json['farmRef'] as String?,
       notes: json['notes'] as String?,
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+          DateTime.now(),
       pendingSync: pendingSync,
       fromCache: fromCache,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'customerId': customerId,
-        'type': type,
-        'amountBdt': amountBdt.toStringAsFixed(2),
-        'recordedDate': _dateOnly(recordedDate),
-        if (category != null) 'category': category!.apiValue,
-        if (source != null) 'source': source!.apiValue,
-        if (farmRef != null) 'farmRef': farmRef,
-        if (notes != null) 'notes': notes,
-        'createdAt': createdAt.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
-        'pendingSync': pendingSync,
-      };
+    'id': id,
+    'customerId': customerId,
+    'type': type,
+    'amountBdt': amountBdt.toStringAsFixed(2),
+    'recordedDate': _dateOnly(recordedDate),
+    if (category != null) 'category': category!.apiValue,
+    if (source != null) 'source': source!.apiValue,
+    if (farmRef != null) 'farmRef': farmRef,
+    if (notes != null) 'notes': notes,
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+    'pendingSync': pendingSync,
+  };
 }
 
 String _dateOnly(DateTime d) =>
@@ -157,29 +165,33 @@ class ExpenseInput {
   final String? notes;
 
   Map<String, dynamic> toCreateJson() => {
-        if (farmRef != null && farmRef!.isNotEmpty) 'farmRef': farmRef,
-        'category': category.apiValue,
-        'amountBdt': amountBdt,
-        'recordedDate': _dateOnly(recordedDate),
-        if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
-      };
+    if (farmRef != null && farmRef!.isNotEmpty) 'farmRef': farmRef,
+    'category': category.apiValue,
+    'amountBdt': amountBdt,
+    'recordedDate': _dateOnly(recordedDate),
+    if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
+  };
 
   Map<String, dynamic> toPatchJson() => toCreateJson();
 
   Map<String, dynamic> toDraftJson() => {
-        'farmRef': farmRef,
-        'category': category.apiValue,
-        'amountBdt': amountBdt,
-        'recordedDate': _dateOnly(recordedDate),
-        'notes': notes,
-      };
+    'farmRef': farmRef,
+    'category': category.apiValue,
+    'amountBdt': amountBdt,
+    'recordedDate': _dateOnly(recordedDate),
+    'notes': notes,
+  };
 
   factory ExpenseInput.fromDraftJson(Map<String, dynamic> json) {
     return ExpenseInput(
       farmRef: json['farmRef'] as String?,
-      category: ExpenseCategoryApi.fromApi(json['category'] as String? ?? 'OTHER'),
+      category: ExpenseCategoryApi.fromApi(
+        json['category'] as String? ?? 'OTHER',
+      ),
       amountBdt: (json['amountBdt'] as num?)?.toDouble() ?? 0,
-      recordedDate: DateTime.tryParse(json['recordedDate'] as String? ?? '') ?? DateTime.now(),
+      recordedDate:
+          DateTime.tryParse(json['recordedDate'] as String? ?? '') ??
+          DateTime.now(),
       notes: json['notes'] as String?,
     );
   }
@@ -201,29 +213,31 @@ class IncomeInput {
   final String? notes;
 
   Map<String, dynamic> toCreateJson() => {
-        if (farmRef != null && farmRef!.isNotEmpty) 'farmRef': farmRef,
-        'source': source.apiValue,
-        'amountBdt': amountBdt,
-        'recordedDate': _dateOnly(recordedDate),
-        if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
-      };
+    if (farmRef != null && farmRef!.isNotEmpty) 'farmRef': farmRef,
+    'source': source.apiValue,
+    'amountBdt': amountBdt,
+    'recordedDate': _dateOnly(recordedDate),
+    if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
+  };
 
   Map<String, dynamic> toPatchJson() => toCreateJson();
 
   Map<String, dynamic> toDraftJson() => {
-        'farmRef': farmRef,
-        'source': source.apiValue,
-        'amountBdt': amountBdt,
-        'recordedDate': _dateOnly(recordedDate),
-        'notes': notes,
-      };
+    'farmRef': farmRef,
+    'source': source.apiValue,
+    'amountBdt': amountBdt,
+    'recordedDate': _dateOnly(recordedDate),
+    'notes': notes,
+  };
 
   factory IncomeInput.fromDraftJson(Map<String, dynamic> json) {
     return IncomeInput(
       farmRef: json['farmRef'] as String?,
       source: IncomeSourceApi.fromApi(json['source'] as String? ?? 'OTHER'),
       amountBdt: (json['amountBdt'] as num?)?.toDouble() ?? 0,
-      recordedDate: DateTime.tryParse(json['recordedDate'] as String? ?? '') ?? DateTime.now(),
+      recordedDate:
+          DateTime.tryParse(json['recordedDate'] as String? ?? '') ??
+          DateTime.now(),
       notes: json['notes'] as String?,
     );
   }
@@ -237,6 +251,7 @@ class FinancePageResult {
     required this.limit,
     required this.hasMore,
     this.fromCache = false,
+    this.pendingSyncCount = 0,
   });
 
   final List<FinanceRecord> records;
@@ -245,6 +260,23 @@ class FinancePageResult {
   final int limit;
   final bool hasMore;
   final bool fromCache;
+  final int pendingSyncCount;
+
+  FinancePageResult copyWith({
+    List<FinanceRecord>? records,
+    bool? fromCache,
+    int? pendingSyncCount,
+  }) {
+    return FinancePageResult(
+      records: records ?? this.records,
+      total: total,
+      page: page,
+      limit: limit,
+      hasMore: hasMore,
+      fromCache: fromCache ?? this.fromCache,
+      pendingSyncCount: pendingSyncCount ?? this.pendingSyncCount,
+    );
+  }
 }
 
 class FinancePreviousPeriod {
@@ -294,7 +326,10 @@ class FinanceProfitData {
   final double? profitChangePercent;
   final bool fromCache;
 
-  factory FinanceProfitData.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory FinanceProfitData.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     return FinanceProfitData(
       from: json['from'] as String? ?? '',
       to: json['to'] as String? ?? '',
@@ -343,7 +378,10 @@ class FinanceChartsData {
   final List<FinanceTrendPoint> profitTrend;
   final bool fromCache;
 
-  factory FinanceChartsData.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory FinanceChartsData.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     List<FinanceTrendPoint> mapTrend(String key) {
       return (json[key] as List<dynamic>? ?? [])
           .whereType<Map<String, dynamic>>()
@@ -373,7 +411,10 @@ class FinanceAggregateBucket {
   final double totalBdt;
   final int count;
 
-  factory FinanceAggregateBucket.fromJson(Map<String, dynamic> json, {required String labelKey}) {
+  factory FinanceAggregateBucket.fromJson(
+    Map<String, dynamic> json, {
+    required String labelKey,
+  }) {
     return FinanceAggregateBucket(
       label: json[labelKey] as String? ?? '',
       totalBdt: (json['totalBdt'] as num?)?.toDouble() ?? 0,
@@ -425,7 +466,10 @@ class FinanceReportsData {
   final FinanceExportHooks export;
   final bool fromCache;
 
-  factory FinanceReportsData.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory FinanceReportsData.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     return FinanceReportsData(
       from: json['from'] as String? ?? '',
       to: json['to'] as String? ?? '',
@@ -440,7 +484,9 @@ class FinanceReportsData {
           .whereType<Map<String, dynamic>>()
           .map((e) => FinanceAggregateBucket.fromJson(e, labelKey: 'source'))
           .toList(),
-      export: FinanceExportHooks.fromJson(json['export'] as Map<String, dynamic>? ?? {}),
+      export: FinanceExportHooks.fromJson(
+        json['export'] as Map<String, dynamic>? ?? {},
+      ),
       fromCache: fromCache,
     );
   }

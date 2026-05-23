@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/error/api_result.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/network/dio_helpers.dart';
+import '../../../core/network/flexible_http.dart';
 import '../../../core/network/dio_provider.dart';
 import '../../../core/offline/local_cache_contract.dart';
 import '../../../core/offline/network_errors.dart';
@@ -54,7 +55,9 @@ class SettingsRepository implements SettingsRepositoryContract {
   }
 
   @override
-  Future<ApiResult<SettingsBundle>> getSettings({bool forceRefresh = false}) async {
+  Future<ApiResult<SettingsBundle>> getSettings({
+    bool forceRefresh = false,
+  }) async {
     if (!forceRefresh && _settingsInFlight != null) return _settingsInFlight!;
     final future = _loadSettings();
     _settingsInFlight = future;
@@ -67,7 +70,11 @@ class SettingsRepository implements SettingsRepositoryContract {
 
   Future<ApiResult<SettingsBundle>> _loadSettings() async {
     try {
-      final data = await getJson(_dio, SettingsApiPaths.settings);
+      final data = await getJsonFlexible(
+        _dio,
+        SettingsApiPaths.settings,
+        logTag: 'SETTINGS',
+      );
       final bundle = SettingsBundle.fromJson(data);
       await _writeSettingsCache(bundle);
       return ApiResult.success(bundle);
@@ -79,7 +86,9 @@ class SettingsRepository implements SettingsRepositoryContract {
   }
 
   @override
-  Future<ApiResult<LegalDocumentDto>> getPrivacy({bool forceRefresh = false}) async {
+  Future<ApiResult<LegalDocumentDto>> getPrivacy({
+    bool forceRefresh = false,
+  }) async {
     try {
       final data = await getJson(_dio, SettingsApiPaths.privacy);
       final doc = LegalDocumentDto.fromJson(data);
@@ -97,7 +106,9 @@ class SettingsRepository implements SettingsRepositoryContract {
   }
 
   @override
-  Future<ApiResult<LegalDocumentDto>> getTerms({bool forceRefresh = false}) async {
+  Future<ApiResult<LegalDocumentDto>> getTerms({
+    bool forceRefresh = false,
+  }) async {
     try {
       final data = await getJson(_dio, SettingsApiPaths.terms);
       final doc = LegalDocumentDto.fromJson(data);
@@ -118,7 +129,8 @@ class SettingsRepository implements SettingsRepositoryContract {
     final sequence = (await _outbox.listAll()).length + 1;
     await _outbox.enqueue(
       OutboxItem(
-        idempotencyKey: 'settings-sync-$sequence-${DateTime.now().millisecondsSinceEpoch}',
+        idempotencyKey:
+            'settings-sync-$sequence-${DateTime.now().millisecondsSinceEpoch}',
         kind: OutboxKind.settingsSync,
         payload: input.toJson(),
         clientSequence: sequence,
@@ -140,14 +152,19 @@ class SettingsRepository implements SettingsRepositoryContract {
         await _enqueueSync(input);
         final cached = await readCachedSettings();
         if (cached != null) {
-          return ApiResult.success(SettingsBundle(
-            settings: cached.settings,
-            legal: cached.legal,
-            fromCache: true,
-          ));
+          return ApiResult.success(
+            SettingsBundle(
+              settings: cached.settings,
+              legal: cached.legal,
+              fromCache: true,
+            ),
+          );
         }
-        return ApiResult.failure(
-          const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Saved offline — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -157,7 +174,9 @@ class SettingsRepository implements SettingsRepositoryContract {
   @override
   Future<ApiResult<int>> syncPending() async {
     final items = await _outbox.listReady();
-    final pending = items.where((i) => i.kind == OutboxKind.settingsSync).toList();
+    final pending = items
+        .where((i) => i.kind == OutboxKind.settingsSync)
+        .toList();
     var synced = 0;
     for (final item in pending) {
       try {

@@ -7,6 +7,7 @@ abstract class FarmRepositoryContract {
     int pageSize = 20,
     String search = '',
     FarmFilter filter = FarmFilter.all,
+    FarmSort sort = FarmSort.nameAsc,
     bool forceRefresh = false,
   });
 
@@ -20,4 +21,14 @@ abstract class FarmRepositoryContract {
   });
 
   Future<FarmPageResult?> readCachedFarmList();
+
+  Future<void> saveDraft(FarmInput input, {String? farmId});
+
+  Future<FarmInput?> readDraft({String? farmId});
+
+  Future<void> clearDraft({String? farmId});
+
+  Future<String?> readActiveFarmId();
+
+  Future<void> writeActiveFarmId(String? farmId);
 }

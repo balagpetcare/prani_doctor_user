@@ -1,5 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/network/auto_refresh_guard.dart';
+import '../../../core/providers/provider_stability.dart';
+import '../../../core/session/session_providers.dart';
 import '../data/notification_dto.dart';
 import '../data/notification_grouping.dart';
 import '../data/notification_repository.dart';
@@ -22,7 +27,25 @@ class NotificationListState {
   final bool fromCache;
   final bool isRefreshing;
 
-  List<NotificationGroupedSection> get grouped => NotificationGrouping.groupByDate(items);
+  List<NotificationGroupedSection> groupedBy(String searchQuery) {
+    final filtered = _filterItems(items, searchQuery);
+    return NotificationGrouping.groupByDate(filtered);
+  }
+
+  static List<MobileNotificationDto> _filterItems(
+    List<MobileNotificationDto> items,
+    String searchQuery,
+  ) {
+    final q = searchQuery.trim().toLowerCase();
+    if (q.isEmpty) return items;
+    return items
+        .where(
+          (n) =>
+              n.title.toLowerCase().contains(q) ||
+              n.body.toLowerCase().contains(q),
+        )
+        .toList();
+  }
 
   NotificationListState copyWith({
     List<MobileNotificationDto>? items,
@@ -43,29 +66,67 @@ class NotificationListState {
   }
 }
 
-enum NotificationViewState { loading, loaded, empty, error }
+final notificationUnreadOnlyProvider = StateProvider<bool>((ref) => false);
+final notificationSearchProvider = StateProvider<String>((ref) => '');
 
-class NotificationListNotifier extends AsyncNotifier<NotificationListState> {
+class NotificationListNotifier extends AsyncNotifier<NotificationListState>
+    with AsyncRefreshGuard<NotificationListState> {
   static const _pageSize = 20;
-  bool _loadInFlight = false;
 
   @override
   Future<NotificationListState> build() async {
+    ref.persistProvider('notificationList');
+    if (!ref.watch(protectedApisEnabledProvider)) {
+      return const NotificationListState();
+    }
     NotificationAnalytics.listOpened();
+    ref.watch(notificationUnreadOnlyProvider);
+    final cached = await ref
+        .read(notificationRepositoryProvider)
+        .readCachedList();
+    if (cached != null &&
+        cached.items.isNotEmpty &&
+        !ref.read(notificationUnreadOnlyProvider)) {
+      ref.scheduleSilentRefresh(() => refresh(silent: true));
+      return _fromPage(cached, offset: cached.items.length);
+    }
     return _load(offset: 0);
   }
 
-  Future<NotificationListState> _load({required int offset, bool forceRefresh = false}) async {
-    final result = await ref.read(notificationRepositoryProvider).listNotifications(
+  NotificationListState _fromPage(
+    NotificationListResultDto page, {
+    required int offset,
+  }) {
+    return NotificationListState(
+      items: page.items,
+      total: page.total,
+      offset: offset,
+      hasMore: page.items.length < page.total,
+      fromCache: page.fromCache,
+    );
+  }
+
+  Future<NotificationListState> _load({
+    required int offset,
+    bool forceRefresh = false,
+  }) async {
+    final unreadOnly = ref.read(notificationUnreadOnlyProvider);
+    final result = await ref
+        .read(notificationRepositoryProvider)
+        .listNotifications(
           limit: _pageSize,
           offset: offset,
+          unreadOnly: unreadOnly,
           forceRefresh: forceRefresh,
         );
     return result.when(
       success: (page) {
         final merged = offset == 0
             ? page.items
-            : [...state.value?.items ?? [], ...page.items];
+            : <MobileNotificationDto>[
+                ...state.value?.items ?? [],
+                ...page.items,
+              ];
         return NotificationListState(
           items: merged,
           total: page.total,
@@ -79,39 +140,42 @@ class NotificationListNotifier extends AsyncNotifier<NotificationListState> {
   }
 
   Future<void> reload({bool forceRefresh = false}) async {
-    if (_loadInFlight) return;
-    _loadInFlight = true;
+    if (!guardReload()) return;
     state = const AsyncLoading();
     try {
       state = AsyncData(await _load(offset: 0, forceRefresh: forceRefresh));
     } catch (e, st) {
       state = AsyncError(e, st);
     } finally {
-      _loadInFlight = false;
+      endReload();
     }
   }
 
-  Future<void> refresh() async {
-    if (_loadInFlight) return;
+  Future<void> refresh({bool silent = false}) async {
+    if (!guardRefresh(silent: silent)) return;
     NotificationAnalytics.listRefreshed();
     final previous = state.value ?? const NotificationListState();
-    state = AsyncData(previous.copyWith(isRefreshing: true));
+    if (!silent) {
+      state = AsyncData(previous.copyWith(isRefreshing: true));
+    }
     try {
       state = AsyncData(await _load(offset: 0, forceRefresh: true));
       ref.invalidate(unreadNotificationCountProvider);
     } catch (_) {
-      state = AsyncData(previous);
+      if (!silent) state = AsyncData(previous);
+    } finally {
+      endRefresh();
     }
   }
 
   Future<void> loadMore() async {
     final current = state.value;
-    if (current == null || !current.hasMore || _loadInFlight) return;
-    _loadInFlight = true;
+    if (current == null || !current.hasMore || anyRefreshInFlight) return;
+    refreshInFlight = true;
     try {
       state = AsyncData(await _load(offset: current.offset));
     } finally {
-      _loadInFlight = false;
+      refreshInFlight = false;
     }
   }
 
@@ -125,7 +189,11 @@ class NotificationListNotifier extends AsyncNotifier<NotificationListState> {
         state = AsyncData(
           current.copyWith(
             items: current.items
-                .map((n) => n.id == id ? n.copyWith(readAt: DateTime.now().toIso8601String()) : n)
+                .map(
+                  (n) => n.id == id
+                      ? n.copyWith(readAt: DateTime.now().toIso8601String())
+                      : n,
+                )
                 .toList(),
           ),
         );
@@ -149,7 +217,9 @@ class NotificationListNotifier extends AsyncNotifier<NotificationListState> {
 
   Future<bool> delete(String id) async {
     NotificationAnalytics.deleted(id);
-    final result = await ref.read(notificationRepositoryProvider).deleteNotification(id);
+    final result = await ref
+        .read(notificationRepositoryProvider)
+        .deleteNotification(id);
     return result.when(
       success: (_) {
         final current = state.value;
@@ -168,9 +238,131 @@ class NotificationListNotifier extends AsyncNotifier<NotificationListState> {
 }
 
 final notificationListProvider =
-    AsyncNotifierProvider<NotificationListNotifier, NotificationListState>(NotificationListNotifier.new);
+    AsyncNotifierProvider<NotificationListNotifier, NotificationListState>(
+      NotificationListNotifier.new,
+    );
 
-final notificationSettingsProvider = FutureProvider<NotificationSettingsDto>((ref) async {
-  final result = await ref.read(notificationRepositoryProvider).getSettings();
-  return result.when(success: (s) => s, failure: (e) => throw e);
-});
+class NotificationSettingsNotifier
+    extends AsyncNotifier<NotificationSettingsDto>
+    with AsyncRefreshGuard<NotificationSettingsDto> {
+  @override
+  Future<NotificationSettingsDto> build() async {
+    ref.persistProvider('notificationSettings');
+    final cached = await ref
+        .read(notificationRepositoryProvider)
+        .readCachedSettings();
+    if (cached != null) {
+      ProviderLog.cache('notification settings');
+      ref.scheduleSilentRefresh(_refreshSilent);
+      return cached;
+    }
+    return _load();
+  }
+
+  Future<void> _refreshSilent() async {
+    if (!guardRefresh(silent: true)) return;
+    try {
+      state = AsyncData(await _load(forceRefresh: true));
+    } catch (_) {
+    } finally {
+      endRefresh();
+    }
+  }
+
+  Future<NotificationSettingsDto> _load({bool forceRefresh = false}) async {
+    final result = await ref
+        .read(notificationRepositoryProvider)
+        .getSettings(forceRefresh: forceRefresh);
+    return result.when(success: (s) => s, failure: (e) => throw e);
+  }
+}
+
+final notificationSettingsProvider =
+    AsyncNotifierProvider<
+      NotificationSettingsNotifier,
+      NotificationSettingsDto
+    >(NotificationSettingsNotifier.new);
+
+class UnreadNotificationCountNotifier extends AsyncNotifier<int>
+    with AsyncRefreshGuard<int> {
+  @override
+  Future<int> build() async {
+    ref.persistProvider('unreadNotificationCount');
+    final cached = await ref
+        .read(notificationRepositoryProvider)
+        .readCachedUnreadCount();
+    if (cached != null) {
+      ProviderLog.cache('unread count');
+      ref.scheduleSilentRefresh(_refreshSilent);
+      return cached;
+    }
+    return _load();
+  }
+
+  Future<void> _refreshSilent() async {
+    if (!guardRefresh(silent: true)) return;
+    try {
+      state = AsyncData(await _load(forceRefresh: true));
+    } catch (_) {
+    } finally {
+      endRefresh();
+    }
+  }
+
+  Future<int> _load({bool forceRefresh = false}) async {
+    final result = await ref
+        .read(notificationRepositoryProvider)
+        .getUnreadCount(forceRefresh: forceRefresh);
+    return result.when(success: (c) => c, failure: (e) => throw e);
+  }
+}
+
+final unreadNotificationCountProvider =
+    AsyncNotifierProvider<UnreadNotificationCountNotifier, int>(
+      UnreadNotificationCountNotifier.new,
+    );
+
+final notificationDetailProvider = FutureProvider.autoDispose
+    .family<MobileNotificationDto?, String>((ref, id) async {
+      ref.persistProvider('notificationDetail:$id');
+      final fromList = ref
+          .read(notificationListProvider)
+          .valueOrNull
+          ?.items
+          .where((n) => n.id == id)
+          .firstOrNull;
+      if (fromList != null) return fromList;
+
+      final cached = await ref
+          .read(notificationRepositoryProvider)
+          .readCachedList();
+      final fromCache = cached?.items.where((n) => n.id == id).firstOrNull;
+      if (fromCache != null) {
+        scheduleCacheRevalidate(
+          ref,
+          label: 'notificationDetail:$id',
+          revalidate: () async {
+            try {
+              await ref
+                  .read(notificationListProvider.notifier)
+                  .refresh(silent: true);
+              return true;
+            } catch (_) {
+              return false;
+            }
+          },
+        );
+        return fromCache;
+      }
+
+      if (ref.read(notificationListProvider.notifier).anyRefreshInFlight) {
+        return null;
+      }
+      await ref.read(notificationListProvider.notifier).refresh(silent: true);
+      return ref
+          .read(notificationListProvider)
+          .valueOrNull
+          ?.items
+          .where((n) => n.id == id)
+          .firstOrNull;
+    });

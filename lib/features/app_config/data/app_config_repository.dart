@@ -39,7 +39,7 @@ class AppConfigRepository {
         ),
       );
     } on AppException catch (e) {
-      if (e.code == 'FORCE_UPDATE_REQUIRED') {
+      if (e.code == 'FORCE_UPDATE_REQUIRED' || e.code == 'SYS_MAINTENANCE') {
         return ApiResult.failure(e);
       }
       final cached = await _cache.read(LocalCacheContract.appConfigKey);

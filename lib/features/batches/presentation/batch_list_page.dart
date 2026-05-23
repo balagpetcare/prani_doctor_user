@@ -8,6 +8,7 @@ import '../data/batch_dto.dart';
 import 'batch_providers.dart';
 import 'widgets/batch_card.dart';
 import 'widgets/batch_feedback.dart';
+import 'widgets/batch_summary_section.dart';
 
 class BatchListPage extends ConsumerStatefulWidget {
   const BatchListPage({super.key});
@@ -39,7 +40,8 @@ class _BatchListPageState extends ConsumerState<BatchListPage> {
   }
 
   void _applySearch() {
-    ref.read(batchSearchProvider.notifier).state = _searchController.text.trim();
+    ref.read(batchSearchProvider.notifier).state = _searchController.text
+        .trim();
     ref.read(batchListProvider.notifier).applyQuery();
   }
 
@@ -48,6 +50,7 @@ class _BatchListPageState extends ConsumerState<BatchListPage> {
     final l10n = AppLocalizations.of(context)!;
     final listAsync = ref.watch(batchListProvider);
     final filter = ref.watch(batchFilterProvider);
+    final sort = ref.watch(batchSortProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -60,14 +63,17 @@ class _BatchListPageState extends ConsumerState<BatchListPage> {
         ],
       ),
       body: listAsync.when(
-        loading: () => BatchFeedback.loading(),
+        loading: BatchFeedback.loading,
         error: (e, _) => BatchFeedback.error(
           context,
           message: e.toString(),
-          onRetry: () => ref.read(batchListProvider.notifier).reload(forceRefresh: true),
+          onRetry: () =>
+              ref.read(batchListProvider.notifier).reload(forceRefresh: true),
         ),
         data: (state) {
-          if (state.batches.isEmpty && !state.isRefreshing) {
+          if (state.batches.isEmpty &&
+              _searchController.text.isEmpty &&
+              filter == BatchFilter.all) {
             return BatchFeedback.empty(
               context,
               onCreate: () => context.push(AppRoutes.batchCreate),
@@ -78,11 +84,20 @@ class _BatchListPageState extends ConsumerState<BatchListPage> {
             onRefresh: () => ref.read(batchListProvider.notifier).refresh(),
             child: CustomScrollView(
               controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                if (state.fromCache) SliverToBoxAdapter(child: BatchFeedback.offlineHint(context)),
+                if (state.fromCache)
+                  SliverToBoxAdapter(child: BatchFeedback.offlineHint(context)),
+                SliverToBoxAdapter(
+                  child: BatchSummarySection(
+                    total: state.total,
+                    withAnimalsCount: state.withAnimalsCount,
+                    pendingSyncCount: state.pendingSyncCount,
+                  ),
+                ),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                     child: TextField(
                       controller: _searchController,
                       decoration: InputDecoration(
@@ -119,18 +134,58 @@ class _BatchListPageState extends ConsumerState<BatchListPage> {
                     ),
                   ),
                 ),
-                SliverPadding(
-                  padding: const EdgeInsets.all(16),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: BatchCard(batch: state.batches[index]),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: DropdownButtonFormField<BatchSort>(
+                      initialValue: sort,
+                      decoration: InputDecoration(
+                        labelText: l10n.batchSortLabel,
                       ),
-                      childCount: state.batches.length,
+                      items: [
+                        DropdownMenuItem(
+                          value: BatchSort.recentFirst,
+                          child: Text(l10n.batchSortRecent),
+                        ),
+                        DropdownMenuItem(
+                          value: BatchSort.nameAsc,
+                          child: Text(l10n.batchSortNameAsc),
+                        ),
+                        DropdownMenuItem(
+                          value: BatchSort.nameDesc,
+                          child: Text(l10n.batchSortNameDesc),
+                        ),
+                        DropdownMenuItem(
+                          value: BatchSort.animalsDesc,
+                          child: Text(l10n.batchSortAnimalsDesc),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+                        ref.read(batchSortProvider.notifier).state = value;
+                        ref.read(batchListProvider.notifier).applyQuery();
+                      },
                     ),
                   ),
                 ),
+                if (state.batches.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(child: Text(l10n.batchNoResults)),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.all(16),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: BatchCard(batch: state.batches[index]),
+                        ),
+                        childCount: state.batches.length,
+                      ),
+                    ),
+                  ),
                 if (state.isRefreshing)
                   const SliverToBoxAdapter(
                     child: Padding(

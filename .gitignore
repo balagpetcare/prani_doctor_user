@@ -47,3 +47,6 @@ app.*.map.json
 # Firebase / signing secrets (never commit)
 /android/app/google-services.json
 /android/app/upload-keystore.jks
+
+# Local dev env (copy from .env.example)
+.env

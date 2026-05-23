@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
 import '../../data/farm_dto.dart';
 
@@ -10,6 +11,7 @@ class FarmCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -33,7 +35,10 @@ class FarmCard extends StatelessWidget {
                   Text(farm.locationLabel, style: theme.textTheme.bodySmall),
                   const SizedBox(height: 8),
                   Text(
-                    '${farm.animalCount} animals · ${farm.activeAnimalCount} active',
+                    l10n.farmCardStats(
+                      farm.animalCount,
+                      farm.activeAnimalCount,
+                    ),
                     style: theme.textTheme.bodyMedium,
                   ),
                 ],

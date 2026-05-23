@@ -13,25 +13,31 @@ class MilkEntryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final sessionLabel =
-        record.session == MilkSession.morning ? l10n.milkSessionMorning : l10n.milkSessionEvening;
+    final sessionLabel = record.session == MilkSession.morning
+        ? l10n.milkSessionMorning
+        : l10n.milkSessionEvening;
 
     return Card(
       child: ListTile(
         leading: Icon(
-          record.session == MilkSession.morning ? Icons.wb_sunny_outlined : Icons.nights_stay_outlined,
+          record.session == MilkSession.morning
+              ? Icons.wb_sunny_outlined
+              : Icons.nights_stay_outlined,
         ),
-        title: Text('${record.animalName.isNotEmpty ? record.animalName : record.animalId} · $sessionLabel'),
+        title: Text(
+          '${record.animalName.isNotEmpty ? record.animalName : record.animalId} · $sessionLabel',
+        ),
         subtitle: Text(
           [
             '${record.quantityLiters.toStringAsFixed(2)} L',
             record.recordedDate.toLocal().toString().split(' ').first,
-            if (record.farmRef != null && record.farmRef!.isNotEmpty) record.farmRef!,
+            if (record.farmRef != null && record.farmRef!.isNotEmpty)
+              record.farmRef!,
             if (record.pendingSync) l10n.milkPendingSync,
           ].join(' · '),
         ),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () => context.push(AppRoutes.milkEdit(record.id)),
+        onTap: () => context.push(AppRoutes.milkDetail(record.id)),
       ),
     );
   }

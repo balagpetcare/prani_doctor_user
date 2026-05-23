@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/api_result.dart';
 import '../../../core/error/app_exception.dart';
-import '../../../core/network/api_envelope.dart';
 import '../../../core/network/dio_helpers.dart';
 import '../../../core/network/dio_provider.dart';
 import '../../../core/offline/local_cache_contract.dart';
 import '../../../core/offline/network_errors.dart';
 import '../../home/data/dashboard_context_dto.dart';
+import '../../shared/upload/services/upload_service.dart';
 import '../../offline/data/local_cache_service.dart';
 import '../../offline/offline_providers.dart';
 import '../../profile/data/mobile_me_dto.dart';
@@ -20,11 +20,12 @@ import 'farm_repository_contract.dart';
 
 /// Customer farm — composite over profile location + dashboard farmSummary + animals.
 class FarmRepository implements FarmRepositoryContract {
-  FarmRepository(this._dio, this._cache, this._profileRepo);
+  FarmRepository(this._dio, this._cache, this._profileRepo, this._uploads);
 
   final Dio _dio;
   final LocalCacheService _cache;
   final ProfileRepositoryContract _profileRepo;
+  final UploadService _uploads;
 
   Future<ApiResult<FarmPageResult>>? _listInFlight;
 
@@ -49,17 +50,13 @@ class FarmRepository implements FarmRepositoryContract {
   }
 
   Future<void> _writeListCache(FarmPageResult page) async {
-    await _cache.write(
-      LocalCacheContract.farmsListKey,
-      {
-        'farms': page.farms.map((f) => f.toJson()).toList(),
-        'total': page.total,
-        'page': page.page,
-        'pageSize': page.pageSize,
-        'hasMore': page.hasMore,
-      },
-      LocalCacheContract.dashboardTtl,
-    );
+    await _cache.write(LocalCacheContract.farmsListKey, {
+      'farms': page.farms.map((f) => f.toJson()).toList(),
+      'total': page.total,
+      'page': page.page,
+      'pageSize': page.pageSize,
+      'hasMore': page.hasMore,
+    }, LocalCacheContract.dashboardTtl);
   }
 
   Future<void> _writeDetailCache(FarmDetail detail) async {
@@ -112,7 +109,12 @@ class FarmRepository implements FarmRepositoryContract {
     return (profile: profile, summary: summary);
   }
 
-  List<Farm> _applyFilters(List<Farm> farms, String search, FarmFilter filter) {
+  List<Farm> _applyFilters(
+    List<Farm> farms,
+    String search,
+    FarmFilter filter,
+    FarmSort sort,
+  ) {
     var result = farms;
     if (search.trim().isNotEmpty) {
       final q = search.trim().toLowerCase();
@@ -131,6 +133,15 @@ class FarmRepository implements FarmRepositoryContract {
         result = result.where((f) => f.animalCount > 0).toList();
       case FarmFilter.needsLocation:
         result = result.where((f) => !f.hasLocation).toList();
+    }
+    result = [...result];
+    switch (sort) {
+      case FarmSort.nameAsc:
+        result.sort((a, b) => a.name.compareTo(b.name));
+      case FarmSort.nameDesc:
+        result.sort((a, b) => b.name.compareTo(a.name));
+      case FarmSort.animalsDesc:
+        result.sort((a, b) => b.animalCount.compareTo(a.animalCount));
     }
     return result;
   }
@@ -163,6 +174,7 @@ class FarmRepository implements FarmRepositoryContract {
     int pageSize = 20,
     String search = '',
     FarmFilter filter = FarmFilter.all,
+    FarmSort sort = FarmSort.nameAsc,
     bool forceRefresh = false,
   }) async {
     if (!forceRefresh && _listInFlight != null) {
@@ -174,6 +186,7 @@ class FarmRepository implements FarmRepositoryContract {
       pageSize: pageSize,
       search: search,
       filter: filter,
+      sort: sort,
     );
     _listInFlight = future;
     try {
@@ -188,6 +201,7 @@ class FarmRepository implements FarmRepositoryContract {
     required int pageSize,
     required String search,
     required FarmFilter filter,
+    required FarmSort sort,
   }) async {
     try {
       final sources = await _loadSources();
@@ -198,22 +212,29 @@ class FarmRepository implements FarmRepositoryContract {
         villageLabel: sources.summary?.primaryVillageLabelBn,
       );
       final all = farm == null ? <Farm>[] : [farm];
-      final filtered = _applyFilters(all, search, filter);
+      final filtered = _applyFilters(all, search, filter, sort);
       final pageResult = _paginate(filtered, page, pageSize);
       await _writeListCache(pageResult);
+      if (farm != null) {
+        await writeActiveFarmId(farm.id);
+      }
       return ApiResult.success(pageResult);
     } on AppException catch (e) {
       final cached = await readCachedFarmList();
       if (cached != null) {
-        final filtered = _applyFilters(cached.farms, search, filter);
-        return ApiResult.success(_paginate(filtered, page, pageSize).copyWith(fromCache: true));
+        final filtered = _applyFilters(cached.farms, search, filter, sort);
+        return ApiResult.success(
+          _paginate(filtered, page, pageSize).copyWith(fromCache: true),
+        );
       }
       return ApiResult.failure(e);
     } catch (e) {
       final cached = await readCachedFarmList();
       if (cached != null) {
-        final filtered = _applyFilters(cached.farms, search, filter);
-        return ApiResult.success(_paginate(filtered, page, pageSize).copyWith(fromCache: true));
+        final filtered = _applyFilters(cached.farms, search, filter, sort);
+        return ApiResult.success(
+          _paginate(filtered, page, pageSize).copyWith(fromCache: true),
+        );
       }
       return ApiResult.failure(
         AppException(message: 'Could not load farms', cause: e),
@@ -222,7 +243,10 @@ class FarmRepository implements FarmRepositoryContract {
   }
 
   @override
-  Future<ApiResult<FarmDetail>> getFarm(String id, {bool forceRefresh = false}) async {
+  Future<ApiResult<FarmDetail>> getFarm(
+    String id, {
+    bool forceRefresh = false,
+  }) async {
     try {
       final sources = await _loadSources();
       final farm = Farm.fromProfile(
@@ -232,7 +256,7 @@ class FarmRepository implements FarmRepositoryContract {
         villageLabel: sources.summary?.primaryVillageLabelBn,
       );
       if (farm == null || farm.id != id) {
-        return ApiResult.failure(const AppException(message: 'Farm not found'));
+        return const ApiResult.failure(AppException(message: 'Farm not found'));
       }
 
       final animals = await _loadAnimals();
@@ -247,7 +271,9 @@ class FarmRepository implements FarmRepositoryContract {
             .whereType<Map<String, dynamic>>()
             .map(FarmAnimalSummary.fromJson)
             .toList();
-        return ApiResult.success(FarmDetail(farm: farm, animals: animals, fromCache: true));
+        return ApiResult.success(
+          FarmDetail(farm: farm, animals: animals, fromCache: true),
+        );
       }
       return ApiResult.failure(e);
     } catch (e) {
@@ -288,8 +314,11 @@ class FarmRepository implements FarmRepositoryContract {
         villageLabel: summary?.primaryVillageLabelBn ?? input.areaLabel,
       );
       if (farm == null) {
-        return ApiResult.failure(const AppException(message: 'Farm location required'));
+        return const ApiResult.failure(
+          AppException(message: 'Farm location required'),
+        );
       }
+      await writeActiveFarmId(farm.id);
       await _writeListCache(
         FarmPageResult(
           farms: [farm],
@@ -314,7 +343,9 @@ class FarmRepository implements FarmRepositoryContract {
       }
       return ApiResult.failure(error);
     }
-    return const ApiResult.failure(AppException(message: 'Could not save farm'));
+    return const ApiResult.failure(
+      AppException(message: 'Could not save farm'),
+    );
   }
 
   @override
@@ -322,32 +353,72 @@ class FarmRepository implements FarmRepositoryContract {
     String filePath, {
     void Function(int sent, int total)? onProgress,
   }) async {
-    try {
-      final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(filePath),
-      });
-      final response = await _dio.post<dynamic>(
-        FarmApiPaths.uploadCoverImage,
-        data: formData,
-        onSendProgress: onProgress,
-      );
-      final data = ApiEnvelope.unwrapData(response);
-      final url = data['coverPhotoUrl'] as String? ?? data['downloadUrl'] as String?;
-      if (url == null || url.isEmpty) {
-        return ApiResult.failure(
-          const AppException(message: 'Upload succeeded but no image URL returned'),
-        );
-      }
-      return ApiResult.success(url);
-    } on AppException catch (e) {
-      return ApiResult.failure(e);
-    } on DioException catch (e) {
-      return ApiResult.failure(ApiEnvelope.fromDioException(e));
-    } catch (e) {
-      return ApiResult.failure(
-        AppException(message: 'Failed to upload image', cause: e),
-      );
+    final result = await _uploads.uploadCoverImage(
+      filePath,
+      onProgress: onProgress,
+    );
+    return result.when(
+      success: (upload) {
+        final url = upload.coverPhotoUrl ?? upload.url;
+        if (url.isEmpty) {
+          return const ApiResult.failure(
+            AppException(
+              message: 'Upload succeeded but no image URL returned',
+            ),
+          );
+        }
+        return ApiResult.success(url);
+      },
+      failure: ApiResult.failure,
+    );
+  }
+
+  @override
+  Future<void> saveDraft(FarmInput input, {String? farmId}) async {
+    final key = farmId == null
+        ? LocalCacheContract.farmDraftKey
+        : LocalCacheContract.farmEditDraftKey(farmId);
+    await _cache.write(
+      key,
+      input.toDraftJson(),
+      LocalCacheContract.caseDraftTtl,
+    );
+  }
+
+  @override
+  Future<FarmInput?> readDraft({String? farmId}) async {
+    final key = farmId == null
+        ? LocalCacheContract.farmDraftKey
+        : LocalCacheContract.farmEditDraftKey(farmId);
+    final cached = await _cache.read(key);
+    if (cached == null) return null;
+    return FarmInput.fromDraftJson(cached);
+  }
+
+  @override
+  Future<void> clearDraft({String? farmId}) async {
+    final key = farmId == null
+        ? LocalCacheContract.farmDraftKey
+        : LocalCacheContract.farmEditDraftKey(farmId);
+    await _cache.write(key, {}, Duration.zero);
+  }
+
+  @override
+  Future<String?> readActiveFarmId() async {
+    final cached = await _cache.read(LocalCacheContract.activeFarmIdKey);
+    final id = cached?['id'] as String?;
+    return id != null && id.isNotEmpty ? id : null;
+  }
+
+  @override
+  Future<void> writeActiveFarmId(String? farmId) async {
+    if (farmId == null || farmId.isEmpty) {
+      await _cache.write(LocalCacheContract.activeFarmIdKey, {}, Duration.zero);
+      return;
     }
+    await _cache.write(LocalCacheContract.activeFarmIdKey, {
+      'id': farmId,
+    }, LocalCacheContract.dashboardTtl);
   }
 }
 
@@ -369,5 +440,6 @@ final farmRepositoryProvider = Provider<FarmRepositoryContract>((ref) {
     ref.watch(dioProvider),
     ref.watch(localCacheServiceProvider),
     ref.watch(profileRepositoryProvider),
+    ref.watch(uploadServiceProvider),
   );
 });

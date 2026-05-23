@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../core/navigation/navigation_guard.dart';
 import '../../../core/offline/network_errors.dart';
 import '../../animals/presentation/animal_providers.dart';
 import '../../farm/presentation/farm_providers.dart';
 import '../data/health_dto.dart';
 import '../data/health_repository.dart';
 import '../data/health_validation.dart';
+import 'health_navigation.dart';
 import 'health_providers.dart';
 import 'widgets/health_labels.dart';
 
@@ -33,6 +35,7 @@ class _HealthFormPageState extends ConsumerState<HealthFormPage> {
   HealthEventType _eventType = HealthEventType.symptom;
   DateTime _recordedDate = DateTime.now();
   bool _loading = false;
+  bool _submitting = false;
   String? _error;
 
   @override
@@ -60,7 +63,9 @@ class _HealthFormPageState extends ConsumerState<HealthFormPage> {
       return;
     }
     if (widget.recordId != null) {
-      final record = await ref.read(healthRecordProvider(widget.recordId!).future);
+      final record = await ref.read(
+        healthRecordProvider(widget.recordId!).future,
+      );
       _applyInput(
         HealthInput(
           farmRef: record.farmRef,
@@ -112,7 +117,9 @@ class _HealthFormPageState extends ConsumerState<HealthFormPage> {
   }
 
   Future<void> _saveDraft() async {
-    await ref.read(healthRepositoryProvider).saveDraft(_currentInput(), recordId: widget.recordId);
+    await ref
+        .read(healthRepositoryProvider)
+        .saveDraft(_currentInput(), recordId: widget.recordId);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.healthDraftSaved)),
@@ -121,10 +128,20 @@ class _HealthFormPageState extends ConsumerState<HealthFormPage> {
   }
 
   Future<void> _submit() async {
+    if (_submitting) return;
     final l10n = AppLocalizations.of(context)!;
-    final titleError = HealthValidation.validateTitle(_titleController.text, message: l10n.healthTitleRequired);
-    final animalError = HealthValidation.validateAnimal(_animalId, message: l10n.healthAnimalRequired);
-    final dateError = HealthValidation.validateDate(_recordedDate, message: l10n.healthDateInvalid);
+    final titleError = HealthValidation.validateTitle(
+      _titleController.text,
+      message: l10n.healthTitleRequired,
+    );
+    final animalError = HealthValidation.validateAnimal(
+      _animalId,
+      message: l10n.healthAnimalRequired,
+    );
+    final dateError = HealthValidation.validateDate(
+      _recordedDate,
+      message: l10n.healthDateInvalid,
+    );
     final error = titleError ?? animalError ?? dateError;
     if (error != null) {
       setState(() => _error = error);
@@ -133,6 +150,7 @@ class _HealthFormPageState extends ConsumerState<HealthFormPage> {
 
     setState(() {
       _loading = true;
+      _submitting = true;
       _error = null;
     });
 
@@ -143,20 +161,23 @@ class _HealthFormPageState extends ConsumerState<HealthFormPage> {
         : await repo.updateRecord(widget.recordId!, input);
 
     if (!mounted) return;
-    setState(() => _loading = false);
+    setState(() {
+      _loading = false;
+      _submitting = false;
+    });
 
     result.when(
       success: (_) {
-        ref.invalidate(healthProvider);
-        ref.invalidate(healthTimelineProvider);
+        HealthNavigation.afterSave(ref, recordId: widget.recordId);
         context.pop();
       },
       failure: (e) {
         if (e.code == offlineQueuedCode) {
-          ref.invalidate(healthProvider);
-          ref.invalidate(healthTimelineProvider);
+          HealthNavigation.afterSave(ref, recordId: widget.recordId);
           context.pop();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.healthOfflineSaved)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.healthOfflineSaved)));
           return;
         }
         setState(() => _error = e.message);
@@ -174,8 +195,14 @@ class _HealthFormPageState extends ConsumerState<HealthFormPage> {
         title: Text(l10n.healthDeleteTitle),
         content: Text(l10n.healthDeleteConfirm),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.healthDeleteAction)),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.healthDeleteAction),
+          ),
         ],
       ),
     );
@@ -187,16 +214,16 @@ class _HealthFormPageState extends ConsumerState<HealthFormPage> {
     setState(() => _loading = false);
     result.when(
       success: (_) {
-        ref.invalidate(healthProvider);
-        ref.invalidate(healthTimelineProvider);
+        HealthNavigation.afterDelete(ref);
         context.pop();
       },
       failure: (e) {
         if (e.code == offlineQueuedCode) {
-          ref.invalidate(healthProvider);
-          ref.invalidate(healthTimelineProvider);
+          HealthNavigation.afterDelete(ref);
           context.pop();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.healthOfflineSaved)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.healthOfflineSaved)));
           return;
         }
         setState(() => _error = e.message);
@@ -220,15 +247,23 @@ class _HealthFormPageState extends ConsumerState<HealthFormPage> {
     final animalsAsync = ref.watch(animalListProvider);
     final farmsAsync = ref.watch(farmListProvider);
     final isEdit = widget.recordId != null;
-    final livestock = animalsAsync.value?.animals.where((a) => a.active).toList() ?? [];
+    final livestock =
+        animalsAsync.value?.animals.where((a) => a.active).toList() ?? [];
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: safeAppBar(
+        context,
         title: Text(isEdit ? l10n.healthEditTitle : l10n.healthAddTitle),
         actions: [
           if (isEdit)
-            IconButton(onPressed: _loading ? null : _delete, icon: const Icon(Icons.delete_outline)),
-          TextButton(onPressed: _loading ? null : _saveDraft, child: Text(l10n.healthSaveDraft)),
+            IconButton(
+              onPressed: _loading ? null : _delete,
+              icon: const Icon(Icons.delete_outline),
+            ),
+          TextButton(
+            onPressed: _loading ? null : _saveDraft,
+            child: Text(l10n.healthSaveDraft),
+          ),
         ],
       ),
       body: ListView(
@@ -237,43 +272,66 @@ class _HealthFormPageState extends ConsumerState<HealthFormPage> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ),
           farmsAsync.when(
             loading: () => const LinearProgressIndicator(),
-            error: (_, __) => Text(l10n.healthFarmLoadError),
+            error: (_, _) => Text(l10n.healthFarmLoadError),
             data: (farms) {
               if (farms.farms.isEmpty) return Text(l10n.healthNoFarm);
               return DropdownButtonFormField<String>(
-                value: _farmRef ?? farms.farms.first.id,
+                initialValue: _farmRef ?? farms.farms.first.id,
                 decoration: InputDecoration(labelText: l10n.healthFarmLabel),
-                items: farms.farms.map((f) => DropdownMenuItem(value: f.id, child: Text(f.name))).toList(),
-                onChanged: _loading ? null : (v) => setState(() => _farmRef = v),
+                items: farms.farms
+                    .map(
+                      (f) => DropdownMenuItem(value: f.id, child: Text(f.name)),
+                    )
+                    .toList(),
+                onChanged: _loading
+                    ? null
+                    : (v) => setState(() => _farmRef = v),
               );
             },
           ),
           const SizedBox(height: 12),
           animalsAsync.when(
             loading: () => const LinearProgressIndicator(),
-            error: (_, __) => Text(l10n.healthAnimalLoadError),
+            error: (_, _) => Text(l10n.healthAnimalLoadError),
             data: (_) {
               if (livestock.isEmpty) return Text(l10n.healthNoAnimals);
               return DropdownButtonFormField<String>(
-                value: _animalId,
+                initialValue: _animalId,
                 decoration: InputDecoration(labelText: l10n.healthAnimalLabel),
-                items: livestock.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
-                onChanged: _loading ? null : (v) => setState(() => _animalId = v),
+                items: livestock
+                    .map(
+                      (a) => DropdownMenuItem(value: a.id, child: Text(a.name)),
+                    )
+                    .toList(),
+                onChanged: _loading
+                    ? null
+                    : (v) => setState(() => _animalId = v),
               );
             },
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<HealthEventType>(
-            value: _eventType,
+            initialValue: _eventType,
             decoration: InputDecoration(labelText: l10n.healthTypeLabel),
             items: HealthEventType.values
-                .map((t) => DropdownMenuItem(value: t, child: Text(healthEventTypeLabel(l10n, t))))
+                .map(
+                  (t) => DropdownMenuItem(
+                    value: t,
+                    child: Text(healthEventTypeLabel(l10n, t)),
+                  ),
+                )
                 .toList(),
-            onChanged: _loading ? null : (v) => setState(() => _eventType = v ?? HealthEventType.symptom),
+            onChanged: _loading
+                ? null
+                : (v) =>
+                      setState(() => _eventType = v ?? HealthEventType.symptom),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -302,7 +360,10 @@ class _HealthFormPageState extends ConsumerState<HealthFormPage> {
             contentPadding: EdgeInsets.zero,
             title: Text(l10n.healthDateLabel),
             subtitle: Text(_recordedDate.toLocal().toString().split(' ').first),
-            trailing: IconButton(onPressed: _pickDate, icon: const Icon(Icons.calendar_today_outlined)),
+            trailing: IconButton(
+              onPressed: _pickDate,
+              icon: const Icon(Icons.calendar_today_outlined),
+            ),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -314,8 +375,14 @@ class _HealthFormPageState extends ConsumerState<HealthFormPage> {
           FilledButton(
             onPressed: _loading ? null : _submit,
             child: _loading
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : Text(isEdit ? l10n.healthSaveChanges : l10n.healthCreateAction),
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(
+                    isEdit ? l10n.healthSaveChanges : l10n.healthCreateAction,
+                  ),
           ),
         ],
       ),

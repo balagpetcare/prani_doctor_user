@@ -13,7 +13,8 @@ class SupportTicketListPage extends ConsumerStatefulWidget {
   const SupportTicketListPage({super.key});
 
   @override
-  ConsumerState<SupportTicketListPage> createState() => _SupportTicketListPageState();
+  ConsumerState<SupportTicketListPage> createState() =>
+      _SupportTicketListPageState();
 }
 
 class _SupportTicketListPageState extends ConsumerState<SupportTicketListPage> {
@@ -24,7 +25,8 @@ class _SupportTicketListPageState extends ConsumerState<SupportTicketListPage> {
   void initState() {
     super.initState();
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
         ref.read(supportTicketListProvider.notifier).loadMore();
       }
     });
@@ -38,7 +40,8 @@ class _SupportTicketListPageState extends ConsumerState<SupportTicketListPage> {
   }
 
   void _applySearch() {
-    ref.read(supportSearchProvider.notifier).state = _searchController.text.trim();
+    ref.read(supportSearchProvider.notifier).state = _searchController.text
+        .trim();
     ref.read(supportTicketListProvider.notifier).applyQuery();
   }
 
@@ -63,26 +66,34 @@ class _SupportTicketListPageState extends ConsumerState<SupportTicketListPage> {
         ],
       ),
       body: listAsync.when(
-        loading: () => SupportFeedback.loading(),
+        loading: SupportFeedback.loading,
         error: (e, _) => SupportFeedback.error(
           context,
           message: e.toString(),
-          onRetry: () => ref.read(supportTicketListProvider.notifier).reload(forceRefresh: true),
+          onRetry: () => ref
+              .read(supportTicketListProvider.notifier)
+              .reload(forceRefresh: true),
         ),
         data: (state) {
-          if (state.tickets.isEmpty && _searchController.text.isEmpty && statusFilter == null) {
+          if (state.tickets.isEmpty &&
+              _searchController.text.isEmpty &&
+              statusFilter == null) {
             return SupportFeedback.empty(
               context,
               onCreate: () => context.push(AppRoutes.supportTicketCreate),
             );
           }
           return RefreshIndicator(
-            onRefresh: () => ref.read(supportTicketListProvider.notifier).refresh(),
+            onRefresh: () =>
+                ref.read(supportTicketListProvider.notifier).refresh(),
             child: CustomScrollView(
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                if (state.fromCache) SliverToBoxAdapter(child: SupportFeedback.offlineHint(context)),
+                if (state.fromCache)
+                  SliverToBoxAdapter(
+                    child: SupportFeedback.offlineHint(context),
+                  ),
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -110,8 +121,13 @@ class _SupportTicketListPageState extends ConsumerState<SupportTicketListPage> {
                           label: Text(l10n.supportFilterAll),
                           selected: statusFilter == null,
                           onSelected: (_) {
-                            ref.read(supportStatusFilterProvider.notifier).state = null;
-                            ref.read(supportTicketListProvider.notifier).applyQuery();
+                            ref
+                                    .read(supportStatusFilterProvider.notifier)
+                                    .state =
+                                null;
+                            ref
+                                .read(supportTicketListProvider.notifier)
+                                .applyQuery();
                           },
                         ),
                         const SizedBox(width: 8),
@@ -122,8 +138,15 @@ class _SupportTicketListPageState extends ConsumerState<SupportTicketListPage> {
                               label: Text(supportStatusLabel(l10n, status)),
                               selected: statusFilter == status,
                               onSelected: (_) {
-                                ref.read(supportStatusFilterProvider.notifier).state = status;
-                                ref.read(supportTicketListProvider.notifier).applyQuery();
+                                ref
+                                        .read(
+                                          supportStatusFilterProvider.notifier,
+                                        )
+                                        .state =
+                                    status;
+                                ref
+                                    .read(supportTicketListProvider.notifier)
+                                    .applyQuery();
                               },
                             ),
                           ),
@@ -140,7 +163,11 @@ class _SupportTicketListPageState extends ConsumerState<SupportTicketListPage> {
                         padding: const EdgeInsets.only(bottom: 8),
                         child: SupportTicketCard(
                           ticket: state.tickets[index],
-                          onTap: () => context.push(AppRoutes.supportTicketDetail(state.tickets[index].id)),
+                          onTap: () => context.push(
+                            AppRoutes.supportTicketDetail(
+                              state.tickets[index].id,
+                            ),
+                          ),
                         ),
                       ),
                       childCount: state.tickets.length,

@@ -1,0 +1,76 @@
+We are working only on the Prani Doctor / Animal Doctors Flutter mobile app.
+
+Project path:
+D:\PraniDoctor\pranidoctor_mobile
+
+Important isolation rule:
+This task is only for Prani Doctor / Animal Doctors.
+Do not use or mention BPA/WPA, Quarbani 2026, or any other project.
+
+Task:
+Implement the new realistic Bangladesh-context onboarding / service-intro images into the app and polish the onboarding flow.
+
+New assets:
+Place these files under:
+assets/images/onboarding/
+
+Files:
+- onboarding_01_service_overview_bd.png
+- onboarding_02_farmer_vet_consultation_bd.png
+- onboarding_03_ai_field_support_bd.png
+- onboarding_04_get_started_bd.png
+
+Goal:
+Make the service-intro / onboarding flow professional, clean, Bengali-first, and visually connected to the real Prani Doctor services.
+
+Required service meaning by slide:
+1. onboarding_01_service_overview_bd.png
+   Use as the primary hero for livestock service overview.
+   Theme: doctor consultation, medicine/product support, vaccination reminder, health records, emergency support.
+   Suggested title: প্রাণী ডাক্তার
+   Suggested subtitle: খামারের প্রাণীর স্বাস্থ্যসেবা এখন হাতের মুঠোয়
+
+2. onboarding_02_farmer_vet_consultation_bd.png
+   Use for farmer + veterinarian trust / consultation slide.
+   Suggested title: খামারভিত্তিক সেবা
+   Suggested subtitle: কৃষক, ডাক্তার ও মাঠপর্যায়ের সেবাকে এক জায়গায় যুক্ত করা হয়েছে
+
+3. onboarding_03_ai_field_support_bd.png
+   Use for AI technician / veterinary field support slide.
+   Suggested title: AI টেকনিশিয়ান ও ভেট সাপোর্ট
+   Suggested subtitle: কৃত্রিম প্রজনন, মাঠপর্যায়ের সহায়তা, স্বাস্থ্য পর্যবেক্ষণ ও প্রযুক্তিনির্ভর সেবা
+
+4. onboarding_04_get_started_bd.png
+   Use as final onboarding / get started slide.
+   Suggested title: শুরু করুন
+   Suggested subtitle: লোকেশন দিন, সেবা নির্বাচন করুন, নিরাপদ OTP দিয়ে এগিয়ে যান
+
+Implementation requirements:
+1. Audit current splash / onboarding / get-started related files first.
+2. Do not modify backend.
+3. Do not create duplicate UI if reusable components already exist.
+4. Use existing theme/design system tokens only.
+5. Update pubspec.yaml asset registration if needed.
+6. Use SafeArea and proper bottom spacing.
+7. Ensure no overflow on small devices.
+8. Keep image aspect ratio visually clean with BoxFit.cover or appropriate layout.
+9. Improve page indicator, next/back/start buttons, and layout spacing.
+10. If there is a splash screen and onboarding are separate, keep splash lightweight and use onboarding for service explanation.
+11. Preserve Bengali readability.
+12. The last slide primary CTA must be: "শুরু করুন"
+13. If onboarding completion storage already exists, keep it; otherwise add a simple local persistence using the app's existing storage approach.
+14. After tapping "শুরু করুন", navigate to the current login / auth entry screen.
+
+Suggested asset constants:
+- assets/images/onboarding/onboarding_01_service_overview_bd.png
+- assets/images/onboarding/onboarding_02_farmer_vet_consultation_bd.png
+- assets/images/onboarding/onboarding_03_ai_field_support_bd.png
+- assets/images/onboarding/onboarding_04_get_started_bd.png
+
+Please do the following:
+A. Inspect current onboarding/splash implementation and list impacted files.
+B. Implement the asset integration cleanly.
+C. Polish titles, descriptions, spacing, buttons, and indicators.
+D. Run flutter analyze.
+E. If needed, run dart format only on changed files.
+F. Summarize exactly what changed.

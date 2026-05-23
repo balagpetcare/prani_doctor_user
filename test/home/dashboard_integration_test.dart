@@ -62,6 +62,21 @@ void main() {
     });
   });
 
+  group('Dashboard section models', () {
+    test('appointments section empty factory', () {
+      expect(DashboardAppointmentsSection.empty.isEmpty, isTrue);
+    });
+
+    test('activity section empty factory', () {
+      expect(DashboardActivitySection.empty.isEmpty, isTrue);
+    });
+
+    test('health alerts counts overdue and upcoming', () {
+      const section = DashboardHealthAlertsSection(overdue: [], upcoming: []);
+      expect(section.totalAlerts, 0);
+    });
+  });
+
   group('Dashboard auth helpers', () {
     test('detects unauthorized errors', () {
       expect(
@@ -70,6 +85,14 @@ void main() {
         ),
         isTrue,
       );
+    });
+
+    test('customer dashboard excludes ai technician', () {
+      const ctx = DashboardContext(
+        dashboardType: DashboardType.aiTechnician,
+        user: DashboardContextUser(id: '1', name: 'T', phone: '', email: ''),
+      );
+      expect(isCustomerDashboard(ctx), isFalse);
     });
   });
 }

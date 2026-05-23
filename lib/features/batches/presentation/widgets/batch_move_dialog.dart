@@ -18,15 +18,17 @@ Future<BatchMoveInput?> showBatchMoveDialog(
 
   if (targets.isEmpty || detail.animals.isEmpty) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.batchMoveUnavailable)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.batchMoveUnavailable)));
     }
     return null;
   }
 
   String? targetId = targets.first.id;
-  final selectedIds = <String>{if (detail.animals.isNotEmpty) detail.animals.first.id};
+  final selectedIds = <String>{
+    if (detail.animals.isNotEmpty) detail.animals.first.id,
+  };
   final notesController = TextEditingController();
 
   final result = await showDialog<bool>(
@@ -39,10 +41,12 @@ Future<BatchMoveInput?> showBatchMoveDialog(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: targetId,
+                initialValue: targetId,
                 decoration: InputDecoration(labelText: l10n.batchMoveTarget),
                 items: targets
-                    .map((b) => DropdownMenuItem(value: b.id, child: Text(b.name)))
+                    .map(
+                      (b) => DropdownMenuItem(value: b.id, child: Text(b.name)),
+                    )
                     .toList(),
                 onChanged: (v) => setState(() => targetId = v),
               ),
@@ -71,8 +75,14 @@ Future<BatchMoveInput?> showBatchMoveDialog(
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.batchMoveConfirm)),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.batchMoveConfirm),
+          ),
         ],
       ),
     ),

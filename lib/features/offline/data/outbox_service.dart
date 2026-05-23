@@ -19,7 +19,10 @@ class OutboxService {
 
   Future<List<OutboxItem>> listReady({int limit = 25}) async {
     final items = await listAll();
-    return items.where((item) => item.isReady && !item.isDead).take(limit).toList();
+    return items
+        .where((item) => item.isReady && !item.isDead)
+        .take(limit)
+        .toList();
   }
 
   Future<int> pendingCount() async {
@@ -29,14 +32,18 @@ class OutboxService {
 
   Future<void> enqueue(OutboxItem item) async {
     final items = await listAll();
-    final filtered = items.where((i) => i.idempotencyKey != item.idempotencyKey).toList();
+    final filtered = items
+        .where((i) => i.idempotencyKey != item.idempotencyKey)
+        .toList();
     filtered.add(item);
     await _save(filtered);
   }
 
   Future<void> remove(String idempotencyKey) async {
     final items = await listAll();
-    await _save(items.where((i) => i.idempotencyKey != idempotencyKey).toList());
+    await _save(
+      items.where((i) => i.idempotencyKey != idempotencyKey).toList(),
+    );
   }
 
   Future<void> update(OutboxItem item) async {

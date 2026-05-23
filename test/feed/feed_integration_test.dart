@@ -64,10 +64,14 @@ void main() {
         'to': '2026-05-22',
         'totalCostBdt': 5000,
         'totalAmount': 120,
-        'daily': [{'date': '2026-05-22', 'costBdt': 200, 'amount': 10}],
+        'daily': [
+          {'date': '2026-05-22', 'costBdt': 200, 'amount': 10},
+        ],
         'weekly': [],
         'monthly': [],
-        'byAnimal': [{'animalId': 'a1', 'animalName': 'Cow', 'costBdt': 200, 'amount': 10}],
+        'byAnimal': [
+          {'animalId': 'a1', 'animalName': 'Cow', 'costBdt': 200, 'amount': 10},
+        ],
       });
       expect(cost.totalCostBdt, 5000);
       expect(cost.byAnimal.single.animalName, 'Cow');
@@ -76,7 +80,10 @@ void main() {
 
   group('FeedValidation', () {
     test('validates amount and target', () {
-      expect(FeedValidation.validateAmount('', message: 'Required'), 'Required');
+      expect(
+        FeedValidation.validateAmount('', message: 'Required'),
+        'Required',
+      );
       expect(
         FeedValidation.validateTarget(
           target: FeedTarget.animal,
@@ -86,6 +93,26 @@ void main() {
         ),
         'Required',
       );
+    });
+  });
+
+  group('FeedTargetFilter', () {
+    test('enum values for client filtering', () {
+      expect(FeedTargetFilter.values.length, 3);
+    });
+  });
+
+  group('FeedPageResult', () {
+    test('copyWith preserves pending sync count', () {
+      const page = FeedPageResult(
+        records: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+        hasMore: false,
+        pendingSyncCount: 1,
+      );
+      expect(page.copyWith(fromCache: true).pendingSyncCount, 1);
     });
   });
 }

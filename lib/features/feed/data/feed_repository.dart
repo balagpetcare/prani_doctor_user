@@ -42,21 +42,37 @@ class FeedRepository implements FeedRepositoryContract {
       limit: cached['limit'] as int? ?? 20,
       hasMore: cached['hasMore'] as bool? ?? false,
       fromCache: true,
+      pendingSyncCount:
+          cached['pendingSyncCount'] as int? ?? _pendingSyncCount(records),
     );
   }
 
+  int _pendingSyncCount(List<FeedRecord> records) =>
+      records.where((r) => r.pendingSync).length;
+
+  @override
+  Future<FeedCostData?> readCachedCost() async {
+    final cached = await _cache.read(LocalCacheContract.feedCostKey);
+    if (cached == null) return null;
+    return FeedCostData.fromJson(cached, fromCache: true);
+  }
+
+  @override
+  Future<FeedAnalyticsData?> readCachedAnalytics() async {
+    final cached = await _cache.read(LocalCacheContract.feedAnalyticsKey);
+    if (cached == null) return null;
+    return FeedAnalyticsData.fromJson(cached, fromCache: true);
+  }
+
   Future<void> _writeListCache(FeedPageResult page) async {
-    await _cache.write(
-      LocalCacheContract.feedsListKey,
-      {
-        'records': page.records.map((r) => r.toJson()).toList(),
-        'total': page.total,
-        'page': page.page,
-        'limit': page.limit,
-        'hasMore': page.hasMore,
-      },
-      LocalCacheContract.profileTtl,
-    );
+    await _cache.write(LocalCacheContract.feedsListKey, {
+      'records': page.records.map((r) => r.toJson()).toList(),
+      'total': page.total,
+      'page': page.page,
+      'limit': page.limit,
+      'hasMore': page.hasMore,
+      'pendingSyncCount': page.pendingSyncCount,
+    }, LocalCacheContract.profileTtl);
   }
 
   FeedPageResult _parseListPage(Map<String, dynamic> data) {
@@ -70,6 +86,7 @@ class FeedRepository implements FeedRepositoryContract {
       page: data['page'] as int? ?? 1,
       limit: data['limit'] as int? ?? 20,
       hasMore: data['hasMore'] as bool? ?? false,
+      pendingSyncCount: _pendingSyncCount(records),
     );
   }
 
@@ -126,7 +143,11 @@ class FeedRepository implements FeedRepositoryContract {
         if (feedType != null) 'feedType': feedType.apiValue,
         if (search.trim().isNotEmpty) 'search': search.trim(),
       };
-      final data = await getJson(_dio, FeedApiPaths.feeds, queryParameters: query);
+      final data = await getJson(
+        _dio,
+        FeedApiPaths.feeds,
+        queryParameters: query,
+      );
       final pageResult = _parseListPage(data);
       if (page == 1) await _writeListCache(pageResult);
       return ApiResult.success(pageResult);
@@ -139,7 +160,11 @@ class FeedRepository implements FeedRepositoryContract {
     }
   }
 
-  Future<void> _enqueue(OutboxKind kind, Map<String, dynamic> payload, String keySuffix) async {
+  Future<void> _enqueue(
+    OutboxKind kind,
+    Map<String, dynamic> payload,
+    String keySuffix,
+  ) async {
     final sequence = (await _outbox.listAll()).length + 1;
     await _outbox.enqueue(
       OutboxItem(
@@ -166,11 +191,9 @@ class FeedRepository implements FeedRepositoryContract {
         hasMore: false,
       ),
     );
-    await _cache.write(
-      LocalCacheContract.feedDetailKey(record.id),
-      {'record': record.toJson()},
-      LocalCacheContract.profileTtl,
-    );
+    await _cache.write(LocalCacheContract.feedDetailKey(record.id), {
+      'record': record.toJson(),
+    }, LocalCacheContract.profileTtl);
   }
 
   Future<void> _optimisticRemove(String id) async {
@@ -194,20 +217,23 @@ class FeedRepository implements FeedRepositoryContract {
       final data = await getJson(_dio, FeedApiPaths.record(id));
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Record not found'));
+        return const ApiResult.failure(
+          AppException(message: 'Record not found'),
+        );
       }
       final record = FeedRecord.fromJson(raw);
-      await _cache.write(
-        LocalCacheContract.feedDetailKey(id),
-        {'record': record.toJson()},
-        LocalCacheContract.profileTtl,
-      );
+      await _cache.write(LocalCacheContract.feedDetailKey(id), {
+        'record': record.toJson(),
+      }, LocalCacheContract.profileTtl);
       return ApiResult.success(record);
     } on AppException catch (e) {
       final cached = await _cache.read(LocalCacheContract.feedDetailKey(id));
       if (cached != null) {
         return ApiResult.success(
-          FeedRecord.fromJson(cached['record'] as Map<String, dynamic>, fromCache: true),
+          FeedRecord.fromJson(
+            cached['record'] as Map<String, dynamic>,
+            fromCache: true,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -242,7 +268,9 @@ class FeedRepository implements FeedRepositoryContract {
       final data = await postJson(_dio, FeedApiPaths.feeds, body);
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid create response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid create response'),
+        );
       }
       final record = FeedRecord.fromJson(raw);
       await _optimisticUpsert(record);
@@ -251,8 +279,11 @@ class FeedRepository implements FeedRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.feedCreate, body, tempId);
-        return ApiResult.failure(
-          const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Saved offline — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -286,7 +317,9 @@ class FeedRepository implements FeedRepositoryContract {
       final data = await patchJson(_dio, FeedApiPaths.record(id), body);
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid update response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid update response'),
+        );
       }
       final record = FeedRecord.fromJson(raw);
       await _optimisticUpsert(record);
@@ -295,8 +328,11 @@ class FeedRepository implements FeedRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.feedPatch, {...body, 'id': id}, id);
-        return ApiResult.failure(
-          const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Saved offline — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -312,8 +348,11 @@ class FeedRepository implements FeedRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.feedDelete, {'id': id}, id);
-        return ApiResult.failure(
-          const AppException(message: 'Queued delete — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Queued delete — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -321,17 +360,26 @@ class FeedRepository implements FeedRepositoryContract {
   }
 
   @override
-  Future<ApiResult<FeedCostData>> getCost({DateTime? from, DateTime? to}) async {
+  Future<ApiResult<FeedCostData>> getCost({
+    DateTime? from,
+    DateTime? to,
+  }) async {
     try {
       final now = DateTime.now();
       final query = <String, dynamic>{
         'from': _dateParam(from ?? now.subtract(const Duration(days: 30))),
         'to': _dateParam(to ?? now),
       };
-      final data = await getJson(_dio, FeedApiPaths.cost, queryParameters: query);
+      final data = await getJson(
+        _dio,
+        FeedApiPaths.cost,
+        queryParameters: query,
+      );
       final raw = data['cost'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid cost response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid cost response'),
+        );
       }
       final cost = FeedCostData.fromJson(raw);
       await _cache.write(
@@ -343,24 +391,35 @@ class FeedRepository implements FeedRepositoryContract {
     } on AppException catch (e) {
       final cached = await _cache.read(LocalCacheContract.feedCostKey);
       if (cached != null) {
-        return ApiResult.success(FeedCostData.fromJson(cached, fromCache: true));
+        return ApiResult.success(
+          FeedCostData.fromJson(cached, fromCache: true),
+        );
       }
       return ApiResult.failure(e);
     }
   }
 
   @override
-  Future<ApiResult<FeedAnalyticsData>> getAnalytics({DateTime? from, DateTime? to}) async {
+  Future<ApiResult<FeedAnalyticsData>> getAnalytics({
+    DateTime? from,
+    DateTime? to,
+  }) async {
     try {
       final now = DateTime.now();
       final query = <String, dynamic>{
         'from': _dateParam(from ?? now.subtract(const Duration(days: 30))),
         'to': _dateParam(to ?? now),
       };
-      final data = await getJson(_dio, FeedApiPaths.analytics, queryParameters: query);
+      final data = await getJson(
+        _dio,
+        FeedApiPaths.analytics,
+        queryParameters: query,
+      );
       final raw = data['analytics'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid analytics response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid analytics response'),
+        );
       }
       final analytics = FeedAnalyticsData.fromJson(raw);
       await _cache.write(
@@ -372,7 +431,9 @@ class FeedRepository implements FeedRepositoryContract {
     } on AppException catch (e) {
       final cached = await _cache.read(LocalCacheContract.feedAnalyticsKey);
       if (cached != null) {
-        return ApiResult.success(FeedAnalyticsData.fromJson(cached, fromCache: true));
+        return ApiResult.success(
+          FeedAnalyticsData.fromJson(cached, fromCache: true),
+        );
       }
       return ApiResult.failure(e);
     }
@@ -381,7 +442,9 @@ class FeedRepository implements FeedRepositoryContract {
   @override
   Future<void> saveDraft(FeedInput input, {String? recordId}) async {
     await _cache.write(
-      recordId == null ? LocalCacheContract.feedDraftKey : LocalCacheContract.feedEditDraftKey(recordId),
+      recordId == null
+          ? LocalCacheContract.feedDraftKey
+          : LocalCacheContract.feedEditDraftKey(recordId),
       input.toDraftJson(),
       LocalCacheContract.profileTtl,
     );
@@ -390,7 +453,9 @@ class FeedRepository implements FeedRepositoryContract {
   @override
   Future<FeedInput?> readDraft({String? recordId}) async {
     final raw = await _cache.read(
-      recordId == null ? LocalCacheContract.feedDraftKey : LocalCacheContract.feedEditDraftKey(recordId),
+      recordId == null
+          ? LocalCacheContract.feedDraftKey
+          : LocalCacheContract.feedEditDraftKey(recordId),
     );
     if (raw == null || raw.isEmpty) return null;
     return FeedInput.fromDraftJson(raw);
@@ -399,7 +464,9 @@ class FeedRepository implements FeedRepositoryContract {
   @override
   Future<void> clearDraft({String? recordId}) async {
     await _cache.write(
-      recordId == null ? LocalCacheContract.feedDraftKey : LocalCacheContract.feedEditDraftKey(recordId),
+      recordId == null
+          ? LocalCacheContract.feedDraftKey
+          : LocalCacheContract.feedEditDraftKey(recordId),
       {},
       Duration.zero,
     );

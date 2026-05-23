@@ -8,7 +8,7 @@ import '../../../core/offline/offline_dto.dart';
 
 class ConnectivityService implements ConnectivityContract {
   ConnectivityService({Connectivity? connectivity})
-      : _connectivity = connectivity ?? Connectivity();
+    : _connectivity = connectivity ?? Connectivity();
 
   final Connectivity _connectivity;
   final _controller = StreamController<OfflineConnectivityMode>.broadcast();
@@ -24,7 +24,9 @@ class ConnectivityService implements ConnectivityContract {
 
   Future<void> initialize() async {
     await _refresh();
-    _subscription = _connectivity.onConnectivityChanged.listen((_) => _refresh());
+    _subscription = _connectivity.onConnectivityChanged.listen(
+      (_) => _refresh(),
+    );
   }
 
   Future<void> dispose() async {
@@ -70,5 +72,6 @@ class ConnectivityService implements ConnectivityContract {
 }
 
 bool isOnlineMode(OfflineConnectivityMode mode) {
-  return mode == OfflineConnectivityMode.online || mode == OfflineConnectivityMode.degraded;
+  return mode == OfflineConnectivityMode.online ||
+      mode == OfflineConnectivityMode.degraded;
 }

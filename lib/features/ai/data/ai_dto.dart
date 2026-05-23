@@ -80,7 +80,9 @@ class AiChatMessage {
   final bool fromCache;
 
   bool get isFailed => status == AiMessageStatus.failed;
-  bool get isPending => status == AiMessageStatus.pendingSync || status == AiMessageStatus.sending;
+  bool get isPending =>
+      status == AiMessageStatus.pendingSync ||
+      status == AiMessageStatus.sending;
 
   AiChatMessage copyWith({
     String? id,
@@ -101,19 +103,25 @@ class AiChatMessage {
       createdAt: createdAt ?? this.createdAt,
       refused: refused ?? this.refused,
       humanRedirect: humanRedirect ?? this.humanRedirect,
-      escalationRecommended: escalationRecommended ?? this.escalationRecommended,
+      escalationRecommended:
+          escalationRecommended ?? this.escalationRecommended,
       disclaimer: disclaimer ?? this.disclaimer,
       status: status ?? this.status,
       fromCache: fromCache ?? this.fromCache,
     );
   }
 
-  factory AiChatMessage.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory AiChatMessage.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     return AiChatMessage(
       id: json['id'] as String? ?? '',
       role: AiMessageRoleApi.fromApi(json['role'] as String? ?? 'SYSTEM'),
       content: json['content'] as String? ?? '',
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(),
       refused: json['refused'] as bool? ?? false,
       humanRedirect: json['humanRedirect'] as bool? ?? false,
       escalationRecommended: json['escalationRecommended'] as bool? ?? false,
@@ -137,16 +145,16 @@ class AiChatMessage {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'role': role.apiValue,
-        'content': content,
-        'createdAt': createdAt.toIso8601String(),
-        'refused': refused,
-        'humanRedirect': humanRedirect,
-        'escalationRecommended': escalationRecommended,
-        if (disclaimer != null) 'disclaimer': disclaimer,
-        'status': status.name,
-      };
+    'id': id,
+    'role': role.apiValue,
+    'content': content,
+    'createdAt': createdAt.toIso8601String(),
+    'refused': refused,
+    'humanRedirect': humanRedirect,
+    'escalationRecommended': escalationRecommended,
+    if (disclaimer != null) 'disclaimer': disclaimer,
+    'status': status.name,
+  };
 }
 
 class AiChatResponse {
@@ -212,8 +220,13 @@ class TriageResultModel {
   final bool escalationRequired;
   final String disclaimer;
 
-  factory TriageResultModel.fromJson(Map<String, dynamic> json, {required String symptomsSummary}) {
-    final urgency = AiRiskLevelApi.fromApi(json['riskBucket'] as String? ?? 'LOW');
+  factory TriageResultModel.fromJson(
+    Map<String, dynamic> json, {
+    required String symptomsSummary,
+  }) {
+    final urgency = AiRiskLevelApi.fromApi(
+      json['riskBucket'] as String? ?? 'LOW',
+    );
     return TriageResultModel(
       triageId: json['triageId'] as String? ?? '',
       possibleConcern: symptomsSummary,
@@ -266,10 +279,10 @@ class AiSendMessageInput {
   final AiLocale locale;
 
   Map<String, dynamic> toJson() => {
-        'message': message.trim(),
-        if (sessionId != null) 'sessionId': sessionId,
-        'locale': locale.apiValue,
-      };
+    'message': message.trim(),
+    if (sessionId != null) 'sessionId': sessionId,
+    'locale': locale.apiValue,
+  };
 }
 
 class AiTriageInput {
@@ -284,8 +297,47 @@ class AiTriageInput {
   final AiLocale locale;
 
   Map<String, dynamic> toJson() => {
-        'symptoms': symptoms,
-        if (sessionId != null) 'sessionId': sessionId,
-        'locale': locale.apiValue,
-      };
+    'symptoms': symptoms,
+    if (sessionId != null) 'sessionId': sessionId,
+    'locale': locale.apiValue,
+  };
+}
+
+class AiSettings {
+  const AiSettings({
+    this.locale = AiLocale.bn,
+    this.showSuggestions = true,
+    this.rememberConversations = true,
+  });
+
+  final AiLocale locale;
+  final bool showSuggestions;
+  final bool rememberConversations;
+
+  AiSettings copyWith({
+    AiLocale? locale,
+    bool? showSuggestions,
+    bool? rememberConversations,
+  }) {
+    return AiSettings(
+      locale: locale ?? this.locale,
+      showSuggestions: showSuggestions ?? this.showSuggestions,
+      rememberConversations:
+          rememberConversations ?? this.rememberConversations,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'locale': locale.apiValue,
+    'showSuggestions': showSuggestions,
+    'rememberConversations': rememberConversations,
+  };
+
+  factory AiSettings.fromJson(Map<String, dynamic> json) {
+    return AiSettings(
+      locale: AiLocaleApi.fromApi(json['locale'] as String?),
+      showSuggestions: json['showSuggestions'] as bool? ?? true,
+      rememberConversations: json['rememberConversations'] as bool? ?? true,
+    );
+  }
 }

@@ -1,3 +1,5 @@
+const _unset = Object();
+
 class MobileMeAddressDto {
   const MobileMeAddressDto({
     this.divisionId,
@@ -5,6 +7,7 @@ class MobileMeAddressDto {
     this.upazilaId,
     this.unionId,
     this.villageId,
+    this.villageName,
     this.line1,
     this.postalCode,
   });
@@ -14,6 +17,9 @@ class MobileMeAddressDto {
   final String? upazilaId;
   final String? unionId;
   final String? villageId;
+
+  /// Free-text village when not in master data (sent as `villageName` to API).
+  final String? villageName;
   final String? line1;
   final String? postalCode;
 
@@ -24,6 +30,8 @@ class MobileMeAddressDto {
       upazilaId: json['upazilaId'] as String?,
       unionId: json['unionId'] as String?,
       villageId: json['villageId'] as String?,
+      villageName:
+          json['villageName'] as String? ?? json['villageNameBn'] as String?,
       line1: json['line1'] as String?,
       postalCode: json['postalCode'] as String?,
     );
@@ -36,6 +44,8 @@ class MobileMeAddressDto {
       if (upazilaId != null) 'upazilaId': upazilaId,
       if (unionId != null) 'unionId': unionId,
       if (villageId != null) 'villageId': villageId,
+      if (villageName != null && villageName!.trim().isNotEmpty)
+        'villageName': villageName!.trim(),
       if (line1 != null) 'line1': line1,
       if (postalCode != null) 'postalCode': postalCode,
     };
@@ -54,7 +64,9 @@ class MobileMeDto {
     required this.locale,
     required this.role,
     this.profilePhotoUrl,
+    this.profilePhotoThumbUrl,
     this.coverPhotoUrl,
+    this.coverPhotoThumbUrl,
     this.profileComplete,
     this.address,
   });
@@ -67,9 +79,27 @@ class MobileMeDto {
   final String locale;
   final String role;
   final String? profilePhotoUrl;
+  final String? profilePhotoThumbUrl;
   final String? coverPhotoUrl;
+  final String? coverPhotoThumbUrl;
   final bool? profileComplete;
   final MobileMeAddressDto? address;
+
+  /// Preferred display URL (thumb when available).
+  String? get profileImageUrl => profilePhotoThumbUrl ?? profilePhotoUrl;
+  String? get coverImageUrl => coverPhotoThumbUrl ?? coverPhotoUrl;
+
+  bool get hasDisplayName => name.trim().isNotEmpty;
+
+  /// Union is required for onboarding; village is optional.
+  bool get hasRequiredLocation => address?.unionId?.isNotEmpty ?? false;
+
+  bool get hasLocation => hasRequiredLocation;
+
+  /// Client-side completion — name + union. Photo/village never block navigation.
+  bool get canContinueToHome => hasDisplayName && hasRequiredLocation;
+
+  bool get needsProfileSetup => !canContinueToHome;
 
   factory MobileMeDto.fromJson(Map<String, dynamic> json) {
     MobileMeAddressDto? address;
@@ -86,8 +116,25 @@ class MobileMeDto {
       area: json['area'] as String?,
       locale: json['locale'] as String? ?? 'bn-BD',
       role: json['role'] as String? ?? 'customer',
-      profilePhotoUrl: json['profilePhotoUrl'] as String?,
-      coverPhotoUrl: json['coverPhotoUrl'] as String?,
+      profilePhotoUrl: _str(
+        json,
+        'profilePhotoUrl',
+        'profileImageUrl',
+        'avatarUrl',
+      ),
+      profilePhotoThumbUrl: _str(
+        json,
+        'profilePhotoThumbUrl',
+        'profileImageThumbUrl',
+        'avatarThumbUrl',
+      ),
+      coverPhotoUrl: _str(json, 'coverPhotoUrl', 'coverImageUrl', 'coverUrl'),
+      coverPhotoThumbUrl: _str(
+        json,
+        'coverPhotoThumbUrl',
+        'coverImageThumbUrl',
+        'coverThumbUrl',
+      ),
       profileComplete: json['profileComplete'] as bool?,
       address: address,
     );
@@ -98,8 +145,10 @@ class MobileMeDto {
     String? email,
     String? area,
     String? locale,
-    String? profilePhotoUrl,
-    String? coverPhotoUrl,
+    Object? profilePhotoUrl = _unset,
+    Object? profilePhotoThumbUrl = _unset,
+    Object? coverPhotoUrl = _unset,
+    Object? coverPhotoThumbUrl = _unset,
     bool? profileComplete,
     MobileMeAddressDto? address,
   }) {
@@ -111,26 +160,39 @@ class MobileMeDto {
       area: area ?? this.area,
       locale: locale ?? this.locale,
       role: role,
-      profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
-      coverPhotoUrl: coverPhotoUrl ?? this.coverPhotoUrl,
+      profilePhotoUrl: profilePhotoUrl == _unset
+          ? this.profilePhotoUrl
+          : profilePhotoUrl as String?,
+      profilePhotoThumbUrl: profilePhotoThumbUrl == _unset
+          ? this.profilePhotoThumbUrl
+          : profilePhotoThumbUrl as String?,
+      coverPhotoUrl: coverPhotoUrl == _unset
+          ? this.coverPhotoUrl
+          : coverPhotoUrl as String?,
+      coverPhotoThumbUrl: coverPhotoThumbUrl == _unset
+          ? this.coverPhotoThumbUrl
+          : coverPhotoThumbUrl as String?,
       profileComplete: profileComplete ?? this.profileComplete,
       address: address ?? this.address,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'phone': phone,
-        'email': email,
-        if (area != null) 'area': area,
-        'locale': locale,
-        'role': role,
-        if (profilePhotoUrl != null) 'profilePhotoUrl': profilePhotoUrl,
-        if (coverPhotoUrl != null) 'coverPhotoUrl': coverPhotoUrl,
-        if (profileComplete != null) 'profileComplete': profileComplete,
-        if (address != null) 'address': address!.toJson(),
-      };
+    'id': id,
+    'name': name,
+    'phone': phone,
+    'email': email,
+    if (area != null) 'area': area,
+    'locale': locale,
+    'role': role,
+    if (profilePhotoUrl != null) 'profilePhotoUrl': profilePhotoUrl,
+    if (profilePhotoThumbUrl != null)
+      'profilePhotoThumbUrl': profilePhotoThumbUrl,
+    if (coverPhotoUrl != null) 'coverPhotoUrl': coverPhotoUrl,
+    if (coverPhotoThumbUrl != null) 'coverPhotoThumbUrl': coverPhotoThumbUrl,
+    if (profileComplete != null) 'profileComplete': profileComplete,
+    if (address != null) 'address': address!.toJson(),
+  };
 
   MobileMeDto mergeAddress(MobileMeAddressDto? cachedAddress) {
     if (address != null || cachedAddress == null) return this;
@@ -153,6 +215,8 @@ class PatchMobileMeInput {
   final String? locale;
   final MobileMeAddressDto? address;
 
+  bool get hasPayload => toJson().isNotEmpty;
+
   Map<String, dynamic> toJson() {
     return {
       if (name != null) 'name': name,
@@ -162,4 +226,16 @@ class PatchMobileMeInput {
       if (address != null) 'address': address!.toPatchJson(),
     };
   }
+}
+
+String? _str(
+  Map<String, dynamic> json,
+  String primary,
+  String alias, [
+  String? alias2,
+]) {
+  final v =
+      json[primary] ?? json[alias] ?? (alias2 != null ? json[alias2] : null);
+  if (v is String && v.isNotEmpty) return v;
+  return null;
 }

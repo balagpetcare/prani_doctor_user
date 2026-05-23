@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../core/navigation/navigation_guard.dart';
 import '../../../core/offline/network_errors.dart';
 import '../../animals/presentation/animal_providers.dart';
 import '../../batches/presentation/batch_providers.dart';
@@ -10,6 +11,7 @@ import '../../farm/presentation/farm_providers.dart';
 import '../data/feed_dto.dart';
 import '../data/feed_repository.dart';
 import '../data/feed_validation.dart';
+import 'feed_navigation.dart';
 import 'feed_providers.dart';
 
 class FeedEntryFormPage extends ConsumerStatefulWidget {
@@ -59,7 +61,9 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
       return;
     }
     if (widget.recordId != null) {
-      final record = await ref.read(feedRecordProvider(widget.recordId!).future);
+      final record = await ref.read(
+        feedRecordProvider(widget.recordId!).future,
+      );
       _applyInput(
         FeedInput(
           farmRef: record.farmRef,
@@ -114,7 +118,9 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
   }
 
   Future<void> _saveDraft() async {
-    await ref.read(feedRepositoryProvider).saveDraft(_currentInput(), recordId: widget.recordId);
+    await ref
+        .read(feedRepositoryProvider)
+        .saveDraft(_currentInput(), recordId: widget.recordId);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.feedDraftSaved)),
@@ -123,6 +129,7 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
   }
 
   Future<void> _submit() async {
+    if (_loading) return;
     final l10n = AppLocalizations.of(context)!;
     final targetError = FeedValidation.validateTarget(
       target: _target,
@@ -130,9 +137,15 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
       batchId: _batchId,
       message: l10n.feedTargetRequired,
     );
-    final amountError = FeedValidation.validateAmount(_amountController.text, message: l10n.feedAmountRequired);
+    final amountError = FeedValidation.validateAmount(
+      _amountController.text,
+      message: l10n.feedAmountRequired,
+    );
     final costError = FeedValidation.validateCost(_costController.text);
-    final dateError = FeedValidation.validateDate(_recordedDate, message: l10n.feedDateInvalid);
+    final dateError = FeedValidation.validateDate(
+      _recordedDate,
+      message: l10n.feedDateInvalid,
+    );
     final error = targetError ?? amountError ?? costError ?? dateError;
     if (error != null) {
       setState(() => _error = error);
@@ -165,17 +178,17 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
     setState(() => _loading = false);
 
     result.when(
-      success: (_) {
-        ref.invalidate(feedListProvider);
-        ref.invalidate(feedCostProvider);
-        ref.invalidate(feedAnalyticsProvider);
+      success: (record) {
+        FeedNavigation.afterSave(ref, recordId: record.id);
         context.pop();
       },
       failure: (e) {
         if (e.code == offlineQueuedCode) {
-          ref.invalidate(feedListProvider);
+          FeedNavigation.afterSave(ref, recordId: widget.recordId);
           context.pop();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.feedOfflineSaved)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.feedOfflineSaved)));
           return;
         }
         setState(() => _error = e.message);
@@ -193,8 +206,14 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
         title: Text(l10n.feedDeleteTitle),
         content: Text(l10n.feedDeleteConfirm),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.feedDeleteAction)),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.feedDeleteAction),
+          ),
         ],
       ),
     );
@@ -206,16 +225,16 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
     setState(() => _loading = false);
     result.when(
       success: (_) {
-        ref.invalidate(feedListProvider);
-        ref.invalidate(feedCostProvider);
-        ref.invalidate(feedAnalyticsProvider);
+        FeedNavigation.afterDelete(ref);
         context.pop();
       },
       failure: (e) {
         if (e.code == offlineQueuedCode) {
-          ref.invalidate(feedListProvider);
+          FeedNavigation.afterDelete(ref);
           context.pop();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.feedOfflineSaved)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.feedOfflineSaved)));
           return;
         }
         setState(() => _error = e.message);
@@ -240,15 +259,23 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
     final batchesAsync = ref.watch(batchOptionsProvider);
     final farmsAsync = ref.watch(farmListProvider);
     final isEdit = widget.recordId != null;
-    final livestock = animalsAsync.value?.animals.where((a) => a.active).toList() ?? [];
+    final livestock =
+        animalsAsync.value?.animals.where((a) => a.active).toList() ?? [];
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: safeAppBar(
+        context,
         title: Text(isEdit ? l10n.feedEditTitle : l10n.feedAddTitle),
         actions: [
           if (isEdit)
-            IconButton(onPressed: _loading ? null : _delete, icon: const Icon(Icons.delete_outline)),
-          TextButton(onPressed: _loading ? null : _saveDraft, child: Text(l10n.feedSaveDraft)),
+            IconButton(
+              onPressed: _loading ? null : _delete,
+              icon: const Icon(Icons.delete_outline),
+            ),
+          TextButton(
+            onPressed: _loading ? null : _saveDraft,
+            child: Text(l10n.feedSaveDraft),
+          ),
         ],
       ),
       body: ListView(
@@ -257,56 +284,87 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ),
           farmsAsync.when(
             loading: () => const LinearProgressIndicator(),
-            error: (_, __) => Text(l10n.feedFarmLoadError),
+            error: (_, _) => Text(l10n.feedFarmLoadError),
             data: (state) {
               if (state.farms.isEmpty) return Text(l10n.feedNoFarm);
               return DropdownButtonFormField<String>(
                 initialValue: _farmRef ?? state.farms.first.id,
                 decoration: InputDecoration(labelText: l10n.feedFarmLabel),
-                items: state.farms.map((f) => DropdownMenuItem(value: f.id, child: Text(f.name))).toList(),
-                onChanged: _loading ? null : (v) => setState(() => _farmRef = v),
+                items: state.farms
+                    .map(
+                      (f) => DropdownMenuItem(value: f.id, child: Text(f.name)),
+                    )
+                    .toList(),
+                onChanged: _loading
+                    ? null
+                    : (v) => setState(() => _farmRef = v),
               );
             },
           ),
           const SizedBox(height: 12),
           SegmentedButton<FeedTarget>(
             segments: [
-              ButtonSegment(value: FeedTarget.animal, label: Text(l10n.feedTargetAnimal)),
-              ButtonSegment(value: FeedTarget.group, label: Text(l10n.feedTargetGroup)),
+              ButtonSegment(
+                value: FeedTarget.animal,
+                label: Text(l10n.feedTargetAnimal),
+              ),
+              ButtonSegment(
+                value: FeedTarget.group,
+                label: Text(l10n.feedTargetGroup),
+              ),
             ],
             selected: {_target},
-            onSelectionChanged: _loading ? null : (s) => setState(() => _target = s.first),
+            onSelectionChanged: _loading
+                ? null
+                : (s) => setState(() => _target = s.first),
           ),
           const SizedBox(height: 12),
           if (_target == FeedTarget.animal)
             animalsAsync.when(
               loading: () => const LinearProgressIndicator(),
-              error: (_, __) => Text(l10n.feedAnimalLoadError),
+              error: (_, _) => Text(l10n.feedAnimalLoadError),
               data: (_) {
                 if (livestock.isEmpty) return Text(l10n.feedNoAnimals);
                 return DropdownButtonFormField<String>(
                   initialValue: _animalId ?? livestock.first.id,
                   decoration: InputDecoration(labelText: l10n.feedAnimalLabel),
-                  items: livestock.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
-                  onChanged: _loading ? null : (v) => setState(() => _animalId = v),
+                  items: livestock
+                      .map(
+                        (a) =>
+                            DropdownMenuItem(value: a.id, child: Text(a.name)),
+                      )
+                      .toList(),
+                  onChanged: _loading
+                      ? null
+                      : (v) => setState(() => _animalId = v),
                 );
               },
             )
           else
             batchesAsync.when(
               loading: () => const LinearProgressIndicator(),
-              error: (_, __) => Text(l10n.feedGroupLoadError),
+              error: (_, _) => Text(l10n.feedGroupLoadError),
               data: (batches) {
                 if (batches.isEmpty) return Text(l10n.feedNoGroups);
                 return DropdownButtonFormField<String>(
                   initialValue: _batchId ?? batches.first.id,
                   decoration: InputDecoration(labelText: l10n.feedGroupLabel),
-                  items: batches.map((b) => DropdownMenuItem(value: b.id, child: Text(b.name))).toList(),
-                  onChanged: _loading ? null : (v) => setState(() => _batchId = v),
+                  items: batches
+                      .map(
+                        (b) =>
+                            DropdownMenuItem(value: b.id, child: Text(b.name)),
+                      )
+                      .toList(),
+                  onChanged: _loading
+                      ? null
+                      : (v) => setState(() => _batchId = v),
                 );
               },
             ),
@@ -314,8 +372,12 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
           DropdownButtonFormField<FeedType>(
             initialValue: _feedType,
             decoration: InputDecoration(labelText: l10n.feedTypeLabel),
-            items: FeedType.values.map((t) => DropdownMenuItem(value: t, child: Text(t.apiValue))).toList(),
-            onChanged: _loading ? null : (v) => setState(() => _feedType = v ?? FeedType.other),
+            items: FeedType.values
+                .map((t) => DropdownMenuItem(value: t, child: Text(t.apiValue)))
+                .toList(),
+            onChanged: _loading
+                ? null
+                : (v) => setState(() => _feedType = v ?? FeedType.other),
           ),
           const SizedBox(height: 12),
           Row(
@@ -324,7 +386,9 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
                 flex: 2,
                 child: TextField(
                   controller: _amountController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   decoration: InputDecoration(labelText: l10n.feedAmountLabel),
                 ),
               ),
@@ -333,8 +397,15 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
                 child: DropdownButtonFormField<FeedUnit>(
                   initialValue: _unit,
                   decoration: InputDecoration(labelText: l10n.feedUnitLabel),
-                  items: FeedUnit.values.map((u) => DropdownMenuItem(value: u, child: Text(u.apiValue))).toList(),
-                  onChanged: _loading ? null : (v) => setState(() => _unit = v ?? FeedUnit.kg),
+                  items: FeedUnit.values
+                      .map(
+                        (u) =>
+                            DropdownMenuItem(value: u, child: Text(u.apiValue)),
+                      )
+                      .toList(),
+                  onChanged: _loading
+                      ? null
+                      : (v) => setState(() => _unit = v ?? FeedUnit.kg),
                 ),
               ),
             ],
@@ -350,7 +421,10 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
             contentPadding: EdgeInsets.zero,
             title: Text(l10n.feedDateLabel),
             subtitle: Text(_recordedDate.toLocal().toString().split(' ').first),
-            trailing: IconButton(onPressed: _loading ? null : _pickDate, icon: const Icon(Icons.calendar_today)),
+            trailing: IconButton(
+              onPressed: _loading ? null : _pickDate,
+              icon: const Icon(Icons.calendar_today),
+            ),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -362,7 +436,11 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
           FilledButton(
             onPressed: _loading ? null : _submit,
             child: _loading
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : Text(isEdit ? l10n.feedSaveChanges : l10n.feedCreateAction),
           ),
         ],

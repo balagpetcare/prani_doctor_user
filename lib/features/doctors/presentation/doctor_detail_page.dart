@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../core/navigation/navigation_guard.dart';
 import '../data/doctor_repository.dart';
 import '../../../routing/app_routes.dart';
 
@@ -17,7 +18,7 @@ class DoctorDetailPage extends ConsumerWidget {
     final doctorAsync = ref.watch(doctorDetailProvider(doctorId));
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.doctorDetails)),
+      appBar: safeAppBar(context, title: Text(l10n.doctorDetails)),
       body: doctorAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(e.toString())),
@@ -25,7 +26,10 @@ class DoctorDetailPage extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Text(doctor.name, style: Theme.of(context).textTheme.headlineSmall),
+              Text(
+                doctor.name,
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
               if (doctor.degreeOrQualification != null) ...[
                 const SizedBox(height: 8),
                 Text(doctor.degreeOrQualification!),
@@ -39,7 +43,10 @@ class DoctorDetailPage extends ConsumerWidget {
                 Text('${l10n.consultationFee}: ${doctor.fee} BDT'),
               ],
               const SizedBox(height: 16),
-              Text(l10n.availability, style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                l10n.availability,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               Text(doctor.availability),
               const SizedBox(height: 16),
               Wrap(
@@ -47,7 +54,11 @@ class DoctorDetailPage extends ConsumerWidget {
                 children: [
                   if (doctor.emergency)
                     Chip(
-                      avatar: const Icon(Icons.emergency, size: 16, color: Colors.red),
+                      avatar: const Icon(
+                        Icons.emergency,
+                        size: 16,
+                        color: Colors.red,
+                      ),
                       label: Text(l10n.emergencyAvailable),
                     ),
                   if (doctor.onlineConsultation)
@@ -64,7 +75,10 @@ class DoctorDetailPage extends ConsumerWidget {
               ),
               if (doctor.bio != null && doctor.bio!.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                Text(l10n.aboutDoctor, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  l10n.aboutDoctor,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 Text(doctor.bio!),
               ],
               if (doctor.experienceYears != null) ...[
@@ -73,16 +87,22 @@ class DoctorDetailPage extends ConsumerWidget {
               ],
               if (doctor.serviceCategories.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                Text(l10n.servicesOffered, style: Theme.of(context).textTheme.titleMedium),
-                ...doctor.serviceCategories.map((c) => ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(c.name),
-                    )),
+                Text(
+                  l10n.servicesOffered,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                ...doctor.serviceCategories.map(
+                  (c) => ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(c.name),
+                  ),
+                ),
               ],
               const SizedBox(height: 24),
               FilledButton(
-                onPressed: () => context.go(AppRoutes.bookConsultation(doctorId)),
+                onPressed: () =>
+                    context.go(AppRoutes.bookConsultation(doctorId)),
                 child: Text(l10n.bookConsultation),
               ),
             ],

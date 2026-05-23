@@ -19,7 +19,7 @@ class StubSocialAuthProvider implements SocialAuthProvider {
 
   @override
   Future<ApiResult<AuthTokensDto>> signIn(SocialProvider provider) async {
-    return ApiResult.failure(
+    return const ApiResult.failure(
       AppException(
         message: 'Social sign-in is not available yet.',
         code: 'NOT_IMPLEMENTED',

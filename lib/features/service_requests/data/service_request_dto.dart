@@ -157,7 +157,9 @@ class ServiceRequestDto {
             )
           : null,
       animal: json['animal'] is Map<String, dynamic>
-          ? ServiceRequestAnimalDto.fromJson(json['animal'] as Map<String, dynamic>)
+          ? ServiceRequestAnimalDto.fromJson(
+              json['animal'] as Map<String, dynamic>,
+            )
           : null,
       assignedDoctor: json['assignedDoctor'] is Map<String, dynamic>
           ? ServiceRequestAssigneeDto.fromJson(

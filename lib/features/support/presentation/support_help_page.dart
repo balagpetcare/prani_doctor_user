@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
+
+
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../routing/app_routes.dart';
@@ -40,7 +42,7 @@ class SupportHelpPage extends ConsumerWidget {
         ],
       ),
       body: helpAsync.when(
-        loading: () => SupportFeedback.loading(),
+        loading: SupportFeedback.loading,
         error: (e, _) => SupportFeedback.error(
           context,
           message: e.toString(),
@@ -53,7 +55,10 @@ class SupportHelpPage extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               children: [
                 if (help.fromCache) SupportFeedback.offlineHint(context),
-                Text(l10n.supportQuickActionsTitle, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  l10n.supportQuickActionsTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -67,7 +72,10 @@ class SupportHelpPage extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 24),
-                Text(l10n.supportContactTitle, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  l10n.supportContactTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
                 if (help.contact.phone != null)
                   ListTile(
@@ -88,16 +96,43 @@ class SupportHelpPage extends ConsumerWidget {
                     leading: const Icon(Icons.email_outlined),
                     title: Text(l10n.supportEmailSupport),
                     subtitle: Text(help.contact.email!),
-                    onTap: () => launchUrl(Uri.parse('mailto:${help.contact.email}')),
+                    onTap: () =>
+                        launchUrl(Uri.parse('mailto:${help.contact.email}')),
                   ),
                 const SizedBox(height: 24),
-                Text(l10n.supportFaqTitle, style: Theme.of(context).textTheme.titleMedium),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => context.push(AppRoutes.supportFaq),
+                        child: Text(l10n.supportFaqTitle),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => context.push(AppRoutes.supportContact),
+                        child: Text(l10n.supportContactTitle),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  l10n.supportFaqTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
                 ...help.faq.map(
                   (item) => Card(
                     child: ExpansionTile(
                       title: Text(item.question),
-                      children: [Padding(padding: const EdgeInsets.all(16), child: Text(item.answer))],
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(item.answer),
+                        ),
+                      ],
                     ),
                   ),
                 ),

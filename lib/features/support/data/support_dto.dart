@@ -9,13 +9,7 @@ enum SupportTicketCategory {
 
 enum SupportTicketPriority { low, medium, high, urgent }
 
-enum SupportTicketStatus {
-  open,
-  inProgress,
-  waitingCustomer,
-  resolved,
-  closed,
-}
+enum SupportTicketStatus { open, inProgress, waitingCustomer, resolved, closed }
 
 enum SupportMessageAuthor { customer, support, system }
 
@@ -115,31 +109,40 @@ class SupportAttachment {
   bool get isImage => mimeType.startsWith('image/');
   bool get isPdf => mimeType == 'application/pdf';
 
-  factory SupportAttachment.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory SupportAttachment.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     return SupportAttachment(
       id: json['id'] as String? ?? json['fileId'] as String? ?? '',
-      fileName: json['fileName'] as String? ?? json['originalName'] as String? ?? 'file',
+      fileName:
+          json['fileName'] as String? ??
+          json['originalName'] as String? ??
+          'file',
       mimeType: json['mimeType'] as String? ?? 'application/octet-stream',
       sizeBytes: json['sizeBytes'] as int? ?? 0,
       downloadUrl: json['downloadUrl'] as String?,
-      uploadedFileId: json['uploadedFileId'] as String? ?? json['fileId'] as String?,
-      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'] as String) : null,
+      uploadedFileId:
+          json['uploadedFileId'] as String? ?? json['fileId'] as String?,
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'] as String)
+          : null,
       localPath: json['localPath'] as String?,
       pendingSync: fromCache && json['pendingSync'] == true,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'fileName': fileName,
-        'mimeType': mimeType,
-        'sizeBytes': sizeBytes,
-        if (downloadUrl != null) 'downloadUrl': downloadUrl,
-        if (uploadedFileId != null) 'uploadedFileId': uploadedFileId,
-        if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
-        if (localPath != null) 'localPath': localPath,
-        if (pendingSync) 'pendingSync': true,
-      };
+    'id': id,
+    'fileName': fileName,
+    'mimeType': mimeType,
+    'sizeBytes': sizeBytes,
+    if (downloadUrl != null) 'downloadUrl': downloadUrl,
+    if (uploadedFileId != null) 'uploadedFileId': uploadedFileId,
+    if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
+    if (localPath != null) 'localPath': localPath,
+    if (pendingSync) 'pendingSync': true,
+  };
 }
 
 class SupportMessage {
@@ -159,12 +162,19 @@ class SupportMessage {
   final List<SupportAttachment> attachments;
   final bool pendingSync;
 
-  factory SupportMessage.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory SupportMessage.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     return SupportMessage(
       id: json['id'] as String? ?? '',
-      authorType: SupportMessageAuthorApi.fromApi(json['authorType'] as String? ?? 'CUSTOMER'),
+      authorType: SupportMessageAuthorApi.fromApi(
+        json['authorType'] as String? ?? 'CUSTOMER',
+      ),
       body: json['body'] as String? ?? '',
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(),
       attachments: (json['attachments'] as List<dynamic>? ?? [])
           .whereType<Map<String, dynamic>>()
           .map((a) => SupportAttachment.fromJson(a, fromCache: fromCache))
@@ -174,13 +184,13 @@ class SupportMessage {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'authorType': authorType.name.toUpperCase(),
-        'body': body,
-        'createdAt': createdAt.toIso8601String(),
-        'attachments': attachments.map((a) => a.toJson()).toList(),
-        if (pendingSync) 'pendingSync': true,
-      };
+    'id': id,
+    'authorType': authorType.name.toUpperCase(),
+    'body': body,
+    'createdAt': createdAt.toIso8601String(),
+    'attachments': attachments.map((a) => a.toJson()).toList(),
+    if (pendingSync) 'pendingSync': true,
+  };
 }
 
 class SupportTicketSummary {
@@ -212,16 +222,31 @@ class SupportTicketSummary {
   final bool pendingSync;
   final bool fromCache;
 
-  factory SupportTicketSummary.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory SupportTicketSummary.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     return SupportTicketSummary(
       id: json['id'] as String? ?? '',
-      category: SupportTicketCategoryApi.fromApi(json['category'] as String? ?? 'OTHER'),
+      category: SupportTicketCategoryApi.fromApi(
+        json['category'] as String? ?? 'OTHER',
+      ),
       subject: json['subject'] as String? ?? '',
-      priority: SupportTicketPriorityApi.fromApi(json['priority'] as String? ?? 'MEDIUM'),
-      status: SupportTicketStatusApi.fromApi(json['status'] as String? ?? 'OPEN'),
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ?? DateTime.now(),
-      closedAt: json['closedAt'] != null ? DateTime.tryParse(json['closedAt'] as String) : null,
+      priority: SupportTicketPriorityApi.fromApi(
+        json['priority'] as String? ?? 'MEDIUM',
+      ),
+      status: SupportTicketStatusApi.fromApi(
+        json['status'] as String? ?? 'OPEN',
+      ),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+          DateTime.now(),
+      closedAt: json['closedAt'] != null
+          ? DateTime.tryParse(json['closedAt'] as String)
+          : null,
       lastMessagePreview: json['lastMessagePreview'] as String?,
       attachmentCount: json['attachmentCount'] as int? ?? 0,
       pendingSync: fromCache && json['pendingSync'] == true,
@@ -230,18 +255,18 @@ class SupportTicketSummary {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'category': category.apiValue,
-        'subject': subject,
-        'priority': priority.apiValue,
-        'status': status.apiValue,
-        'createdAt': createdAt.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
-        if (closedAt != null) 'closedAt': closedAt!.toIso8601String(),
-        if (lastMessagePreview != null) 'lastMessagePreview': lastMessagePreview,
-        'attachmentCount': attachmentCount,
-        if (pendingSync) 'pendingSync': true,
-      };
+    'id': id,
+    'category': category.apiValue,
+    'subject': subject,
+    'priority': priority.apiValue,
+    'status': status.apiValue,
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+    if (closedAt != null) 'closedAt': closedAt!.toIso8601String(),
+    if (lastMessagePreview != null) 'lastMessagePreview': lastMessagePreview,
+    'attachmentCount': attachmentCount,
+    if (pendingSync) 'pendingSync': true,
+  };
 }
 
 class SupportTicketDetail extends SupportTicketSummary {
@@ -269,7 +294,10 @@ class SupportTicketDetail extends SupportTicketSummary {
   final List<SupportAttachment> attachments;
   final List<SupportMessage> timeline;
 
-  factory SupportTicketDetail.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory SupportTicketDetail.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     final summary = SupportTicketSummary.fromJson(json, fromCache: fromCache);
     return SupportTicketDetail(
       id: summary.id,
@@ -293,21 +321,24 @@ class SupportTicketDetail extends SupportTicketSummary {
           .whereType<Map<String, dynamic>>()
           .map((a) => SupportAttachment.fromJson(a, fromCache: fromCache))
           .toList(),
-      timeline: (json['timeline'] as List<dynamic>? ?? json['messages'] as List<dynamic>? ?? [])
-          .whereType<Map<String, dynamic>>()
-          .map((m) => SupportMessage.fromJson(m, fromCache: fromCache))
-          .toList(),
+      timeline:
+          (json['timeline'] as List<dynamic>? ??
+                  json['messages'] as List<dynamic>? ??
+                  [])
+              .whereType<Map<String, dynamic>>()
+              .map((m) => SupportMessage.fromJson(m, fromCache: fromCache))
+              .toList(),
     );
   }
 
   @override
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'description': description,
-        'messages': messages.map((m) => m.toJson()).toList(),
-        'attachments': attachments.map((a) => a.toJson()).toList(),
-        'timeline': timeline.map((m) => m.toJson()).toList(),
-      };
+    ...super.toJson(),
+    'description': description,
+    'messages': messages.map((m) => m.toJson()).toList(),
+    'attachments': attachments.map((a) => a.toJson()).toList(),
+    'timeline': timeline.map((m) => m.toJson()).toList(),
+  };
 }
 
 class SupportTicketPageResult {
@@ -346,17 +377,18 @@ class SupportTicketInput {
   final List<String> attachmentLocalPaths;
 
   Map<String, dynamic> toCreateJson() => {
-        'category': category.apiValue,
-        'subject': subject.trim(),
-        'description': description.trim(),
-        'priority': priority.apiValue,
-        if (attachmentFileIds.isNotEmpty) 'attachmentFileIds': attachmentFileIds,
-      };
+    'category': category.apiValue,
+    'subject': subject.trim(),
+    'description': description.trim(),
+    'priority': priority.apiValue,
+    if (attachmentFileIds.isNotEmpty) 'attachmentFileIds': attachmentFileIds,
+  };
 
   Map<String, dynamic> toOutboxJson() => {
-        ...toCreateJson(),
-        if (attachmentLocalPaths.isNotEmpty) 'attachmentLocalPaths': attachmentLocalPaths,
-      };
+    ...toCreateJson(),
+    if (attachmentLocalPaths.isNotEmpty)
+      'attachmentLocalPaths': attachmentLocalPaths,
+  };
 }
 
 class SupportReplyInput {
@@ -373,11 +405,12 @@ class SupportReplyInput {
   final List<String> attachmentLocalPaths;
 
   Map<String, dynamic> toJson() => {
-        'ticketId': ticketId,
-        'body': body.trim(),
-        if (attachmentFileIds.isNotEmpty) 'attachmentFileIds': attachmentFileIds,
-        if (attachmentLocalPaths.isNotEmpty) 'attachmentLocalPaths': attachmentLocalPaths,
-      };
+    'ticketId': ticketId,
+    'body': body.trim(),
+    if (attachmentFileIds.isNotEmpty) 'attachmentFileIds': attachmentFileIds,
+    if (attachmentLocalPaths.isNotEmpty)
+      'attachmentLocalPaths': attachmentLocalPaths,
+  };
 }
 
 class SupportHelpFaqItem {
@@ -443,6 +476,18 @@ class SupportQuickAction {
   }
 }
 
+Map<String, dynamic>? _jsonMap(dynamic value) {
+  if (value == null) return null;
+  if (value is Map<String, dynamic>) return value;
+  if (value is Map) return Map<String, dynamic>.from(value);
+  return null;
+}
+
+List<Map<String, dynamic>> _jsonMapList(dynamic value) {
+  if (value is! List) return const [];
+  return value.map(_jsonMap).whereType<Map<String, dynamic>>().toList();
+}
+
 class SupportHelpData {
   const SupportHelpData({
     this.faq = const [],
@@ -456,15 +501,14 @@ class SupportHelpData {
   final List<SupportQuickAction> quickActions;
   final bool fromCache;
 
-  factory SupportHelpData.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory SupportHelpData.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     return SupportHelpData(
-      faq: (json['faq'] as List<dynamic>? ?? [])
-          .whereType<Map<String, dynamic>>()
-          .map(SupportHelpFaqItem.fromJson)
-          .toList(),
-      contact: SupportHelpContact.fromJson(json['contact'] as Map<String, dynamic>?),
-      quickActions: (json['quickActions'] as List<dynamic>? ?? [])
-          .whereType<Map<String, dynamic>>()
+      faq: _jsonMapList(json['faq']).map(SupportHelpFaqItem.fromJson).toList(),
+      contact: SupportHelpContact.fromJson(_jsonMap(json['contact'])),
+      quickActions: _jsonMapList(json['quickActions'])
           .map(SupportQuickAction.fromJson)
           .toList(),
       fromCache: fromCache,
@@ -472,32 +516,32 @@ class SupportHelpData {
   }
 
   Map<String, dynamic> toJson() => {
-        'faq': faq
-            .map(
-              (f) => {
-                'id': f.id,
-                'category': f.category,
-                'question': f.question,
-                'answer': f.answer,
-              },
-            )
-            .toList(),
-        'contact': {
-          if (contact.phone != null) 'phone': contact.phone,
-          if (contact.whatsapp != null) 'whatsapp': contact.whatsapp,
-          if (contact.email != null) 'email': contact.email,
-        },
-        'quickActions': quickActions
-            .map(
-              (a) => {
-                'id': a.id,
-                'label': a.label,
-                'action': a.action,
-                if (a.value != null) 'value': a.value,
-              },
-            )
-            .toList(),
-      };
+    'faq': faq
+        .map(
+          (f) => {
+            'id': f.id,
+            'category': f.category,
+            'question': f.question,
+            'answer': f.answer,
+          },
+        )
+        .toList(),
+    'contact': {
+      if (contact.phone != null) 'phone': contact.phone,
+      if (contact.whatsapp != null) 'whatsapp': contact.whatsapp,
+      if (contact.email != null) 'email': contact.email,
+    },
+    'quickActions': quickActions
+        .map(
+          (a) => {
+            'id': a.id,
+            'label': a.label,
+            'action': a.action,
+            if (a.value != null) 'value': a.value,
+          },
+        )
+        .toList(),
+  };
 }
 
 class SupportUploadResult {
@@ -517,7 +561,10 @@ class SupportUploadResult {
   final int sizeBytes;
   final String? localPath;
 
-  factory SupportUploadResult.fromJson(Map<String, dynamic> json, {String? localPath}) {
+  factory SupportUploadResult.fromJson(
+    Map<String, dynamic> json, {
+    String? localPath,
+  }) {
     return SupportUploadResult(
       fileId: json['fileId'] as String? ?? '',
       downloadUrl: json['downloadUrl'] as String? ?? '',

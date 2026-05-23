@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../core/navigation/navigation_guard.dart';
+
 import '../../../routing/app_routes.dart';
 import '../data/service_request_dto.dart';
 import '../data/service_request_repository.dart';
@@ -18,7 +20,8 @@ class ServiceRequestDetailPage extends ConsumerStatefulWidget {
       _ServiceRequestDetailPageState();
 }
 
-class _ServiceRequestDetailPageState extends ConsumerState<ServiceRequestDetailPage> {
+class _ServiceRequestDetailPageState
+    extends ConsumerState<ServiceRequestDetailPage> {
   bool _cancelling = false;
 
   Future<void> _cancel(ServiceRequestDto request) async {
@@ -51,7 +54,9 @@ class _ServiceRequestDetailPageState extends ConsumerState<ServiceRequestDetailP
 
     setState(() => _cancelling = true);
     try {
-      final result = await ref.read(serviceRequestRepositoryProvider).cancelRequest(
+      final result = await ref
+          .read(serviceRequestRepositoryProvider)
+          .cancelRequest(
             widget.requestId,
             cancelReason: cancelReason.isEmpty ? null : cancelReason,
           );
@@ -61,14 +66,14 @@ class _ServiceRequestDetailPageState extends ConsumerState<ServiceRequestDetailP
           ref.invalidate(serviceRequestDetailProvider(widget.requestId));
           ref.invalidate(serviceRequestTimelineProvider(widget.requestId));
           ref.invalidate(serviceRequestListProvider);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.appointmentCancelled)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.appointmentCancelled)));
         },
         failure: (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.message)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(e.message)));
         },
       );
     } finally {
@@ -79,10 +84,12 @@ class _ServiceRequestDetailPageState extends ConsumerState<ServiceRequestDetailP
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final requestAsync = ref.watch(serviceRequestDetailProvider(widget.requestId));
+    final requestAsync = ref.watch(
+      serviceRequestDetailProvider(widget.requestId),
+    );
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.appointmentDetails)),
+      appBar: safeAppBar(context, title: Text(l10n.appointmentDetails)),
       body: requestAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(e.toString())),
@@ -95,16 +102,33 @@ class _ServiceRequestDetailPageState extends ConsumerState<ServiceRequestDetailP
               _Section(
                 title: l10n.appointmentSummary,
                 children: [
-                  _Row(label: l10n.serviceTypeLabel, value: serviceTypeLabel(l10n, request.serviceType)),
+                  _Row(
+                    label: l10n.serviceTypeLabel,
+                    value: serviceTypeLabel(l10n, request.serviceType),
+                  ),
                   if (request.serviceCategory != null)
-                    _Row(label: l10n.categoryLabel, value: request.serviceCategory!.name),
+                    _Row(
+                      label: l10n.categoryLabel,
+                      value: request.serviceCategory!.name,
+                    ),
                   if (request.animal != null)
                     _Row(label: l10n.selectAnimal, value: request.animal!.name),
-                  _Row(label: l10n.symptomsLabel, value: request.problemOrSymptom),
-                  if (request.locationText != null && request.locationText!.isNotEmpty)
-                    _Row(label: l10n.locationSectionTitle, value: request.locationText!),
-                  if (request.preferredTime != null && request.preferredTime!.isNotEmpty)
-                    _Row(label: l10n.preferredTimeLabel, value: request.preferredTime!),
+                  _Row(
+                    label: l10n.symptomsLabel,
+                    value: request.problemOrSymptom,
+                  ),
+                  if (request.locationText != null &&
+                      request.locationText!.isNotEmpty)
+                    _Row(
+                      label: l10n.locationSectionTitle,
+                      value: request.locationText!,
+                    ),
+                  if (request.preferredTime != null &&
+                      request.preferredTime!.isNotEmpty)
+                    _Row(
+                      label: l10n.preferredTimeLabel,
+                      value: request.preferredTime!,
+                    ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -126,22 +150,36 @@ class _ServiceRequestDetailPageState extends ConsumerState<ServiceRequestDetailP
               _Section(
                 title: l10n.trackStatus,
                 children: [
-                  _Row(label: l10n.submittedAtLabel, value: formatTimestamp(request.submittedAt)),
-                  _Row(label: l10n.startedAtLabel, value: formatTimestamp(request.startedAt)),
-                  _Row(label: l10n.completedAtLabel, value: formatTimestamp(request.completedAt)),
+                  _Row(
+                    label: l10n.submittedAtLabel,
+                    value: formatTimestamp(request.submittedAt),
+                  ),
+                  _Row(
+                    label: l10n.startedAtLabel,
+                    value: formatTimestamp(request.startedAt),
+                  ),
+                  _Row(
+                    label: l10n.completedAtLabel,
+                    value: formatTimestamp(request.completedAt),
+                  ),
                   if (request.cancelledAt != null)
                     _Row(
                       label: l10n.cancelledAtLabel,
                       value: formatTimestamp(request.cancelledAt),
                     ),
-                  if (request.cancelReason != null && request.cancelReason!.isNotEmpty)
-                    _Row(label: l10n.cancelReasonLabel, value: request.cancelReason!),
+                  if (request.cancelReason != null &&
+                      request.cancelReason!.isNotEmpty)
+                    _Row(
+                      label: l10n.cancelReasonLabel,
+                      value: request.cancelReason!,
+                    ),
                 ],
               ),
               const SizedBox(height: 24),
               OutlinedButton.icon(
-                onPressed: () =>
-                    context.go(AppRoutes.serviceRequestHistory(widget.requestId)),
+                onPressed: () => context.go(
+                  AppRoutes.serviceRequestHistory(widget.requestId),
+                ),
                 icon: const Icon(Icons.history),
                 label: Text(l10n.viewHistory),
               ),

@@ -6,7 +6,11 @@ class TreatmentFeedback {
 
   static Widget loading() => const Center(child: CircularProgressIndicator());
 
-  static Widget error(BuildContext context, {required VoidCallback onRetry, String? message}) {
+  static Widget error(
+    BuildContext context, {
+    required VoidCallback onRetry,
+    String? message,
+  }) {
     final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
@@ -14,9 +18,16 @@ class TreatmentFeedback {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 16),
-            Text(message ?? l10n.treatmentLoadError, textAlign: TextAlign.center),
+            Text(
+              message ?? l10n.treatmentLoadError,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
             FilledButton(onPressed: onRetry, child: Text(l10n.treatmentRetry)),
           ],
@@ -37,7 +48,10 @@ class TreatmentFeedback {
             const SizedBox(height: 16),
             Text(l10n.treatmentEmpty, textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onCreate, child: Text(l10n.treatmentAddTitle)),
+            FilledButton(
+              onPressed: onCreate,
+              child: Text(l10n.treatmentAddTitle),
+            ),
           ],
         ),
       ),
@@ -48,7 +62,20 @@ class TreatmentFeedback {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(12),
-      child: Text(l10n.treatmentOfflineHint, style: Theme.of(context).textTheme.bodySmall),
+      child: Text(
+        l10n.treatmentOfflineHint,
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
+    );
+  }
+
+  static Widget noResults(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Text(l10n.treatmentNoResults, textAlign: TextAlign.center),
+      ),
     );
   }
 }

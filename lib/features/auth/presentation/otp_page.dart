@@ -6,6 +6,7 @@ import 'package:pranidoctor_user/l10n/app_localizations.dart';
 import '../../../routing/app_routes.dart';
 import '../../notifications/push_registration.dart';
 import '../data/auth_repository.dart';
+import '../data/auth_validators.dart';
 import 'auth_navigation.dart';
 import 'auth_providers.dart';
 import 'widgets/auth_feedback.dart';
@@ -33,7 +34,8 @@ class _OtpPageState extends ConsumerState<OtpPage> {
 
   Future<void> _bootstrap() async {
     final cachedPhone =
-        widget.phone ?? await ref.read(authRepositoryProvider).readCachedPhone();
+        widget.phone ??
+        await ref.read(authRepositoryProvider).readCachedPhone();
     if (cachedPhone != null && cachedPhone.isNotEmpty) {
       _phoneController.text = cachedPhone;
     }
@@ -50,16 +52,21 @@ class _OtpPageState extends ConsumerState<OtpPage> {
   Future<void> _sendOtp() async {
     final l10n = AppLocalizations.of(context)!;
     final phone = _phoneController.text.trim();
-    if (phone.isEmpty) {
-      setState(() => _localError = l10n.fieldRequired);
+    final phoneError = AuthValidators.validatePhone(
+      phone,
+      requiredMessage: l10n.fieldRequired,
+      invalidMessage: l10n.authInvalidPhone,
+    );
+    if (phoneError != null) {
+      setState(() => _localError = phoneError);
       return;
     }
     setState(() => _localError = null);
     final error = await ref.read(otpFlowProvider.notifier).requestOtp(phone);
     if (error == null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.otpSent)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.otpSent)));
     }
   }
 
@@ -69,8 +76,19 @@ class _OtpPageState extends ConsumerState<OtpPage> {
     final phone = otpState.phone ?? _phoneController.text.trim();
     final code = _otpController.text.trim();
 
-    if (phone.isEmpty || code.isEmpty) {
-      setState(() => _localError = l10n.fieldRequired);
+    final validationError =
+        AuthValidators.validatePhone(
+          phone,
+          requiredMessage: l10n.fieldRequired,
+          invalidMessage: l10n.authInvalidPhone,
+        ) ??
+        AuthValidators.validateOtp(
+          code,
+          requiredMessage: l10n.fieldRequired,
+          invalidMessage: l10n.authInvalidOtp,
+        );
+    if (validationError != null) {
+      setState(() => _localError = validationError);
       return;
     }
 
@@ -78,7 +96,9 @@ class _OtpPageState extends ConsumerState<OtpPage> {
     ref.read(otpFlowProvider.notifier).setLoading(true);
 
     final pushToken = await ref.read(pushRegistrationProvider).fetchPushToken();
-    final result = await ref.read(authRepositoryProvider).verifyOtp(
+    final result = await ref
+        .read(authRepositoryProvider)
+        .verifyOtp(
           phone: phone,
           code: code,
           pushToken: pushToken,

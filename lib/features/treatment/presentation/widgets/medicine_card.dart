@@ -23,7 +23,9 @@ class MedicineCard extends StatelessWidget {
             if (medicine.frequency != null)
               Text('${l10n.treatmentFrequencyLabel}: ${medicine.frequency}'),
             if (medicine.durationDays != null)
-              Text('${l10n.treatmentDurationLabel}: ${medicine.durationDays} ${l10n.treatmentDaysSuffix}'),
+              Text(
+                '${l10n.treatmentDurationLabel}: ${medicine.durationDays} ${l10n.treatmentDaysSuffix}',
+              ),
           ],
         ),
       ),

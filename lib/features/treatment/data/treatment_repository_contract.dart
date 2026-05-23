@@ -17,7 +17,10 @@ abstract class TreatmentRepositoryContract {
 
   Future<ApiResult<FarmTreatment>> createRecord(TreatmentInput input);
 
-  Future<ApiResult<FarmTreatment>> updateRecord(String id, TreatmentInput input);
+  Future<ApiResult<FarmTreatment>> updateRecord(
+    String id,
+    TreatmentInput input,
+  );
 
   Future<ApiResult<void>> deleteRecord(String id);
 

@@ -7,8 +7,10 @@ abstract final class AuthApiPaths {
   static const login = '/api/mobile/auth/login';
   static const register = '/api/mobile/auth/register';
   static const refresh = '/api/mobile/auth/refresh';
+  static const logout = '/api/mobile/auth/logout';
 
   static bool isUnauthenticatedPath(String path) {
+    if (path.contains(logout)) return false;
     return path.contains('/api/mobile/auth/') ||
         path.contains('/api/mobile/app-config');
   }

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../routing/app_routes.dart';
 import '../../data/support_dto.dart';
 
 class SupportMessageBubble extends StatelessWidget {
@@ -17,13 +18,15 @@ class SupportMessageBubble extends StatelessWidget {
     final color = isSystem
         ? Theme.of(context).colorScheme.surfaceContainerHighest
         : isCustomer
-            ? Theme.of(context).colorScheme.primaryContainer
-            : Theme.of(context).colorScheme.secondaryContainer;
+        ? Theme.of(context).colorScheme.primaryContainer
+        : Theme.of(context).colorScheme.secondaryContainer;
 
     return Align(
       alignment: alignment,
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.82),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.sizeOf(context).width * 0.82,
+        ),
         child: Card(
           color: color,
           child: Padding(
@@ -39,7 +42,9 @@ class SupportMessageBubble extends StatelessWidget {
                 Text(message.body),
                 if (message.attachments.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  ...message.attachments.map((a) => _AttachmentLink(attachment: a)),
+                  ...message.attachments.map(
+                    (a) => _AttachmentLink(attachment: a),
+                  ),
                 ],
                 const SizedBox(height: 4),
                 Text(
@@ -75,13 +80,29 @@ class _AttachmentLink extends StatelessWidget {
     return InkWell(
       onTap: attachment.downloadUrl == null
           ? null
-          : () => launchUrl(Uri.parse(attachment.downloadUrl!), mode: LaunchMode.externalApplication),
+          : () {
+              context.push(
+                Uri(
+                  path: AppRoutes.supportAttachmentView,
+                  queryParameters: {
+                    'url': attachment.downloadUrl!,
+                    'name': attachment.fileName,
+                    'mime': attachment.mimeType,
+                  },
+                ).toString(),
+              );
+            },
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(attachment.isPdf ? Icons.picture_as_pdf : Icons.attach_file, size: 16),
+          Icon(
+            attachment.isPdf ? Icons.picture_as_pdf : Icons.attach_file,
+            size: 16,
+          ),
           const SizedBox(width: 4),
-          Flexible(child: Text(attachment.fileName, overflow: TextOverflow.ellipsis)),
+          Flexible(
+            child: Text(attachment.fileName, overflow: TextOverflow.ellipsis),
+          ),
         ],
       ),
     );
@@ -99,12 +120,17 @@ class SupportTimeline extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(AppLocalizations.of(context)!.supportTimelineTitle, style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          AppLocalizations.of(context)!.supportTimelineTitle,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 8),
-        ...messages.map((m) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: SupportMessageBubble(message: m),
-            )),
+        ...messages.map(
+          (m) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: SupportMessageBubble(message: m),
+          ),
+        ),
       ],
     );
   }

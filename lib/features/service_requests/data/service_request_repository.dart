@@ -55,7 +55,9 @@ class ServiceRequestRepository {
         ),
       );
     } on AppException catch (e) {
-      final cached = await _cache.read(LocalCacheContract.serviceRequestsListKey);
+      final cached = await _cache.read(
+        LocalCacheContract.serviceRequestsListKey,
+      );
       if (cached != null) {
         final requests = (cached['requests'] as List<dynamic>? ?? [])
             .whereType<Map<String, dynamic>>()
@@ -78,10 +80,15 @@ class ServiceRequestRepository {
 
   Future<ApiResult<ServiceRequestDto>> getRequest(String id) async {
     try {
-      final data = await getJson(_dio, ServiceRequestApiPaths.serviceRequest(id));
+      final data = await getJson(
+        _dio,
+        ServiceRequestApiPaths.serviceRequest(id),
+      );
       final request = data['request'];
       if (request is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Appointment not found'));
+        return const ApiResult.failure(
+          AppException(message: 'Appointment not found'),
+        );
       }
       return ApiResult.success(ServiceRequestDto.fromJson(request));
     } on AppException catch (e) {
@@ -111,14 +118,14 @@ class ServiceRequestRepository {
     String? cancelReason,
   }) async {
     try {
-      final data = await postJson(
-        _dio,
-        ServiceRequestApiPaths.cancel(id),
-        {if (cancelReason != null) 'cancelReason': cancelReason},
-      );
+      final data = await postJson(_dio, ServiceRequestApiPaths.cancel(id), {
+        'cancelReason': ?cancelReason,
+      });
       final request = data['request'];
       if (request is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid cancel response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid cancel response'),
+        );
       }
       return ApiResult.success(ServiceRequestDto.fromJson(request));
     } on AppException catch (e) {
@@ -142,14 +149,16 @@ class ServiceRequestRepository {
       );
       final request = data['request'];
       if (request is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid booking response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid booking response'),
+        );
       }
       return ApiResult.success(ServiceRequestDto.fromJson(request));
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueueCreate(body);
-        return ApiResult.failure(
-          const AppException(
+        return const ApiResult.failure(
+          AppException(
             message: 'Saved offline — will sync when online',
             code: offlineQueuedCode,
           ),
@@ -157,7 +166,9 @@ class ServiceRequestRepository {
       }
       return ApiResult.failure(e);
     } catch (e) {
-      return ApiResult.failure(AppException(message: 'Booking failed', cause: e));
+      return ApiResult.failure(
+        AppException(message: 'Booking failed', cause: e),
+      );
     }
   }
 
@@ -177,7 +188,10 @@ class ServiceRequestRepository {
 
   Future<ApiResult<List<ServiceCategoryDto>>> listCategories() async {
     try {
-      final data = await getJson(_dio, ServiceRequestApiPaths.serviceCategories);
+      final data = await getJson(
+        _dio,
+        ServiceRequestApiPaths.serviceCategories,
+      );
       final items = (data['categories'] as List<dynamic>? ?? [])
           .whereType<Map<String, dynamic>>()
           .map(ServiceCategoryDto.fromJson)
@@ -186,10 +200,11 @@ class ServiceRequestRepository {
     } on AppException catch (e) {
       return ApiResult.failure(e);
     } catch (e) {
-      return ApiResult.failure(AppException(message: 'Could not load categories', cause: e));
+      return ApiResult.failure(
+        AppException(message: 'Could not load categories', cause: e),
+      );
     }
   }
-
 }
 
 List<ServiceRequestDto> filterRequestsBySegment(
@@ -208,7 +223,9 @@ List<ServiceRequestDto> filterRequestsBySegment(
   }
 }
 
-final serviceRequestRepositoryProvider = Provider<ServiceRequestRepository>((ref) {
+final serviceRequestRepositoryProvider = Provider<ServiceRequestRepository>((
+  ref,
+) {
   return ServiceRequestRepository(
     ref.watch(dioProvider),
     ref.watch(localCacheServiceProvider),
@@ -216,11 +233,17 @@ final serviceRequestRepositoryProvider = Provider<ServiceRequestRepository>((ref
   );
 });
 
-final inboxSegmentProvider = StateProvider<InboxSegment>((ref) => InboxSegment.active);
+final inboxSegmentProvider = StateProvider<InboxSegment>(
+  (ref) => InboxSegment.active,
+);
 
-final serviceRequestListProvider = FutureProvider<List<ServiceRequestDto>>((ref) async {
+final serviceRequestListProvider = FutureProvider<List<ServiceRequestDto>>((
+  ref,
+) async {
   final segment = ref.watch(inboxSegmentProvider);
-  final result = await ref.read(serviceRequestRepositoryProvider).listRequests();
+  final result = await ref
+      .read(serviceRequestRepositoryProvider)
+      .listRequests();
   return result.when(
     success: (data) => filterRequestsBySegment(data.requests, segment),
     failure: (e) => throw e,
@@ -229,26 +252,25 @@ final serviceRequestListProvider = FutureProvider<List<ServiceRequestDto>>((ref)
 
 final serviceRequestDetailProvider =
     FutureProvider.family<ServiceRequestDto, String>((ref, id) async {
-  final result = await ref.read(serviceRequestRepositoryProvider).getRequest(id);
-  return result.when(
-    success: (data) => data,
-    failure: (e) => throw e,
-  );
-});
+      final result = await ref
+          .read(serviceRequestRepositoryProvider)
+          .getRequest(id);
+      return result.when(success: (data) => data, failure: (e) => throw e);
+    });
 
 final serviceRequestTimelineProvider =
     FutureProvider.family<ServiceRequestTimelineDto, String>((ref, id) async {
-  final result = await ref.read(serviceRequestRepositoryProvider).getTimeline(id);
-  return result.when(
-    success: (data) => data,
-    failure: (e) => throw e,
-  );
-});
+      final result = await ref
+          .read(serviceRequestRepositoryProvider)
+          .getTimeline(id);
+      return result.when(success: (data) => data, failure: (e) => throw e);
+    });
 
-final serviceCategoriesProvider = FutureProvider<List<ServiceCategoryDto>>((ref) async {
-  final result = await ref.read(serviceRequestRepositoryProvider).listCategories();
-  return result.when(
-    success: (data) => data,
-    failure: (e) => throw e,
-  );
+final serviceCategoriesProvider = FutureProvider<List<ServiceCategoryDto>>((
+  ref,
+) async {
+  final result = await ref
+      .read(serviceRequestRepositoryProvider)
+      .listCategories();
+  return result.when(success: (data) => data, failure: (e) => throw e);
 });

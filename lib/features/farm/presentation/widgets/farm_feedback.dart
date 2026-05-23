@@ -18,7 +18,11 @@ class FarmFeedback {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 16),
             Text(message ?? l10n.farmLoadError, textAlign: TextAlign.center),
             const SizedBox(height: 16),
@@ -41,7 +45,10 @@ class FarmFeedback {
             const SizedBox(height: 16),
             Text(l10n.farmEmpty, textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onCreate, child: Text(l10n.farmCreateTitle)),
+            FilledButton(
+              onPressed: onCreate,
+              child: Text(l10n.farmCreateTitle),
+            ),
           ],
         ),
       ),
@@ -52,7 +59,10 @@ class FarmFeedback {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(12),
-      child: Text(l10n.farmOfflineHint, style: Theme.of(context).textTheme.bodySmall),
+      child: Text(
+        l10n.farmOfflineHint,
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
     );
   }
 

@@ -5,7 +5,11 @@ import '../../data/support_dto.dart';
 import 'support_status_badge.dart';
 
 class SupportTicketCard extends StatelessWidget {
-  const SupportTicketCard({super.key, required this.ticket, required this.onTap});
+  const SupportTicketCard({
+    super.key,
+    required this.ticket,
+    required this.onTap,
+  });
 
   final SupportTicketSummary ticket;
   final VoidCallback onTap;
@@ -55,12 +59,19 @@ class SupportTicketCard extends StatelessWidget {
                   const Spacer(),
                   if (ticket.pendingSync)
                     Chip(
-                      label: Text(l10n.supportPendingSync, style: const TextStyle(fontSize: 11)),
+                      label: Text(
+                        l10n.supportPendingSync,
+                        style: const TextStyle(fontSize: 11),
+                      ),
                       visualDensity: VisualDensity.compact,
                     ),
                   if (ticket.attachmentCount > 0) ...[
                     const SizedBox(width: 8),
-                    Icon(Icons.attach_file, size: 16, color: Theme.of(context).hintColor),
+                    Icon(
+                      Icons.attach_file,
+                      size: 16,
+                      color: Theme.of(context).hintColor,
+                    ),
                     Text('${ticket.attachmentCount}'),
                   ],
                 ],
@@ -73,7 +84,10 @@ class SupportTicketCard extends StatelessWidget {
   }
 }
 
-String supportCategoryLabel(AppLocalizations l10n, SupportTicketCategory category) {
+String supportCategoryLabel(
+  AppLocalizations l10n,
+  SupportTicketCategory category,
+) {
   switch (category) {
     case SupportTicketCategory.account:
       return l10n.supportCategoryAccount;
@@ -90,7 +104,10 @@ String supportCategoryLabel(AppLocalizations l10n, SupportTicketCategory categor
   }
 }
 
-String supportPriorityLabel(AppLocalizations l10n, SupportTicketPriority priority) {
+String supportPriorityLabel(
+  AppLocalizations l10n,
+  SupportTicketPriority priority,
+) {
   switch (priority) {
     case SupportTicketPriority.low:
       return l10n.supportPriorityLow;

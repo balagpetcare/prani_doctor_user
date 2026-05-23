@@ -17,9 +17,9 @@ Future<BatchMergeInput?> showBatchMergeDialog(
 
   if (targets.isEmpty) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.batchMergeUnavailable)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.batchMergeUnavailable)));
     }
     return null;
   }
@@ -37,18 +37,26 @@ Future<BatchMergeInput?> showBatchMergeDialog(
             Text(l10n.batchMergeHint),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: targetId,
+              initialValue: targetId,
               decoration: InputDecoration(labelText: l10n.batchMergeTarget),
               items: targets
-                  .map((b) => DropdownMenuItem(value: b.id, child: Text(b.name)))
+                  .map(
+                    (b) => DropdownMenuItem(value: b.id, child: Text(b.name)),
+                  )
                   .toList(),
               onChanged: (v) => setState(() => targetId = v),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.batchMergeConfirm)),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.batchMergeConfirm),
+          ),
         ],
       ),
     ),
@@ -63,5 +71,8 @@ Future<BatchMergeInput?> showBatchMergeDialog(
   );
   if (error != null) return null;
 
-  return BatchMergeInput(sourceBatchId: sourceBatchId, targetBatchId: targetId!);
+  return BatchMergeInput(
+    sourceBatchId: sourceBatchId,
+    targetBatchId: targetId!,
+  );
 }

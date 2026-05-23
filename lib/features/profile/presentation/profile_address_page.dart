@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../core/navigation/navigation_guard.dart';
+import '../../area/data/area_validation.dart';
 import '../../area/presentation/area_picker.dart';
 import '../data/mobile_me_dto.dart';
 import '../data/profile_validation.dart';
+import 'profile_navigation.dart';
 import 'profile_providers.dart';
+import 'profile_location_draft_provider.dart';
 import 'widgets/profile_feedback.dart';
 
 class ProfileAddressPage extends ConsumerStatefulWidget {
@@ -25,10 +28,21 @@ class _ProfileAddressPageState extends ConsumerState<ProfileAddressPage> {
   String? _upazilaId;
   String? _unionId;
   String? _villageId;
+  String? _villageName;
   String? _areaLabel;
   bool _loading = false;
   bool _initialized = false;
   String? _error;
+
+  bool get _canSaveHierarchy =>
+      _divisionId != null &&
+      _divisionId!.isNotEmpty &&
+      _districtId != null &&
+      _districtId!.isNotEmpty &&
+      _upazilaId != null &&
+      _upazilaId!.isNotEmpty &&
+      _unionId != null &&
+      _unionId!.isNotEmpty;
 
   @override
   void dispose() {
@@ -44,24 +58,76 @@ class _ProfileAddressPageState extends ConsumerState<ProfileAddressPage> {
     _upazilaId = profile.address?.upazilaId;
     _unionId = profile.address?.unionId;
     _villageId = profile.address?.villageId;
+    _villageName = profile.address?.villageName;
     _line1Controller.text = profile.address?.line1 ?? '';
     _postalController.text = profile.address?.postalCode ?? '';
     _areaLabel = profile.area;
     _initialized = true;
+    ref.read(profileLocationDraftProvider.notifier).hydrateFromProfile(profile);
+  }
+
+  Future<void> _persistDraft() async {
+    await ref.read(profileLocationDraftProvider.notifier).saveDraft(
+      ProfileLocationDraft(
+        divisionId: _divisionId,
+        districtId: _districtId,
+        upazilaId: _upazilaId,
+        unionId: _unionId,
+        villageId: _villageId,
+        villageName: _villageName,
+        areaLabel: _areaLabel,
+        line1: _line1Controller.text.trim().isEmpty
+            ? null
+            : _line1Controller.text.trim(),
+        postalCode: _postalController.text.trim().isEmpty
+            ? null
+            : _postalController.text.trim(),
+      ),
+    );
+  }
+
+  String? _resolveAreaLabel() {
+    if (_areaLabel != null && _areaLabel!.trim().isNotEmpty) {
+      return _areaLabel!.trim();
+    }
+    if (_villageName != null && _villageName!.trim().isNotEmpty) {
+      return _villageName!.trim();
+    }
+    return null;
   }
 
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context)!;
-    final lineError = ProfileValidation.validateLine1(_line1Controller.text);
-    final postalError = ProfileValidation.validatePostalCode(_postalController.text);
+    final lineError = ProfileValidation.validateLine1(
+      _line1Controller.text,
+      tooLongMessage: l10n.profileAddressLineTooLong,
+    );
+    final postalError = ProfileValidation.validatePostalCode(
+      _postalController.text,
+      tooLongMessage: l10n.profilePostalTooLong,
+    );
     final validationError = lineError ?? postalError;
     if (validationError != null) {
       setState(() => _error = validationError);
       return;
     }
 
-    if (_villageId == null || _villageId!.isEmpty) {
-      setState(() => _error = l10n.addressRequired);
+    final hierarchyError = AreaValidation.validateRequiredHierarchy(
+      divisionId: _divisionId,
+      districtId: _districtId,
+      upazilaId: _upazilaId,
+      unionId: _unionId,
+      message: l10n.addressHierarchyRequired,
+    );
+    if (hierarchyError != null ||
+        !AreaValidation.isValidParentChain(
+          divisionId: _divisionId,
+          districtId: _districtId,
+          upazilaId: _upazilaId,
+          unionId: _unionId,
+          villageId: _villageId,
+        )) {
+      setState(() => _error = hierarchyError ?? l10n.addressHierarchyRequired);
       return;
     }
 
@@ -70,14 +136,18 @@ class _ProfileAddressPageState extends ConsumerState<ProfileAddressPage> {
       _error = null;
     });
 
+    final trimmedVillageName = _villageName?.trim();
     final patch = PatchMobileMeInput(
-      area: _areaLabel,
+      area: _resolveAreaLabel(),
       address: MobileMeAddressDto(
         divisionId: _divisionId,
         districtId: _districtId,
         upazilaId: _upazilaId,
         unionId: _unionId,
         villageId: _villageId,
+        villageName: trimmedVillageName != null && trimmedVillageName.isNotEmpty
+            ? trimmedVillageName
+            : null,
         line1: _line1Controller.text.trim().isEmpty
             ? null
             : _line1Controller.text.trim(),
@@ -92,15 +162,15 @@ class _ProfileAddressPageState extends ConsumerState<ProfileAddressPage> {
     setState(() => _loading = false);
 
     if (error == null) {
-      context.pop();
+      await navigateAfterProfileSave(context, ref, fromCompletionFlow: true);
       return;
     }
 
     if (error.contains('offline')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.savedOffline)),
-      );
-      context.pop();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.savedOffline)));
+      await navigateAfterProfileSave(context, ref, fromCompletionFlow: true);
       return;
     }
 
@@ -111,14 +181,17 @@ class _ProfileAddressPageState extends ConsumerState<ProfileAddressPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final profileAsync = ref.watch(mobileMeProvider);
+    final canSave = _canSaveHierarchy && !_loading;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.addressTitle)),
+      appBar: safeAppBar(context, title: Text(l10n.addressTitle)),
       body: profileAsync.when(
-        loading: () => ProfileFeedback.loading(),
-        error: (_, __) => ProfileFeedback.error(
+        loading: ProfileFeedback.loading,
+        error: (e, _) => ProfileFeedback.errorFromObject(
           context,
-          onRetry: () => ref.read(mobileMeProvider.notifier).reload(forceRefresh: true),
+          failure: e,
+          onRetry: () =>
+              ref.read(mobileMeProvider.notifier).reload(forceRefresh: true),
         ),
         data: (profile) {
           if (profile == null) return ProfileFeedback.empty(context);
@@ -133,7 +206,10 @@ class _ProfileAddressPageState extends ConsumerState<ProfileAddressPage> {
                 if (_areaLabel != null && _areaLabel!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(_areaLabel!, style: Theme.of(context).textTheme.bodySmall),
+                    child: Text(
+                      _areaLabel!,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ),
                 AreaPicker(
                   divisionLabel: l10n.divisionLabel,
@@ -146,23 +222,31 @@ class _ProfileAddressPageState extends ConsumerState<ProfileAddressPage> {
                   initialUpazilaId: _upazilaId,
                   initialUnionId: _unionId,
                   initialVillageId: _villageId,
-                  onChanged: ({
-                    divisionId,
-                    districtId,
-                    upazilaId,
-                    unionId,
-                    villageId,
-                    selectedLabel,
-                  }) {
-                    setState(() {
-                      _divisionId = divisionId;
-                      _districtId = districtId;
-                      _upazilaId = upazilaId;
-                      _unionId = unionId;
-                      _villageId = villageId;
-                      _areaLabel = selectedLabel ?? _areaLabel;
-                    });
-                  },
+                  initialVillageName: _villageName,
+                  onChanged:
+                      ({
+                        divisionId,
+                        districtId,
+                        upazilaId,
+                        unionId,
+                        villageId,
+                        villageName,
+                        selectedLabel,
+                      }) {
+                        setState(() {
+                          _divisionId = divisionId;
+                          _districtId = districtId;
+                          _upazilaId = upazilaId;
+                          _unionId = unionId;
+                          _villageId = villageId;
+                          _villageName = villageName;
+                          if (selectedLabel != null &&
+                              selectedLabel.isNotEmpty) {
+                            _areaLabel = selectedLabel;
+                          }
+                        });
+                        _persistDraft();
+                      },
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -178,7 +262,7 @@ class _ProfileAddressPageState extends ConsumerState<ProfileAddressPage> {
                 ),
                 const SizedBox(height: 24),
                 FilledButton(
-                  onPressed: _loading ? null : _save,
+                  onPressed: canSave ? _save : null,
                   child: _loading
                       ? const SizedBox(
                           height: 20,

@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../core/layout/shell_page_padding.dart';
 import '../../../core/branding/brand_assets.dart';
 import '../../../core/branding/brand_image.dart';
 import '../area/presentation/area_picker.dart';
@@ -35,8 +36,11 @@ class _ServicesPageState extends ConsumerState<ServicesPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Text(l10n.findDoctors, style: Theme.of(context).textTheme.headlineSmall),
+          padding: ShellPagePadding.page(context),
+          child: Text(
+            l10n.findDoctors,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -46,17 +50,20 @@ class _ServicesPageState extends ConsumerState<ServicesPage> {
               FilterChip(
                 label: Text(l10n.filterEmergency),
                 selected: filters.emergencyOnly,
-                onSelected: (v) => _applyFilters(filters.copyWith(emergencyOnly: v)),
+                onSelected: (v) =>
+                    _applyFilters(filters.copyWith(emergencyOnly: v)),
               ),
               FilterChip(
                 label: Text(l10n.filterOnline),
                 selected: filters.onlineOnly,
-                onSelected: (v) => _applyFilters(filters.copyWith(onlineOnly: v)),
+                onSelected: (v) =>
+                    _applyFilters(filters.copyWith(onlineOnly: v)),
               ),
               FilterChip(
                 label: Text(l10n.filterHomeVisit),
                 selected: filters.homeVisitOnly,
-                onSelected: (v) => _applyFilters(filters.copyWith(homeVisitOnly: v)),
+                onSelected: (v) =>
+                    _applyFilters(filters.copyWith(homeVisitOnly: v)),
               ),
             ],
           ),
@@ -73,25 +80,27 @@ class _ServicesPageState extends ConsumerState<ServicesPage> {
                 upazilaLabel: l10n.upazilaLabel,
                 unionLabel: l10n.unionLabel,
                 villageLabel: l10n.villageLabel,
-                onChanged: ({
-                  divisionId,
-                  districtId,
-                  upazilaId,
-                  unionId,
-                  villageId,
-                  selectedLabel,
-                }) {
-                  setState(() {
-                    _locationLabel = selectedLabel;
-                  });
-                  _applyFilters(
-                    filters.copyWith(
-                      villageId: villageId,
-                      locationLabel: selectedLabel,
-                      clearLocation: selectedLabel == null,
-                    ),
-                  );
-                },
+                onChanged:
+                    ({
+                      divisionId,
+                      districtId,
+                      upazilaId,
+                      unionId,
+                      villageId,
+                      villageName,
+                      selectedLabel,
+                    }) {
+                      setState(() {
+                        _locationLabel = selectedLabel;
+                      });
+                      _applyFilters(
+                        filters.copyWith(
+                          villageId: villageId,
+                          locationLabel: selectedLabel,
+                          clearLocation: selectedLabel == null,
+                        ),
+                      );
+                    },
               ),
             ),
           ],
@@ -108,12 +117,13 @@ class _ServicesPageState extends ConsumerState<ServicesPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        BrandImage(
+                        const BrandImage(
                           asset: BrandAssets.homeEmptyDoctors,
                           height: 160,
                           fit: BoxFit.contain,
                           fallbackIcon: Icons.person_search_outlined,
-                        ),                        const SizedBox(height: 16),
+                        ),
+                        const SizedBox(height: 16),
                         Text(l10n.noDoctorsFound, textAlign: TextAlign.center),
                       ],
                     ),
@@ -125,12 +135,13 @@ class _ServicesPageState extends ConsumerState<ServicesPage> {
                 child: ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: result.doctors.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final doctor = result.doctors[index];
                     return _DoctorCard(
                       doctor: doctor,
-                      onTap: () => context.go(AppRoutes.doctorDetail(doctor.id)),
+                      onTap: () =>
+                          context.go(AppRoutes.doctorDetail(doctor.id)),
                     );
                   },
                 ),
@@ -158,7 +169,8 @@ class _DoctorCard extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (doctor.degreeOrQualification != null) Text(doctor.degreeOrQualification!),
+            if (doctor.degreeOrQualification != null)
+              Text(doctor.degreeOrQualification!),
             Text(doctor.serviceType),
             Text(doctor.areaText),
             if (doctor.fee != null) Text('Fee: ${doctor.fee} BDT'),

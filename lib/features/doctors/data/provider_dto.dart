@@ -189,10 +189,7 @@ class ProviderCategoryLinkDto {
 }
 
 class DoctorListResultDto {
-  const DoctorListResultDto({
-    required this.doctors,
-    required this.pagination,
-  });
+  const DoctorListResultDto({required this.doctors, required this.pagination});
 
   final List<ProviderDoctorListItemDto> doctors;
   final ProviderPaginationDto pagination;

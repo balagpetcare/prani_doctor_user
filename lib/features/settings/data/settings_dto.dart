@@ -36,7 +36,10 @@ class UserSettingsDto {
   final DateTime updatedAt;
   final bool fromCache;
 
-  factory UserSettingsDto.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory UserSettingsDto.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     return UserSettingsDto(
       theme: SettingsThemeApi.fromApi(json['theme'] as String?),
       locale: json['locale'] as String?,
@@ -48,20 +51,26 @@ class UserSettingsDto {
       termsAcceptedAt: json['termsAcceptedAt'] != null
           ? DateTime.tryParse(json['termsAcceptedAt'] as String)
           : null,
-      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ?? DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+          DateTime.now(),
       fromCache: fromCache,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'theme': theme.apiValue,
-        if (locale != null) 'locale': locale,
-        if (privacyAcceptedVersion != null) 'privacyAcceptedVersion': privacyAcceptedVersion,
-        if (privacyAcceptedAt != null) 'privacyAcceptedAt': privacyAcceptedAt!.toIso8601String(),
-        if (termsAcceptedVersion != null) 'termsAcceptedVersion': termsAcceptedVersion,
-        if (termsAcceptedAt != null) 'termsAcceptedAt': termsAcceptedAt!.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
-      };
+    'theme': theme.apiValue,
+    if (locale != null) 'locale': locale,
+    if (privacyAcceptedVersion != null)
+      'privacyAcceptedVersion': privacyAcceptedVersion,
+    if (privacyAcceptedAt != null)
+      'privacyAcceptedAt': privacyAcceptedAt!.toIso8601String(),
+    if (termsAcceptedVersion != null)
+      'termsAcceptedVersion': termsAcceptedVersion,
+    if (termsAcceptedAt != null)
+      'termsAcceptedAt': termsAcceptedAt!.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+  };
 }
 
 class LegalSummaryDto {
@@ -104,28 +113,39 @@ class SettingsBundle {
   final LegalSummaryDto legal;
   final bool fromCache;
 
-  factory SettingsBundle.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory SettingsBundle.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
+    final settingsRaw = json['settings'];
+    final legalRaw = json['legal'];
     return SettingsBundle(
       settings: UserSettingsDto.fromJson(
-        json['settings'] as Map<String, dynamic>? ?? {},
+        settingsRaw is Map
+            ? Map<String, dynamic>.from(settingsRaw)
+            : <String, dynamic>{},
         fromCache: fromCache,
       ),
-      legal: LegalSummaryDto.fromJson(json['legal'] as Map<String, dynamic>? ?? {}),
+      legal: LegalSummaryDto.fromJson(
+        legalRaw is Map
+            ? Map<String, dynamic>.from(legalRaw)
+            : <String, dynamic>{},
+      ),
       fromCache: fromCache,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'settings': settings.toJson(),
-        'legal': {
-          'privacyPolicyUrl': legal.privacyPolicyUrl,
-          'termsOfServiceUrl': legal.termsOfServiceUrl,
-          'privacyVersion': legal.privacyVersion,
-          'termsVersion': legal.termsVersion,
-          'privacyAccepted': legal.privacyAccepted,
-          'termsAccepted': legal.termsAccepted,
-        },
-      };
+    'settings': settings.toJson(),
+    'legal': {
+      'privacyPolicyUrl': legal.privacyPolicyUrl,
+      'termsOfServiceUrl': legal.termsOfServiceUrl,
+      'privacyVersion': legal.privacyVersion,
+      'termsVersion': legal.termsVersion,
+      'privacyAccepted': legal.privacyAccepted,
+      'termsAccepted': legal.termsAccepted,
+    },
+  };
 }
 
 class LegalDocumentDto {
@@ -149,7 +169,10 @@ class LegalDocumentDto {
   final DateTime? acceptedAt;
   final bool fromCache;
 
-  factory LegalDocumentDto.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory LegalDocumentDto.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     final doc = json['document'] as Map<String, dynamic>? ?? json;
     return LegalDocumentDto(
       type: doc['type'] as String? ?? '',
@@ -158,22 +181,24 @@ class LegalDocumentDto {
       title: doc['title'] as String? ?? '',
       content: doc['content'] as String? ?? '',
       accepted: doc['accepted'] as bool? ?? false,
-      acceptedAt: doc['acceptedAt'] != null ? DateTime.tryParse(doc['acceptedAt'] as String) : null,
+      acceptedAt: doc['acceptedAt'] != null
+          ? DateTime.tryParse(doc['acceptedAt'] as String)
+          : null,
       fromCache: fromCache,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'document': {
-          'type': type,
-          'version': version,
-          'url': url,
-          'title': title,
-          'content': content,
-          'accepted': accepted,
-          if (acceptedAt != null) 'acceptedAt': acceptedAt!.toIso8601String(),
-        },
-      };
+    'document': {
+      'type': type,
+      'version': version,
+      'url': url,
+      'title': title,
+      'content': content,
+      'accepted': accepted,
+      if (acceptedAt != null) 'acceptedAt': acceptedAt!.toIso8601String(),
+    },
+  };
 }
 
 class SettingsSyncInput {
@@ -190,9 +215,10 @@ class SettingsSyncInput {
   final String? acceptTermsVersion;
 
   Map<String, dynamic> toJson() => {
-        if (theme != null) 'theme': theme!.apiValue,
-        if (locale != null) 'locale': locale,
-        if (acceptPrivacyVersion != null) 'acceptPrivacyVersion': acceptPrivacyVersion,
-        if (acceptTermsVersion != null) 'acceptTermsVersion': acceptTermsVersion,
-      };
+    if (theme != null) 'theme': theme!.apiValue,
+    if (locale != null) 'locale': locale,
+    if (acceptPrivacyVersion != null)
+      'acceptPrivacyVersion': acceptPrivacyVersion,
+    if (acceptTermsVersion != null) 'acceptTermsVersion': acceptTermsVersion,
+  };
 }

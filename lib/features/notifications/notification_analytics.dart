@@ -11,8 +11,10 @@ abstract final class NotificationAnalytics {
   static void deleted(String id) => _log('notification_deleted', {'id': id});
   static void settingsOpened() => _log('notification_settings_opened');
   static void settingsSaved() => _log('notification_settings_saved');
-  static void pushTap({String? route}) => _log('notification_push_tap', {'route': route});
-  static void pushTokenRegistered() => _log('notification_push_token_registered');
+  static void pushTap({String? route}) =>
+      _log('notification_push_tap', {'route': route});
+  static void pushTokenRegistered() =>
+      _log('notification_push_token_registered');
 
   static void _log(String event, [Map<String, Object?> params = const {}]) {
     if (kDebugMode) {

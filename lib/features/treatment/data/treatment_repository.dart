@@ -32,28 +32,26 @@ class TreatmentRepository implements TreatmentRepositoryContract {
         .whereType<Map<String, dynamic>>()
         .map((j) => FarmTreatment.fromJson(j, fromCache: true))
         .toList();
+    final pendingSyncCount = records.where((r) => r.pendingSync).length;
     return TreatmentPageResult(
       records: records,
       total: cached['total'] as int? ?? records.length,
       page: cached['page'] as int? ?? 1,
       limit: cached['limit'] as int? ?? 20,
       hasMore: cached['hasMore'] as bool? ?? false,
+      pendingSyncCount: pendingSyncCount,
       fromCache: true,
     );
   }
 
   Future<void> _writeListCache(TreatmentPageResult page) async {
-    await _cache.write(
-      LocalCacheContract.treatmentsListKey,
-      {
-        'records': page.records.map((r) => r.toJson()).toList(),
-        'total': page.total,
-        'page': page.page,
-        'limit': page.limit,
-        'hasMore': page.hasMore,
-      },
-      LocalCacheContract.profileTtl,
-    );
+    await _cache.write(LocalCacheContract.treatmentsListKey, {
+      'records': page.records.map((r) => r.toJson()).toList(),
+      'total': page.total,
+      'page': page.page,
+      'limit': page.limit,
+      'hasMore': page.hasMore,
+    }, LocalCacheContract.profileTtl);
   }
 
   TreatmentPageResult _parseListPage(Map<String, dynamic> data) {
@@ -67,6 +65,7 @@ class TreatmentRepository implements TreatmentRepositoryContract {
       page: data['page'] as int? ?? 1,
       limit: data['limit'] as int? ?? 20,
       hasMore: data['hasMore'] as bool? ?? false,
+      pendingSyncCount: records.where((r) => r.pendingSync).length,
     );
   }
 
@@ -80,7 +79,13 @@ class TreatmentRepository implements TreatmentRepositoryContract {
     bool forceRefresh = false,
   }) async {
     if (!forceRefresh && _listInFlight != null) return _listInFlight!;
-    final future = _loadList(animalId: animalId, status: status, search: search, page: page, limit: limit);
+    final future = _loadList(
+      animalId: animalId,
+      status: status,
+      search: search,
+      page: page,
+      limit: limit,
+    );
     _listInFlight = future;
     try {
       return await future;
@@ -104,7 +109,11 @@ class TreatmentRepository implements TreatmentRepositoryContract {
         if (status != null) 'status': status.apiValue,
         if (search.trim().isNotEmpty) 'search': search.trim(),
       };
-      final data = await getJson(_dio, TreatmentApiPaths.treatments, queryParameters: query);
+      final data = await getJson(
+        _dio,
+        TreatmentApiPaths.treatments,
+        queryParameters: query,
+      );
       final pageResult = _parseListPage(data);
       if (page == 1) await _writeListCache(pageResult);
       return ApiResult.success(pageResult);
@@ -117,7 +126,11 @@ class TreatmentRepository implements TreatmentRepositoryContract {
     }
   }
 
-  Future<void> _enqueue(OutboxKind kind, Map<String, dynamic> payload, String keySuffix) async {
+  Future<void> _enqueue(
+    OutboxKind kind,
+    Map<String, dynamic> payload,
+    String keySuffix,
+  ) async {
     final sequence = (await _outbox.listAll()).length + 1;
     await _outbox.enqueue(
       OutboxItem(
@@ -172,20 +185,25 @@ class TreatmentRepository implements TreatmentRepositoryContract {
       final data = await getJson(_dio, TreatmentApiPaths.record(id));
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Record not found'));
+        return const ApiResult.failure(
+          AppException(message: 'Record not found'),
+        );
       }
       final record = FarmTreatment.fromJson(raw);
-      await _cache.write(
-        LocalCacheContract.treatmentDetailKey(id),
-        {'record': record.toJson()},
-        LocalCacheContract.profileTtl,
-      );
+      await _cache.write(LocalCacheContract.treatmentDetailKey(id), {
+        'record': record.toJson(),
+      }, LocalCacheContract.profileTtl);
       return ApiResult.success(record);
     } on AppException catch (e) {
-      final cached = await _cache.read(LocalCacheContract.treatmentDetailKey(id));
+      final cached = await _cache.read(
+        LocalCacheContract.treatmentDetailKey(id),
+      );
       if (cached != null) {
         return ApiResult.success(
-          FarmTreatment.fromJson(cached['record'] as Map<String, dynamic>, fromCache: true),
+          FarmTreatment.fromJson(
+            cached['record'] as Map<String, dynamic>,
+            fromCache: true,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -220,7 +238,9 @@ class TreatmentRepository implements TreatmentRepositoryContract {
       final data = await postJson(_dio, TreatmentApiPaths.treatments, body);
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid create response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid create response'),
+        );
       }
       final record = FarmTreatment.fromJson(raw);
       await _optimisticUpsert(record);
@@ -229,8 +249,11 @@ class TreatmentRepository implements TreatmentRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.treatmentCreate, body, tempId);
-        return ApiResult.failure(
-          const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Saved offline — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -238,7 +261,10 @@ class TreatmentRepository implements TreatmentRepositoryContract {
   }
 
   @override
-  Future<ApiResult<FarmTreatment>> updateRecord(String id, TreatmentInput input) async {
+  Future<ApiResult<FarmTreatment>> updateRecord(
+    String id,
+    TreatmentInput input,
+  ) async {
     final body = input.toPatchJson();
     final existingResult = await getRecord(id);
     if (existingResult case ApiSuccess(data: final existing)) {
@@ -264,7 +290,9 @@ class TreatmentRepository implements TreatmentRepositoryContract {
       final data = await patchJson(_dio, TreatmentApiPaths.record(id), body);
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid update response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid update response'),
+        );
       }
       final record = FarmTreatment.fromJson(raw);
       await _optimisticUpsert(record);
@@ -273,8 +301,11 @@ class TreatmentRepository implements TreatmentRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.treatmentPatch, {...body, 'id': id}, id);
-        return ApiResult.failure(
-          const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Saved offline — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -290,8 +321,11 @@ class TreatmentRepository implements TreatmentRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.treatmentDelete, {'id': id}, id);
-        return ApiResult.failure(
-          const AppException(message: 'Queued delete — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Queued delete — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -301,7 +335,9 @@ class TreatmentRepository implements TreatmentRepositoryContract {
   @override
   Future<void> saveDraft(TreatmentInput input, {String? recordId}) async {
     await _cache.write(
-      recordId == null ? LocalCacheContract.treatmentDraftKey : LocalCacheContract.treatmentEditDraftKey(recordId),
+      recordId == null
+          ? LocalCacheContract.treatmentDraftKey
+          : LocalCacheContract.treatmentEditDraftKey(recordId),
       input.toDraftJson(),
       LocalCacheContract.profileTtl,
     );
@@ -310,7 +346,9 @@ class TreatmentRepository implements TreatmentRepositoryContract {
   @override
   Future<TreatmentInput?> readDraft({String? recordId}) async {
     final raw = await _cache.read(
-      recordId == null ? LocalCacheContract.treatmentDraftKey : LocalCacheContract.treatmentEditDraftKey(recordId),
+      recordId == null
+          ? LocalCacheContract.treatmentDraftKey
+          : LocalCacheContract.treatmentEditDraftKey(recordId),
     );
     if (raw == null || raw.isEmpty) return null;
     return TreatmentInput.fromDraftJson(raw);
@@ -319,14 +357,18 @@ class TreatmentRepository implements TreatmentRepositoryContract {
   @override
   Future<void> clearDraft({String? recordId}) async {
     await _cache.write(
-      recordId == null ? LocalCacheContract.treatmentDraftKey : LocalCacheContract.treatmentEditDraftKey(recordId),
+      recordId == null
+          ? LocalCacheContract.treatmentDraftKey
+          : LocalCacheContract.treatmentEditDraftKey(recordId),
       {},
       Duration.zero,
     );
   }
 }
 
-final treatmentRepositoryProvider = Provider<TreatmentRepositoryContract>((ref) {
+final treatmentRepositoryProvider = Provider<TreatmentRepositoryContract>((
+  ref,
+) {
   return TreatmentRepository(
     ref.watch(dioProvider),
     ref.watch(localCacheServiceProvider),

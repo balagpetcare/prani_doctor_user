@@ -35,7 +35,10 @@ class AiSuggestionChips extends StatelessWidget {
             .map(
               (text) => Padding(
                 padding: const EdgeInsets.only(right: 8),
-                child: ActionChip(label: Text(text), onPressed: () => onSelected(text)),
+                child: ActionChip(
+                  label: Text(text),
+                  onPressed: () => onSelected(text),
+                ),
               ),
             )
             .toList(),

@@ -1,29 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
+
+import '../../../core/navigation/navigation_guard.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 
 import '../data/settings_dto.dart';
 import '../data/settings_repository.dart';
 import 'settings_providers.dart';
+import 'settings_navigation.dart';
 import 'widgets/settings_feedback.dart';
 
 class TermsPage extends ConsumerWidget {
   const TermsPage({super.key});
 
-  Future<void> _accept(BuildContext context, WidgetRef ref, LegalDocumentDto doc) async {
+  Future<void> _accept(
+    BuildContext context,
+    WidgetRef ref,
+    LegalDocumentDto doc,
+  ) async {
     final l10n = AppLocalizations.of(context)!;
-    final result = await ref.read(settingsRepositoryProvider).sync(
-          SettingsSyncInput(acceptTermsVersion: doc.version),
-        );
+    final result = await ref
+        .read(settingsRepositoryProvider)
+        .sync(SettingsSyncInput(acceptTermsVersion: doc.version));
     result.when(
       success: (_) {
         ref.invalidate(termsDocumentProvider);
         ref.invalidate(settingsProvider);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.settingsTermsAccepted)));
+        SettingsNavigation.afterLegalAccept(ref);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.settingsTermsAccepted)));
       },
       failure: (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
       },
     );
   }
@@ -34,12 +47,12 @@ class TermsPage extends ConsumerWidget {
     final docAsync = ref.watch(termsDocumentProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsTermsTitle)),
+      appBar: safeAppBar(context, title: Text(l10n.settingsTermsTitle)),
       body: docAsync.when(
-        loading: () => SettingsFeedback.loading(),
+        loading: SettingsFeedback.loading,
         error: (e, _) => SettingsFeedback.error(
           context,
-          message: e.toString(),
+          error: e,
           onRetry: () => ref.invalidate(termsDocumentProvider),
         ),
         data: (doc) {
@@ -63,7 +76,10 @@ class TermsPage extends ConsumerWidget {
                 OutlinedButton.icon(
                   onPressed: doc.url.isEmpty
                       ? null
-                      : () => launchUrl(Uri.parse(doc.url), mode: LaunchMode.externalApplication),
+                      : () => launchUrl(
+                          Uri.parse(doc.url),
+                          mode: LaunchMode.externalApplication,
+                        ),
                   icon: const Icon(Icons.open_in_new),
                   label: Text(l10n.settingsOpenExternal),
                 ),

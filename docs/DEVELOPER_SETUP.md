@@ -101,6 +101,8 @@ flutter build apk --dart-define=API_BASE_URL=https://api.production.example --da
 
 Do **not** pass client secrets via **dart-define**; use OAuth/plist tooling and CI secrets instead.
 
+**Local Android + PC backend (WiFi):** see [LOCAL_DEV_INTEGRATION.md](LOCAL_DEV_INTEGRATION.md) — copy `.env.example` → `.env`, set `API_BASE_URL=http://<PC_LAN_IP>:3000`, run `.\scripts\run_dev_device.ps1`.
+
 ---
 
 ## Firebase & FlutterFire

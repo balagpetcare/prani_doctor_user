@@ -6,6 +6,7 @@ import 'package:pranidoctor_user/l10n/app_localizations.dart';
 import '../../../routing/app_routes.dart';
 import '../data/ai_dto.dart';
 import '../data/ai_validation.dart';
+import 'ai_navigation.dart';
 import 'ai_providers.dart';
 import 'widgets/ai_disclaimer_banner.dart';
 import 'widgets/ai_feedback.dart';
@@ -30,13 +31,29 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   @override
   void initState() {
     super.initState();
+    Future.microtask(_loadDraft);
+    _inputController.addListener(_onDraftChanged);
     if (widget.initialPrompt != null && widget.initialPrompt!.isNotEmpty) {
       _inputController.text = widget.initialPrompt!;
     }
   }
 
+  Future<void> _loadDraft() async {
+    if (widget.initialPrompt != null && widget.initialPrompt!.isNotEmpty) {
+      return;
+    }
+    final draft = await loadAiDraft(ref);
+    if (!mounted || draft == null || draft.isEmpty) return;
+    _inputController.text = draft;
+  }
+
+  void _onDraftChanged() {
+    persistAiDraft(ref, _inputController.text);
+  }
+
   @override
   void dispose() {
+    _inputController.removeListener(_onDraftChanged);
     _inputController.dispose();
     _scrollController.dispose();
     _symptomController.dispose();
@@ -63,11 +80,14 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       tooLong: l10n.aiMessageTooLong,
     );
     if (error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
       return;
     }
     _inputController.clear();
     await ref.read(aiChatProvider.notifier).sendMessage(text);
+    AiNavigation.afterChatMutation(ref);
     _scrollToBottom();
   }
 
@@ -78,13 +98,29 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
         .toList();
-    final error = AiValidation.validateSymptoms(symptoms, emptyMessage: l10n.aiSymptomsRequired);
+    final error = AiValidation.validateSymptoms(
+      symptoms,
+      emptyMessage: l10n.aiSymptomsRequired,
+    );
     if (error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
       return;
     }
     await ref.read(aiChatProvider.notifier).runTriage(symptoms);
     setState(() => _showTriage = false);
+    final triage = ref.read(aiChatProvider).value?.triageResult;
+    if (triage != null && mounted) {
+      context.push(AppRoutes.aiResult, extra: triage);
+    }
+  }
+
+  Future<void> _changeLocale(AiLocale value) async {
+    final current = await ref.read(aiSettingsProvider.future);
+    await ref
+        .read(aiSettingsProvider.notifier)
+        .save(current.copyWith(locale: value));
   }
 
   @override
@@ -92,6 +128,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     final l10n = AppLocalizations.of(context)!;
     final chatAsync = ref.watch(aiChatProvider);
     final locale = ref.watch(aiLocaleProvider);
+    final settings = ref.watch(aiSettingsProvider).valueOrNull;
 
     return Scaffold(
       appBar: AppBar(
@@ -99,7 +136,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         actions: [
           PopupMenuButton<AiLocale>(
             initialValue: locale,
-            onSelected: (value) => ref.read(aiLocaleProvider.notifier).state = value,
+            onSelected: _changeLocale,
             itemBuilder: (context) => [
               PopupMenuItem(value: AiLocale.bn, child: Text(l10n.aiLocaleBn)),
               PopupMenuItem(value: AiLocale.en, child: Text(l10n.aiLocaleEn)),
@@ -111,14 +148,30 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
             icon: const Icon(Icons.mic_none),
           ),
           IconButton(
-            onPressed: () => ref.read(aiChatProvider.notifier).clearHistory(),
+            onPressed: () => ref.read(aiChatProvider.notifier).regenerateLast(),
+            icon: const Icon(Icons.refresh),
+            tooltip: l10n.aiRegenerate,
+          ),
+          IconButton(
+            onPressed: () => context.push(AppRoutes.aiHistory),
+            icon: const Icon(Icons.history),
+          ),
+          IconButton(
+            onPressed: () async {
+              await ref.read(aiChatProvider.notifier).clearHistory();
+              AiNavigation.afterChatMutation(ref);
+            },
             icon: const Icon(Icons.delete_outline),
           ),
         ],
       ),
       body: chatAsync.when(
-        loading: () => AiFeedback.skeleton(),
-        error: (e, _) => AiFeedback.error(context, message: e.toString(), onRetry: () => ref.read(aiChatProvider.notifier).reload()),
+        loading: AiFeedback.skeleton,
+        error: (e, _) => AiFeedback.error(
+          context,
+          message: e.toString(),
+          onRetry: () => ref.read(aiChatProvider.notifier).reload(),
+        ),
         data: (state) {
           return Column(
             children: [
@@ -138,7 +191,11 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                             padding: const EdgeInsets.only(bottom: 8),
                             child: AiMessageBubble(
                               message: message,
-                              onRetry: message.isFailed ? () => ref.read(aiChatProvider.notifier).retryMessage(message.content) : null,
+                              onRetry: message.isFailed
+                                  ? () => ref
+                                        .read(aiChatProvider.notifier)
+                                        .retryMessage(message.content)
+                                  : null,
                             ),
                           );
                         },
@@ -164,21 +221,25 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                         maxLines: 4,
                       ),
                       const SizedBox(height: 8),
-                      FilledButton(onPressed: state.isSending ? null : _runTriage, child: Text(l10n.aiRunTriage)),
+                      FilledButton(
+                        onPressed: state.isSending ? null : _runTriage,
+                        child: Text(l10n.aiRunTriage),
+                      ),
                     ],
                   ),
                 ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                child: AiSuggestionChips(
-                  onSelected: (text) {
-                    _inputController.text = text;
-                    if (text == l10n.aiSuggestionSymptoms) {
-                      setState(() => _showTriage = true);
-                    }
-                  },
+              if (settings?.showSuggestions ?? true)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: AiSuggestionChips(
+                    onSelected: (text) {
+                      _inputController.text = text;
+                      if (text == l10n.aiSuggestionSymptoms) {
+                        setState(() => _showTriage = true);
+                      }
+                    },
+                  ),
                 ),
-              ),
               if (state.isSending) const LinearProgressIndicator(minHeight: 2),
               SafeArea(
                 child: Padding(
@@ -190,7 +251,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                           controller: _inputController,
                           minLines: 1,
                           maxLines: 4,
-                          decoration: InputDecoration(hintText: l10n.aiInputHint),
+                          decoration: InputDecoration(
+                            hintText: l10n.aiInputHint,
+                          ),
                           onSubmitted: (_) => _send(),
                         ),
                       ),

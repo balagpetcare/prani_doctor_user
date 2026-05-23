@@ -2,15 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 import '../../../../core/branding/brand_assets.dart';
-import '../../../../core/branding/brand_image.dart';
-import '../../../../core/branding/brand_theme.dart';
-/// Animated Flutter splash shown after native splash while boot runs.
+
+/// Full-bleed farm splash (cloned from pranidoctor_mobile) while boot runs.
 class SplashPage extends StatefulWidget {
-  const SplashPage({
-    super.key,
-    this.statusMessage,
-    this.onAnimationComplete,
-  });
+  const SplashPage({super.key, this.statusMessage, this.onAnimationComplete});
 
   final String? statusMessage;
   final VoidCallback? onAnimationComplete;
@@ -19,126 +14,112 @@ class SplashPage extends StatefulWidget {
   State<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
-  static const _minDuration = Duration(milliseconds: 1500);
-
-  late final AnimationController _logoController;
-  late final AnimationController _illustrationController;
-  late final AnimationController _titleController;
-  late final Animation<double> _logoOpacity;
-  late final Animation<double> _illustrationOpacity;
-  late final Animation<double> _titleOpacity;
+class _SplashPageState extends State<SplashPage> {
+  bool _imageFailed = false;
 
   @override
   void initState() {
     super.initState();
     FlutterNativeSplash.remove();
-    _logoController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _illustrationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 700),
-    );
-    _titleController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-
-    _logoOpacity = CurvedAnimation(parent: _logoController, curve: Curves.easeIn);
-    _illustrationOpacity =
-        CurvedAnimation(parent: _illustrationController, curve: Curves.easeInOut);
-    _titleOpacity = CurvedAnimation(parent: _titleController, curve: Curves.easeIn);
-
-    _runSequence();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _finishSplash());
   }
 
-  Future<void> _runSequence() async {
-    final started = DateTime.now();
-    await _logoController.forward();
-    if (!mounted) return;
-    await _illustrationController.forward();
-    if (!mounted) return;
-    await _titleController.forward();
-    if (!mounted) return;
-
-    final elapsed = DateTime.now().difference(started);
-    final minWait = _minDuration - elapsed;
-    if (minWait > Duration.zero) {
-      await Future<void>.delayed(minWait);
-    }
-
+  Future<void> _finishSplash() async {
+    await Future<void>.delayed(
+      const Duration(milliseconds: BrandAssets.splashMinDisplayMs),
+    );
     if (mounted) widget.onAnimationComplete?.call();
   }
 
   @override
-  void dispose() {
-    _logoController.dispose();
-    _illustrationController.dispose();
-    _titleController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final scheme = Theme.of(context).colorScheme;
 
-    return DecoratedBox(
-      decoration: BrandTheme.splashBackground(),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            children: [
-              const Spacer(flex: 2),
-              FadeTransition(
-                opacity: _logoOpacity,
-                child: BrandImage.logo(
-                  asset: BrandAssets.primaryLogo,
-                  height: 96,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Expanded(
-                flex: 4,
-                child: FadeTransition(
-                  opacity: _illustrationOpacity,
-                  child: BrandImage(
-                    asset: BrandAssets.splashIllustration,
-                    fit: BoxFit.contain,
-                    hideOnError: true,
-                  ),
-                ),              ),
-              FadeTransition(
-                opacity: _titleOpacity,
-                child: Text(
-                  BrandAssets.splashTitleBn,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: BrandColors.primary,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (widget.statusMessage != null) ...[
-                const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  widget.statusMessage!,
-                  style: theme.textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-              const Spacer(),
-            ],
+    return Scaffold(
+      backgroundColor: scheme.surface,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(
+            child: !_imageFailed
+                ? LayoutBuilder(
+                    builder: (context, constraints) {
+                      final mq = MediaQuery.of(context);
+                      final dpr = mq.devicePixelRatio;
+                      final cacheWidth = (constraints.maxWidth * dpr)
+                          .round()
+                          .clamp(360, BrandAssets.splashDecodeMaxWidthPx);
+                      final cacheHeight = (constraints.maxHeight * dpr)
+                          .round()
+                          .clamp(640, BrandAssets.splashDecodeMaxHeightPx);
+
+                      return Image.asset(
+                        BrandAssets.splashFarm,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        alignment: Alignment.center,
+                        gaplessPlayback: true,
+                        excludeFromSemantics: true,
+                        cacheWidth: cacheWidth,
+                        cacheHeight: cacheHeight,
+                        errorBuilder: (context, error, stackTrace) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) setState(() => _imageFailed = true);
+                          });
+                          return ColoredBox(
+                            color: scheme.surfaceContainerHighest,
+                          );
+                        },
+                      );
+                    },
+                  )
+                : ColoredBox(color: scheme.surfaceContainerHighest),
           ),
-        ),
+          if (widget.statusMessage != null)
+            Positioned(
+              left: 24,
+              right: 24,
+              bottom: 32,
+              child: SafeArea(
+                top: false,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Flexible(
+                          child: Text(
+                            widget.statusMessage!,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: Colors.white),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

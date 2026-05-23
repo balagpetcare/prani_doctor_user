@@ -19,10 +19,14 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   final plugin = FlutterLocalNotificationsPlugin();
   const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-  await plugin.initialize(settings: const InitializationSettings(android: androidInit));
+  await plugin.initialize(
+    settings: const InitializationSettings(android: androidInit),
+  );
 
   await plugin
-      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin
+      >()
       ?.createNotificationChannel(channel);
 
   final payload = message.data.isEmpty ? null : jsonEncode(message.data);

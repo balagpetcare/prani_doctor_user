@@ -11,7 +11,10 @@ abstract final class VaccineValidation {
     return null;
   }
 
-  static String? validateScheduledDate(DateTime date, {required String message}) {
+  static String? validateScheduledDate(
+    DateTime date, {
+    required String message,
+  }) {
     if (date.isBefore(DateTime(2020))) return message;
     return null;
   }

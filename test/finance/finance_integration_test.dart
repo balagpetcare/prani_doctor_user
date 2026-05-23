@@ -92,9 +92,15 @@ void main() {
       final charts = FinanceChartsData.fromJson({
         'from': '2026-05-01',
         'to': '2026-05-22',
-        'incomeTrend': [{'date': '2026-05-22', 'amountBdt': 500}],
-        'expenseTrend': [{'date': '2026-05-22', 'amountBdt': 200}],
-        'profitTrend': [{'date': '2026-05-22', 'amountBdt': 300}],
+        'incomeTrend': [
+          {'date': '2026-05-22', 'amountBdt': 500},
+        ],
+        'expenseTrend': [
+          {'date': '2026-05-22', 'amountBdt': 200},
+        ],
+        'profitTrend': [
+          {'date': '2026-05-22', 'amountBdt': 300},
+        ],
       });
       expect(charts.incomeTrend.single.amountBdt, 500);
       expect(charts.profitTrend.single.amountBdt, 300);
@@ -103,11 +109,31 @@ void main() {
 
   group('FinanceValidation', () {
     test('validates amount and date', () {
-      expect(FinanceValidation.validateAmount('', message: 'Required'), 'Required');
       expect(
-        FinanceValidation.validateDate(DateTime.now().add(const Duration(days: 1)), message: 'Invalid'),
+        FinanceValidation.validateAmount('', message: 'Required'),
+        'Required',
+      );
+      expect(
+        FinanceValidation.validateDate(
+          DateTime.now().add(const Duration(days: 1)),
+          message: 'Invalid',
+        ),
         'Invalid',
       );
+    });
+  });
+
+  group('FinancePageResult', () {
+    test('copyWith preserves pending sync count', () {
+      const page = FinancePageResult(
+        records: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+        hasMore: false,
+        pendingSyncCount: 2,
+      );
+      expect(page.copyWith(fromCache: true).pendingSyncCount, 2);
     });
   });
 }

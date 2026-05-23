@@ -26,7 +26,7 @@ class VaccineRecordCard extends StatelessWidget {
           ].join(' · '),
         ),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () => context.push(AppRoutes.vaccineEdit(record.id)),
+        onTap: () => context.push(AppRoutes.vaccineDetail(record.id)),
       ),
     );
   }

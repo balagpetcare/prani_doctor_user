@@ -3,11 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../core/navigation/navigation_guard.dart';
+
 import '../../../routing/app_routes.dart';
 import '../data/support_attachment_service.dart';
 import '../data/support_dto.dart';
 import '../data/support_repository.dart';
 import '../data/support_validation.dart';
+import 'support_navigation.dart';
 import 'support_providers.dart';
 import 'widgets/support_attachment_picker.dart';
 import 'widgets/support_feedback.dart';
@@ -17,10 +20,12 @@ class SupportTicketCreatePage extends ConsumerStatefulWidget {
   const SupportTicketCreatePage({super.key});
 
   @override
-  ConsumerState<SupportTicketCreatePage> createState() => _SupportTicketCreatePageState();
+  ConsumerState<SupportTicketCreatePage> createState() =>
+      _SupportTicketCreatePageState();
 }
 
-class _SupportTicketCreatePageState extends ConsumerState<SupportTicketCreatePage> {
+class _SupportTicketCreatePageState
+    extends ConsumerState<SupportTicketCreatePage> {
   final _subjectController = TextEditingController();
   final _descriptionController = TextEditingController();
   SupportTicketCategory _category = SupportTicketCategory.other;
@@ -29,7 +34,41 @@ class _SupportTicketCreatePageState extends ConsumerState<SupportTicketCreatePag
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    Future.microtask(_loadDraft);
+    _subjectController.addListener(_persistDraft);
+    _descriptionController.addListener(_persistDraft);
+  }
+
+  Future<void> _loadDraft() async {
+    final draft = await ref.read(supportCreateDraftProvider.future);
+    if (!mounted || draft == null) return;
+    setState(() {
+      _category = draft.category;
+      _priority = draft.priority;
+      _subjectController.text = draft.subject;
+      _descriptionController.text = draft.description;
+    });
+  }
+
+  void _persistDraft() {
+    ref
+        .read(supportCreateDraftProvider.notifier)
+        .save(
+          SupportCreateDraft(
+            category: _category,
+            priority: _priority,
+            subject: _subjectController.text,
+            description: _descriptionController.text,
+          ),
+        );
+  }
+
+  @override
   void dispose() {
+    _subjectController.removeListener(_persistDraft);
+    _descriptionController.removeListener(_persistDraft);
     _subjectController.dispose();
     _descriptionController.dispose();
     super.dispose();
@@ -37,6 +76,11 @@ class _SupportTicketCreatePageState extends ConsumerState<SupportTicketCreatePag
 
   Future<void> _submit() async {
     final l10n = AppLocalizations.of(context)!;
+    if (ref.read(supportSubmissionProvider) ==
+        SupportSubmissionState.submitting) {
+      return;
+    }
+
     final validationError = SupportValidation.validateTicket(
       category: _category,
       subject: _subjectController.text,
@@ -55,15 +99,19 @@ class _SupportTicketCreatePageState extends ConsumerState<SupportTicketCreatePag
       _submitting = true;
       _error = null;
     });
+    ref.read(supportSubmissionProvider.notifier).state =
+        SupportSubmissionState.submitting;
 
     await ref.read(pendingAttachmentsProvider.notifier).uploadAll();
     final attachments = ref.read(pendingAttachmentsProvider.notifier);
     if (attachments.hasUploading || attachments.hasErrors) {
       setState(() => _submitting = false);
+      ref.read(supportSubmissionProvider.notifier).state =
+          SupportSubmissionState.idle;
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.supportUploadFailed)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.supportUploadFailed)));
       }
       return;
     }
@@ -77,14 +125,19 @@ class _SupportTicketCreatePageState extends ConsumerState<SupportTicketCreatePag
       attachmentLocalPaths: attachments.pendingLocalPaths(),
     );
 
-    final result = await ref.read(supportRepositoryProvider).createTicket(input);
+    final result = await ref
+        .read(supportRepositoryProvider)
+        .createTicket(input);
     if (!mounted) return;
     setState(() => _submitting = false);
+    ref.read(supportSubmissionProvider.notifier).state =
+        SupportSubmissionState.idle;
 
     result.when(
       success: (ticket) {
         ref.read(pendingAttachmentsProvider.notifier).clear();
-        ref.invalidate(supportTicketListProvider);
+        ref.read(supportCreateDraftProvider.notifier).clear();
+        SupportNavigation.afterTicketMutation(ref, ticketId: ticket.id);
         context.go(AppRoutes.supportTicketDetail(ticket.id));
       },
       failure: (e) => setState(() => _error = e.message),
@@ -96,15 +149,17 @@ class _SupportTicketCreatePageState extends ConsumerState<SupportTicketCreatePag
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.supportCreateTicketTitle)),
+      appBar: safeAppBar(context, title: Text(l10n.supportCreateTicketTitle)),
       body: Stack(
         children: [
           ListView(
             padding: const EdgeInsets.all(16),
             children: [
               DropdownButtonFormField<SupportTicketCategory>(
-                value: _category,
-                decoration: InputDecoration(labelText: l10n.supportCategoryLabel),
+                initialValue: _category,
+                decoration: InputDecoration(
+                  labelText: l10n.supportCategoryLabel,
+                ),
                 items: SupportTicketCategory.values
                     .map(
                       (c) => DropdownMenuItem(
@@ -113,12 +168,17 @@ class _SupportTicketCreatePageState extends ConsumerState<SupportTicketCreatePag
                       ),
                     )
                     .toList(),
-                onChanged: (v) => setState(() => _category = v ?? _category),
+                onChanged: (v) {
+                  setState(() => _category = v ?? _category);
+                  _persistDraft();
+                },
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<SupportTicketPriority>(
-                value: _priority,
-                decoration: InputDecoration(labelText: l10n.supportPriorityLabel),
+                initialValue: _priority,
+                decoration: InputDecoration(
+                  labelText: l10n.supportPriorityLabel,
+                ),
                 items: SupportTicketPriority.values
                     .map(
                       (p) => DropdownMenuItem(
@@ -127,27 +187,40 @@ class _SupportTicketCreatePageState extends ConsumerState<SupportTicketCreatePag
                       ),
                     )
                     .toList(),
-                onChanged: (v) => setState(() => _priority = v ?? _priority),
+                onChanged: (v) {
+                  setState(() => _priority = v ?? _priority);
+                  _persistDraft();
+                },
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _subjectController,
-                decoration: InputDecoration(labelText: l10n.supportSubjectLabel),
+                decoration: InputDecoration(
+                  labelText: l10n.supportSubjectLabel,
+                ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _descriptionController,
                 minLines: 4,
                 maxLines: 8,
-                decoration: InputDecoration(labelText: l10n.supportDescriptionLabel),
+                decoration: InputDecoration(
+                  labelText: l10n.supportDescriptionLabel,
+                ),
               ),
               const SizedBox(height: 16),
-              Text(l10n.supportAttachmentsLabel, style: Theme.of(context).textTheme.titleSmall),
+              Text(
+                l10n.supportAttachmentsLabel,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
               const SizedBox(height: 8),
               const SupportAttachmentPicker(),
               if (_error != null) ...[
                 const SizedBox(height: 12),
-                Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                Text(
+                  _error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
               ],
               const SizedBox(height: 24),
               FilledButton(
@@ -156,7 +229,11 @@ class _SupportTicketCreatePageState extends ConsumerState<SupportTicketCreatePag
               ),
             ],
           ),
-          if (_submitting) SupportFeedback.submissionOverlay(context, message: l10n.supportSubmitting),
+          if (_submitting)
+            SupportFeedback.submissionOverlay(
+              context,
+              message: l10n.supportSubmitting,
+            ),
         ],
       ),
     );

@@ -99,13 +99,43 @@ void main() {
 
   group('MilkValidation', () {
     test('validates quantity', () {
-      expect(MilkValidation.validateQuantity('', message: 'Required'), 'Required');
-      expect(MilkValidation.validateQuantity('12.5', message: 'Required'), isNull);
+      expect(
+        MilkValidation.validateQuantity('', message: 'Required'),
+        'Required',
+      );
+      expect(
+        MilkValidation.validateQuantity('12.5', message: 'Required'),
+        isNull,
+      );
     });
 
     test('validates future date', () {
       final future = DateTime.now().add(const Duration(days: 2));
-      expect(MilkValidation.validateDate(future, message: 'Invalid'), 'Invalid');
+      expect(
+        MilkValidation.validateDate(future, message: 'Invalid'),
+        'Invalid',
+      );
+    });
+  });
+
+  group('MilkSessionFilter', () {
+    test('enum values exist for client filtering', () {
+      expect(MilkSessionFilter.values.length, 3);
+      expect(MilkSessionFilter.morning.name, 'morning');
+    });
+  });
+
+  group('MilkPageResult', () {
+    test('copyWith preserves pending sync count', () {
+      const page = MilkPageResult(
+        records: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+        hasMore: false,
+        pendingSyncCount: 2,
+      );
+      expect(page.copyWith(fromCache: true).pendingSyncCount, 2);
     });
   });
 }

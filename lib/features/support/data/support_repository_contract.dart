@@ -6,6 +6,8 @@ abstract class SupportRepositoryContract {
 
   Future<SupportHelpData?> readCachedHelp();
 
+  Future<SupportTicketDetail?> readCachedTicketDetail(String id);
+
   Future<ApiResult<SupportTicketPageResult>> listTickets({
     SupportTicketStatus? status,
     SupportTicketCategory? category,

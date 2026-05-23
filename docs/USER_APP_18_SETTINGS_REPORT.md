@@ -1,61 +1,106 @@
 # USER_APP_18 — Settings Module Report
 
+**Project:** `pranidoctor_user`  
+**Module:** `USER_APP_18_SETTINGS`  
 **Date:** 2026-05-22  
-**Status:** ✅ Complete
+**Status:** Complete
 
-## Existing state (before)
+## 1. Current audit
 
-Thin settings hub with profile summary, local dark mode, notification link, external privacy URL. No settings repository, no terms, no server sync.
+| Area | Pre-work |
+|------|----------|
+| Settings hub (inline theme, legal links) | Partial |
+| Repository + cache + offline outbox | Done |
+| Privacy / Terms pages | Done |
+| Notification settings (separate API) | Done |
+| Profile account routes | Done |
+| **Sectioned hub + sub-screens** | Missing |
+| **Theme / Language pages** | Missing |
+| **Account / App / Preferences / About / Data & Sync** | Missing |
+| **Apply server theme/locale on load** | Missing |
+| **Duplicate update guard** | Missing |
 
-## Changes
+## 2. Plan
 
-### Backend
-- Prisma `MobileUserSettings` + `MobileThemePreference` enum
-- Migration `20260522200000_phase8_mobile_user_settings`
-- Service `mobile-settings-service.ts` — legal config from `Setting.mobile.legal.config`
-- Routes: `GET settings`, `GET settings/privacy`, `GET settings/terms`, `POST settings/sync`
-- Seed `mobile.legal.config` in demo
+See `docs/user_app/USER_APP_18_SETTINGS.md`.
 
-### Web BFF
-- Proxies under `src/app/api/mobile/settings/**`
+## 3. Implementation
 
-### Flutter
-- `lib/features/settings/data/` — paths, DTOs, repository
-- `lib/features/settings/presentation/` — providers, privacy/terms pages, feedback widget
-- Updated `settings_page.dart` — cache-first load, refresh, theme sync, privacy/terms navigation
-- Offline: cache keys + `OutboxKind.settingsSync`
+- Sectioned settings hub with navigation to all sub-screens
+- Account, Preferences, App, Language, Theme, About, Data & Sync pages
+- Providers: cache-first load, apply theme/locale from server, sync guard
+- `SettingsNavigation`; startup cache warm for settings
+- Language sync: settings API + profile patch (cross-device + auth/me)
+- Data & Sync: last sync, pending settings count, offline queue panel
 
-## APIs
+## 4. Changed files
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET | `/api/mobile/settings` | User prefs + legal summary |
-| GET | `/api/mobile/settings/privacy` | Privacy document + acceptance |
-| GET | `/api/mobile/settings/terms` | Terms document + acceptance |
-| POST | `/api/mobile/settings/sync` | Theme, locale, accept privacy/terms |
+**New:** `settings_account_page.dart`, `settings_preferences_page.dart`, `settings_app_page.dart`, `settings_language_page.dart`, `settings_theme_page.dart`, `settings_about_page.dart`, `settings_data_sync_page.dart`, `settings_navigation.dart`, `settings_section_header.dart`, plan doc
 
-## Files modified
+**Updated:** `settings_page.dart`, `settings_providers.dart`, `privacy_page.dart`, `terms_page.dart`, routes, l10n, `app_startup.dart`, tests, report
 
-- `lib/features/settings/settings_page.dart`
-- `lib/routing/app_routes.dart`, `app_router.dart`
-- `lib/core/offline/local_cache_contract.dart`
-- `lib/features/offline/data/outbox_item.dart`
-- `lib/features/offline/data/sync_coordinator.dart`
-- `lib/features/offline/presentation/offline_queue_panel.dart`
-- `lib/l10n/app_en.arb`
-- `prisma/schema.prisma`, `prisma/seed-demo.ts`
+## 5. API mapping
 
-## Risks
+| Flutter | Method | Path |
+|---------|--------|------|
+| `getSettings` | GET | `/api/mobile/settings` |
+| `getPrivacy` | GET | `/api/mobile/settings/privacy` |
+| `getTerms` | GET | `/api/mobile/settings/terms` |
+| `sync` | POST | `/api/mobile/settings/sync` |
+| Notification prefs | GET/PUT | `/api/mobile/notifications/settings` |
+| Profile locale | PATCH | `/api/mobile/auth/me` |
+| App config | GET | `/api/mobile/app/config` |
 
-- Legal URLs may 404 until marketing pages are hosted — in-app content fallback provided
-- Theme sync is best-effort; local toggle remains primary UX
-- Notification prefs remain on separate API (backward compatible)
+## 6. State / provider flow
 
-## Testing
+```
+AppStartup → warm user_settings_snapshot cache
+settingsProvider → cache → apply theme/locale → silent refresh
+settingsUpdateInFlightProvider → blocks duplicate sync
+syncInput / syncTheme / syncLocale → repository.sync → cache update
+settingsPendingSyncCountProvider → outbox settingsSync items
+settingsLastSyncProvider → settings.updatedAt
+```
 
-- `test/settings/settings_integration_test.dart` — DTO, theme mapping, sync payload
-- Run: `flutter test test/settings/`
+## 7. Sync flow
 
-## Completion status
+1. User changes theme/locale/legal acceptance → `POST /settings/sync`
+2. Offline → outbox `settingsSync` → SyncCoordinator drains on reconnect
+3. Data & Sync page → manual sync + full offline queue panel
+4. Language also patches profile for auth/me consistency
 
-Phase 8 Settings module complete: Settings hub, Privacy, Terms, API connection, offline cache/sync.
+## 8. Cache strategy
+
+| Key | Content | TTL |
+|-----|---------|-----|
+| `user_settings_snapshot` | Settings bundle | profile TTL |
+| `privacy_document_snapshot` | Privacy doc | app config TTL |
+| `terms_document_snapshot` | Terms doc | app config TTL |
+
+## 9. Validation
+
+```
+flutter test test/settings/  → 10/10 passed
+dart analyze lib/features/settings  → 0 errors
+```
+
+## 10. Remaining blockers
+
+- Bangla UI strings not in arb (English only in generated l10n)
+- Session/device management not exposed in mobile API
+- Notification prefs remain on separate endpoint (by design)
+- `RadioListTile` deprecation infos (Flutter 3.32+)
+
+## 11. Manual QA checklist
+
+- [ ] `/settings` hub sections and pull-to-refresh
+- [ ] Account → profile sub-routes
+- [ ] Preferences → language, theme, notifications
+- [ ] Theme system/light/dark syncs cross-device
+- [ ] Language bn-BD / en-US syncs settings + profile
+- [ ] Privacy/Terms accept + offline queue
+- [ ] Data & Sync shows last sync + sync now
+- [ ] About shows version + legal links
+- [ ] Sign out from hub
+
+**USER_APP_18_COMPLETE**

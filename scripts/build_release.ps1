@@ -14,6 +14,8 @@
 
 param(
   [string]$ApiBaseUrl = "https://api.your-domain.com",
+  [ValidateSet("dev", "staging", "production")]
+  [string]$AppEnv = "production",
   [switch]$SkipObfuscate
 )
 
@@ -22,6 +24,7 @@ Set-Location $PSScriptRoot ..
 
 $args = @(
   "build", "apk", "--release",
+  "--dart-define=APP_ENV=$AppEnv",
   "--dart-define=API_BASE_URL=$ApiBaseUrl",
   "--dart-define=ENABLE_PUSH=true",
   "--dart-define=LOG_NETWORK=false"

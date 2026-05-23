@@ -6,7 +6,11 @@ class FinanceFeedback {
 
   static Widget loading() => const Center(child: CircularProgressIndicator());
 
-  static Widget error(BuildContext context, {required VoidCallback onRetry, String? message}) {
+  static Widget error(
+    BuildContext context, {
+    required VoidCallback onRetry,
+    String? message,
+  }) {
     final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
@@ -14,7 +18,11 @@ class FinanceFeedback {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 16),
             Text(message ?? l10n.financeLoadError, textAlign: TextAlign.center),
             const SizedBox(height: 16),
@@ -25,7 +33,10 @@ class FinanceFeedback {
     );
   }
 
-  static Widget emptyExpense(BuildContext context, {required VoidCallback onCreate}) {
+  static Widget emptyExpense(
+    BuildContext context, {
+    required VoidCallback onCreate,
+  }) {
     final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
@@ -37,14 +48,20 @@ class FinanceFeedback {
             const SizedBox(height: 16),
             Text(l10n.financeExpenseEmpty, textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onCreate, child: Text(l10n.financeExpenseAddTitle)),
+            FilledButton(
+              onPressed: onCreate,
+              child: Text(l10n.financeExpenseAddTitle),
+            ),
           ],
         ),
       ),
     );
   }
 
-  static Widget emptyIncome(BuildContext context, {required VoidCallback onCreate}) {
+  static Widget emptyIncome(
+    BuildContext context, {
+    required VoidCallback onCreate,
+  }) {
     final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
@@ -56,7 +73,10 @@ class FinanceFeedback {
             const SizedBox(height: 16),
             Text(l10n.financeIncomeEmpty, textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onCreate, child: Text(l10n.financeIncomeAddTitle)),
+            FilledButton(
+              onPressed: onCreate,
+              child: Text(l10n.financeIncomeAddTitle),
+            ),
           ],
         ),
       ),
@@ -67,7 +87,10 @@ class FinanceFeedback {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(12),
-      child: Text(l10n.financeOfflineHint, style: Theme.of(context).textTheme.bodySmall),
+      child: Text(
+        l10n.financeOfflineHint,
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
     );
   }
 }

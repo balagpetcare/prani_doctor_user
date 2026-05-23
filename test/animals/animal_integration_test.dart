@@ -67,7 +67,11 @@ void main() {
   group('AnimalValidation', () {
     test('requires name or tag', () {
       expect(
-        AnimalValidation.validateNameOrTag(name: '', tag: '', message: 'Required'),
+        AnimalValidation.validateNameOrTag(
+          name: '',
+          tag: '',
+          message: 'Required',
+        ),
         'Required',
       );
     });
@@ -75,6 +79,29 @@ void main() {
     test('validates weight', () {
       expect(AnimalValidation.validateWeight('abc'), isNotNull);
       expect(AnimalValidation.validateWeight('120'), isNull);
+    });
+  });
+
+  group('AnimalSort', () {
+    test('has expected values', () {
+      expect(AnimalSort.values.length, 4);
+    });
+  });
+
+  group('AnimalPageResult', () {
+    test('includes summary counts', () {
+      const page = AnimalPageResult(
+        animals: [],
+        total: 5,
+        page: 1,
+        pageSize: 20,
+        hasMore: false,
+        activeCount: 4,
+        inactiveCount: 1,
+        livestockCount: 3,
+      );
+      expect(page.activeCount, 4);
+      expect(page.livestockCount, 3);
     });
   });
 }

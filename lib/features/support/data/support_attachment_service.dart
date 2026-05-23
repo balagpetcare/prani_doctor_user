@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'support_dto.dart';import 'support_repository.dart';
+import 'support_dto.dart';
+import 'support_repository.dart';
 import 'support_validation.dart';
 
 class SupportAttachmentService {
@@ -56,16 +57,20 @@ class SupportAttachmentService {
   }
 }
 
-final supportAttachmentServiceProvider = Provider<SupportAttachmentService>((ref) {
+final supportAttachmentServiceProvider = Provider<SupportAttachmentService>((
+  ref,
+) {
   return SupportAttachmentService(ref.watch(supportRepositoryProvider));
 });
 
 final pendingAttachmentsProvider =
-    StateNotifierProvider<PendingAttachmentsNotifier, List<PendingSupportAttachment>>(
-  PendingAttachmentsNotifier.new,
-);
+    StateNotifierProvider<
+      PendingAttachmentsNotifier,
+      List<PendingSupportAttachment>
+    >(PendingAttachmentsNotifier.new);
 
-class PendingAttachmentsNotifier extends StateNotifier<List<PendingSupportAttachment>> {
+class PendingAttachmentsNotifier
+    extends StateNotifier<List<PendingSupportAttachment>> {
   PendingAttachmentsNotifier(this._ref) : super(const []);
 
   final Ref _ref;
@@ -103,10 +108,7 @@ class PendingAttachmentsNotifier extends StateNotifier<List<PendingSupportAttach
   }
 
   List<String> uploadedFileIds() {
-    return state
-        .where((a) => a.isUploaded)
-        .map((a) => a.fileId!)
-        .toList();
+    return state.where((a) => a.isUploaded).map((a) => a.fileId!).toList();
   }
 
   List<String> pendingLocalPaths() {
@@ -114,6 +116,8 @@ class PendingAttachmentsNotifier extends StateNotifier<List<PendingSupportAttach
   }
 
   bool get allUploaded => state.every((a) => a.isUploaded);
-  bool get hasUploading => state.any((a) => a.state == SupportAttachmentUploadState.uploading);
-  bool get hasErrors => state.any((a) => a.state == SupportAttachmentUploadState.error);
+  bool get hasUploading =>
+      state.any((a) => a.state == SupportAttachmentUploadState.uploading);
+  bool get hasErrors =>
+      state.any((a) => a.state == SupportAttachmentUploadState.error);
 }

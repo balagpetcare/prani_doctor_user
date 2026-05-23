@@ -19,12 +19,7 @@ import 'batch_dto.dart';
 import 'batch_repository_contract.dart';
 
 class BatchRepository implements BatchRepositoryContract {
-  BatchRepository(
-    this._dio,
-    this._cache,
-    this._outbox,
-    this._animals,
-  );
+  BatchRepository(this._dio, this._cache, this._outbox, this._animals);
 
   final Dio _dio;
   final LocalCacheService _cache;
@@ -52,6 +47,13 @@ class BatchRepository implements BatchRepositoryContract {
       page: cached['page'] as int? ?? 1,
       pageSize: cached['pageSize'] as int? ?? 20,
       hasMore: cached['hasMore'] as bool? ?? false,
+      withAnimalsCount:
+          cached['withAnimalsCount'] as int? ??
+          _computeStats(batches).withAnimals,
+      emptyCount: cached['emptyCount'] as int? ?? _computeStats(batches).empty,
+      pendingSyncCount:
+          cached['pendingSyncCount'] as int? ??
+          _computeStats(batches).pendingSync,
       fromCache: true,
     );
   }
@@ -62,31 +64,47 @@ class BatchRepository implements BatchRepositoryContract {
   }
 
   Future<void> _writeAllLocal(List<AnimalBatch> batches) async {
-    await _cache.write(
-      LocalCacheContract.batchesListKey,
-      {
-        'batches': batches.map((b) => b.toJson()).toList(),
-        'total': batches.length,
-        'page': 1,
-        'pageSize': 20,
-        'hasMore': false,
-      },
-      LocalCacheContract.profileTtl,
-    );
+    final stats = _computeStats(batches);
+    await _cache.write(LocalCacheContract.batchesListKey, {
+      'batches': batches.map((b) => b.toJson()).toList(),
+      'total': batches.where((b) => b.active).length,
+      'page': 1,
+      'pageSize': 20,
+      'hasMore': false,
+      'withAnimalsCount': stats.withAnimals,
+      'emptyCount': stats.empty,
+      'pendingSyncCount': stats.pendingSync,
+    }, LocalCacheContract.profileTtl);
+  }
+
+  ({int withAnimals, int empty, int pendingSync}) _computeStats(
+    List<AnimalBatch> batches,
+  ) {
+    var withAnimals = 0;
+    var empty = 0;
+    var pendingSync = 0;
+    for (final batch in batches.where((b) => b.active)) {
+      if (batch.animalCount > 0) {
+        withAnimals++;
+      } else {
+        empty++;
+      }
+      if (batch.pendingSync) pendingSync++;
+    }
+    return (withAnimals: withAnimals, empty: empty, pendingSync: pendingSync);
   }
 
   Future<void> _writeDetailCache(AnimalBatch batch) async {
-    await _cache.write(
-      LocalCacheContract.batchDetailKey(batch.id),
-      {'batch': batch.toJson()},
-      LocalCacheContract.profileTtl,
-    );
+    await _cache.write(LocalCacheContract.batchDetailKey(batch.id), {
+      'batch': batch.toJson(),
+    }, LocalCacheContract.profileTtl);
   }
 
   List<AnimalBatch> _applyFilters(
     List<AnimalBatch> batches,
     String search,
     BatchFilter filter,
+    BatchSort sort,
   ) {
     var result = batches.where((b) => b.active).toList();
     if (search.trim().isNotEmpty) {
@@ -108,7 +126,33 @@ class BatchRepository implements BatchRepositoryContract {
       case BatchFilter.empty:
         result = result.where((b) => b.animalCount == 0).toList();
     }
+    result = [...result];
+    switch (sort) {
+      case BatchSort.nameAsc:
+        result.sort((a, b) => a.name.compareTo(b.name));
+      case BatchSort.nameDesc:
+        result.sort((a, b) => b.name.compareTo(a.name));
+      case BatchSort.recentFirst:
+        result.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+      case BatchSort.animalsDesc:
+        result.sort((a, b) => b.animalCount.compareTo(a.animalCount));
+    }
     return result;
+  }
+
+  BatchPageResult _pageWithStats(
+    List<AnimalBatch> allActive,
+    List<AnimalBatch> filtered,
+    int page,
+    int pageSize,
+  ) {
+    final stats = _computeStats(allActive);
+    final pageResult = _paginate(filtered, page, pageSize);
+    return pageResult.copyWith(
+      withAnimalsCount: stats.withAnimals,
+      emptyCount: stats.empty,
+      pendingSyncCount: stats.pendingSync,
+    );
   }
 
   BatchPageResult _paginate(List<AnimalBatch> batches, int page, int pageSize) {
@@ -140,7 +184,9 @@ class BatchRepository implements BatchRepositoryContract {
         .toList();
   }
 
-  Future<List<AnimalBatch>> _seedFromAnimalsIfEmpty(List<AnimalBatch> existing) async {
+  Future<List<AnimalBatch>> _seedFromAnimalsIfEmpty(
+    List<AnimalBatch> existing,
+  ) async {
     if (existing.isNotEmpty) return existing;
     final animalsResult = await _animals.readCachedList();
     final animals = animalsResult?.animals ?? [];
@@ -202,6 +248,7 @@ class BatchRepository implements BatchRepositoryContract {
     int pageSize = 20,
     String search = '',
     BatchFilter filter = BatchFilter.all,
+    BatchSort sort = BatchSort.recentFirst,
     bool forceRefresh = false,
   }) async {
     if (!forceRefresh && _listInFlight != null) return _listInFlight!;
@@ -210,6 +257,7 @@ class BatchRepository implements BatchRepositoryContract {
       pageSize: pageSize,
       search: search,
       filter: filter,
+      sort: sort,
     );
     _listInFlight = future;
     try {
@@ -224,13 +272,17 @@ class BatchRepository implements BatchRepositoryContract {
     required int pageSize,
     required String search,
     required BatchFilter filter,
+    required BatchSort sort,
   }) async {
     try {
       if (!_localOnly) {
         final all = await _fetchFromApi();
         await _writeAllLocal(all);
-        final filtered = _applyFilters(all, search, filter);
-        return ApiResult.success(_paginate(filtered, page, pageSize));
+        final active = all.where((b) => b.active).toList();
+        final filtered = _applyFilters(all, search, filter, sort);
+        return ApiResult.success(
+          _pageWithStats(active, filtered, page, pageSize),
+        );
       }
       throw const AppException(message: 'Local-only mode');
     } on AppException catch (e) {
@@ -240,9 +292,15 @@ class BatchRepository implements BatchRepositoryContract {
       var local = await _readAllLocal();
       local = await _seedFromAnimalsIfEmpty(local);
       if (local.isNotEmpty || _localOnly || isTransientNetworkError(e)) {
-        final filtered = _applyFilters(local, search, filter);
+        final active = local.where((b) => b.active).toList();
+        final filtered = _applyFilters(local, search, filter, sort);
         return ApiResult.success(
-          _paginate(filtered, page, pageSize).copyWith(fromCache: true),
+          _pageWithStats(
+            active,
+            filtered,
+            page,
+            pageSize,
+          ).copyWith(fromCache: true),
         );
       }
       return ApiResult.failure(e);
@@ -250,12 +308,20 @@ class BatchRepository implements BatchRepositoryContract {
       var local = await _readAllLocal();
       local = await _seedFromAnimalsIfEmpty(local);
       if (local.isNotEmpty) {
-        final filtered = _applyFilters(local, search, filter);
+        final active = local.where((b) => b.active).toList();
+        final filtered = _applyFilters(local, search, filter, sort);
         return ApiResult.success(
-          _paginate(filtered, page, pageSize).copyWith(fromCache: true),
+          _pageWithStats(
+            active,
+            filtered,
+            page,
+            pageSize,
+          ).copyWith(fromCache: true),
         );
       }
-      return ApiResult.failure(AppException(message: 'Could not load groups', cause: e));
+      return ApiResult.failure(
+        AppException(message: 'Could not load groups', cause: e),
+      );
     }
   }
 
@@ -273,13 +339,18 @@ class BatchRepository implements BatchRepositoryContract {
   }
 
   @override
-  Future<ApiResult<BatchDetail>> getBatch(String id, {bool forceRefresh = false}) async {
+  Future<ApiResult<BatchDetail>> getBatch(
+    String id, {
+    bool forceRefresh = false,
+  }) async {
     try {
       if (!_localOnly) {
         final data = await getJson(_dio, BatchApiPaths.batch(id));
         final raw = data['batch'];
         if (raw is! Map<String, dynamic>) {
-          return ApiResult.failure(const AppException(message: 'Batch not found'));
+          return const ApiResult.failure(
+            AppException(message: 'Batch not found'),
+          );
         }
         final batch = AnimalBatch.fromJson(raw);
         await _writeDetailCache(batch);
@@ -292,7 +363,10 @@ class BatchRepository implements BatchRepositoryContract {
       final cached = await _cache.read(LocalCacheContract.batchDetailKey(id));
       AnimalBatch? batch;
       if (cached != null) {
-        batch = AnimalBatch.fromJson(cached['batch'] as Map<String, dynamic>, fromCache: true);
+        batch = AnimalBatch.fromJson(
+          cached['batch'] as Map<String, dynamic>,
+          fromCache: true,
+        );
       } else {
         final all = await _readAllLocal();
         try {
@@ -342,7 +416,9 @@ class BatchRepository implements BatchRepositoryContract {
         final data = await postJson(_dio, BatchApiPaths.batches, body);
         final raw = data['batch'];
         if (raw is! Map<String, dynamic>) {
-          return ApiResult.failure(const AppException(message: 'Invalid create response'));
+          return const ApiResult.failure(
+            AppException(message: 'Invalid create response'),
+          );
         }
         final batch = AnimalBatch.fromJson(raw);
         await clearDraft();
@@ -376,8 +452,11 @@ class BatchRepository implements BatchRepositoryContract {
           payload: body,
         );
         if (isTransientNetworkError(e) && !_localOnly) {
-          return ApiResult.failure(
-            const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+          return const ApiResult.failure(
+            AppException(
+              message: 'Saved offline — will sync when online',
+              code: offlineQueuedCode,
+            ),
           );
         }
         return result;
@@ -387,14 +466,19 @@ class BatchRepository implements BatchRepositoryContract {
   }
 
   @override
-  Future<ApiResult<AnimalBatch>> updateBatch(String id, BatchInput input) async {
+  Future<ApiResult<AnimalBatch>> updateBatch(
+    String id,
+    BatchInput input,
+  ) async {
     final body = input.toPatchJson();
     try {
       if (!_localOnly) {
         final data = await patchJson(_dio, BatchApiPaths.batch(id), body);
         final raw = data['batch'];
         if (raw is! Map<String, dynamic>) {
-          return ApiResult.failure(const AppException(message: 'Invalid update response'));
+          return const ApiResult.failure(
+            AppException(message: 'Invalid update response'),
+          );
         }
         final batch = AnimalBatch.fromJson(raw);
         await clearDraft(batchId: id);
@@ -406,7 +490,9 @@ class BatchRepository implements BatchRepositoryContract {
       if (_localOnly || isTransientNetworkError(e)) {
         final existing = await _findLocalBatch(id);
         if (existing == null) {
-          return ApiResult.failure(const AppException(message: 'Batch not found'));
+          return const ApiResult.failure(
+            AppException(message: 'Batch not found'),
+          );
         }
         final batch = existing.copyWith(
           name: input.name.trim(),
@@ -427,8 +513,11 @@ class BatchRepository implements BatchRepositoryContract {
           payload: payload,
         );
         if (isTransientNetworkError(e) && !_localOnly) {
-          return ApiResult.failure(
-            const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+          return const ApiResult.failure(
+            AppException(
+              message: 'Saved offline — will sync when online',
+              code: offlineQueuedCode,
+            ),
           );
         }
         return result;
@@ -455,10 +544,16 @@ class BatchRepository implements BatchRepositoryContract {
     final body = input.toJson();
     try {
       if (!_localOnly) {
-        final data = await postJson(_dio, BatchApiPaths.move(input.fromBatchId), body);
+        final data = await postJson(
+          _dio,
+          BatchApiPaths.move(input.fromBatchId),
+          body,
+        );
         final raw = data['batch'];
         if (raw is! Map<String, dynamic>) {
-          return ApiResult.failure(const AppException(message: 'Invalid move response'));
+          return const ApiResult.failure(
+            AppException(message: 'Invalid move response'),
+          );
         }
         final batch = AnimalBatch.fromJson(raw);
         return _persistLocalBatch(batch, enqueue: false);
@@ -481,7 +576,7 @@ class BatchRepository implements BatchRepositoryContract {
     final from = await _findLocalBatch(input.fromBatchId);
     final to = await _findLocalBatch(input.toBatchId);
     if (from == null || to == null) {
-      return ApiResult.failure(const AppException(message: 'Batch not found'));
+      return const ApiResult.failure(AppException(message: 'Batch not found'));
     }
 
     final now = DateTime.now();
@@ -495,8 +590,13 @@ class BatchRepository implements BatchRepositoryContract {
       at: now,
     );
 
-    final updatedFromIds = from.animalIds.where((id) => !input.animalIds.contains(id)).toList();
-    final updatedToIds = [...to.animalIds, ...input.animalIds.where((id) => !to.animalIds.contains(id))];
+    final updatedFromIds = from.animalIds
+        .where((id) => !input.animalIds.contains(id))
+        .toList();
+    final updatedToIds = [
+      ...to.animalIds,
+      ...input.animalIds.where((id) => !to.animalIds.contains(id)),
+    ];
 
     final updatedFrom = from.copyWith(
       animalIds: updatedFromIds,
@@ -529,11 +629,15 @@ class BatchRepository implements BatchRepositoryContract {
         final data = await postJson(_dio, BatchApiPaths.merge, body);
         final raw = data['batch'];
         if (raw is! Map<String, dynamic>) {
-          return ApiResult.failure(const AppException(message: 'Invalid merge response'));
+          return const ApiResult.failure(
+            AppException(message: 'Invalid merge response'),
+          );
         }
         final batch = AnimalBatch.fromJson(raw);
         final all = await _readAllLocal();
-        await _writeAllLocal(all.where((b) => b.id != input.sourceBatchId).toList());
+        await _writeAllLocal(
+          all.where((b) => b.id != input.sourceBatchId).toList(),
+        );
         return _persistLocalBatch(batch, enqueue: false);
       }
       throw const AppException(message: 'Local-only mode');
@@ -554,7 +658,7 @@ class BatchRepository implements BatchRepositoryContract {
     final source = await _findLocalBatch(input.sourceBatchId);
     final target = await _findLocalBatch(input.targetBatchId);
     if (source == null || target == null) {
-      return ApiResult.failure(const AppException(message: 'Batch not found'));
+      return const ApiResult.failure(AppException(message: 'Batch not found'));
     }
 
     final now = DateTime.now();
@@ -567,7 +671,10 @@ class BatchRepository implements BatchRepositoryContract {
       at: now,
     );
 
-    final mergedIds = [...target.animalIds, ...source.animalIds.where((id) => !target.animalIds.contains(id))];
+    final mergedIds = [
+      ...target.animalIds,
+      ...source.animalIds.where((id) => !target.animalIds.contains(id)),
+    ];
     final merged = target.copyWith(
       animalIds: mergedIds,
       movements: [...target.movements, movement],
@@ -589,7 +696,11 @@ class BatchRepository implements BatchRepositoryContract {
     return ApiResult.success(merged);
   }
 
-  Future<void> _enqueue(OutboxKind kind, Map<String, dynamic> payload, String keySuffix) async {
+  Future<void> _enqueue(
+    OutboxKind kind,
+    Map<String, dynamic> payload,
+    String keySuffix,
+  ) async {
     final sequence = (await _outbox.listAll()).length + 1;
     await _outbox.enqueue(
       OutboxItem(
@@ -606,7 +717,9 @@ class BatchRepository implements BatchRepositoryContract {
   @override
   Future<void> saveDraft(BatchInput input, {String? batchId}) async {
     await _cache.write(
-      batchId == null ? LocalCacheContract.batchDraftKey : LocalCacheContract.batchEditDraftKey(batchId),
+      batchId == null
+          ? LocalCacheContract.batchDraftKey
+          : LocalCacheContract.batchEditDraftKey(batchId),
       input.toDraftJson(),
       LocalCacheContract.profileTtl,
     );
@@ -615,7 +728,9 @@ class BatchRepository implements BatchRepositoryContract {
   @override
   Future<BatchInput?> readDraft({String? batchId}) async {
     final raw = await _cache.read(
-      batchId == null ? LocalCacheContract.batchDraftKey : LocalCacheContract.batchEditDraftKey(batchId),
+      batchId == null
+          ? LocalCacheContract.batchDraftKey
+          : LocalCacheContract.batchEditDraftKey(batchId),
     );
     if (raw == null) return null;
     return BatchInput.fromDraftJson(raw);
@@ -624,10 +739,44 @@ class BatchRepository implements BatchRepositoryContract {
   @override
   Future<void> clearDraft({String? batchId}) async {
     await _cache.write(
-      batchId == null ? LocalCacheContract.batchDraftKey : LocalCacheContract.batchEditDraftKey(batchId),
+      batchId == null
+          ? LocalCacheContract.batchDraftKey
+          : LocalCacheContract.batchEditDraftKey(batchId),
       {},
       Duration.zero,
     );
+  }
+
+  @override
+  Future<ApiResult<void>> deleteBatch(String id) async {
+    final existing = await _findLocalBatch(id);
+    if (existing == null && _localOnly) {
+      return const ApiResult.failure(AppException(message: 'Batch not found'));
+    }
+    try {
+      if (!_localOnly) {
+        await deleteJson(_dio, BatchApiPaths.batch(id));
+      }
+    } on AppException catch (e) {
+      if (!_localOnly && _isApiUnavailable(e)) {
+        _localOnly = true;
+      } else if (!_localOnly && existing == null) {
+        return ApiResult.failure(e);
+      }
+    }
+
+    final all = await _readAllLocal();
+    if (!all.any((b) => b.id == id)) {
+      return const ApiResult.failure(AppException(message: 'Batch not found'));
+    }
+    await _writeAllLocal(all.where((b) => b.id != id).toList());
+    await _cache.write(
+      LocalCacheContract.batchDetailKey(id),
+      {},
+      Duration.zero,
+    );
+    await clearDraft(batchId: id);
+    return const ApiResult.success(null);
   }
 }
 

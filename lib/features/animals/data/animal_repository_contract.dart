@@ -7,11 +7,15 @@ abstract class AnimalRepositoryContract {
     int pageSize = 20,
     String search = '',
     AnimalFilter filter = AnimalFilter.all,
+    AnimalSort sort = AnimalSort.recentFirst,
     bool includeInactive = false,
     bool forceRefresh = false,
   });
 
-  Future<ApiResult<AnimalDetail>> getAnimal(String id, {bool forceRefresh = false});
+  Future<ApiResult<AnimalDetail>> getAnimal(
+    String id, {
+    bool forceRefresh = false,
+  });
 
   Future<ApiResult<AnimalProfile>> createAnimal(AnimalInput input);
 

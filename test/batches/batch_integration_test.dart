@@ -47,14 +47,22 @@ void main() {
 
   group('BatchInput', () {
     test('create json includes animal ids', () {
-      const input = BatchInput(name: 'Pen 1', animalType: 'GOAT', animalIds: ['a1']);
+      const input = BatchInput(
+        name: 'Pen 1',
+        animalType: 'GOAT',
+        animalIds: ['a1'],
+      );
       final json = input.toCreateJson();
       expect(json['name'], 'Pen 1');
       expect(json['animalIds'], ['a1']);
     });
 
     test('draft round trip', () {
-      const input = BatchInput(name: 'Merged', notes: 'North shed', location: 'Shed 2');
+      const input = BatchInput(
+        name: 'Merged',
+        notes: 'North shed',
+        location: 'Shed 2',
+      );
       final restored = BatchInput.fromDraftJson(input.toDraftJson());
       expect(restored.notes, 'North shed');
       expect(restored.location, 'Shed 2');
@@ -67,7 +75,10 @@ void main() {
         BatchValidation.validateName(' ', message: 'Required'),
         'Required',
       );
-      expect(BatchValidation.validateName('Pen A', message: 'Required'), isNull);
+      expect(
+        BatchValidation.validateName('Pen A', message: 'Required'),
+        isNull,
+      );
     });
 
     test('validates move targets', () {
@@ -93,26 +104,62 @@ void main() {
 
     test('validates merge targets', () {
       expect(
-        BatchValidation.validateMerge(sourceId: 'b1', targetId: 'b1', message: 'Invalid'),
+        BatchValidation.validateMerge(
+          sourceId: 'b1',
+          targetId: 'b1',
+          message: 'Invalid',
+        ),
         'Invalid',
       );
       expect(
-        BatchValidation.validateMerge(sourceId: 'b1', targetId: 'b2', message: 'Invalid'),
+        BatchValidation.validateMerge(
+          sourceId: 'b1',
+          targetId: 'b2',
+          message: 'Invalid',
+        ),
         isNull,
       );
     });
   });
 
-  group('BatchMoveInput', () {
-    test('serializes payload', () {
-      const input = BatchMoveInput(
-        fromBatchId: 'b1',
-        toBatchId: 'b2',
-        animalIds: ['a1'],
-        notes: 'Evening move',
+  group('BatchSort', () {
+    test('orders by animal count descending', () {
+      final batches = [
+        AnimalBatch(
+          id: 'b1',
+          name: 'Small',
+          animalIds: const ['a1'],
+          createdAt: DateTime.utc(2026, 1, 1),
+          updatedAt: DateTime.utc(2026, 1, 1),
+        ),
+        AnimalBatch(
+          id: 'b2',
+          name: 'Large',
+          animalIds: const ['a1', 'a2', 'a3'],
+          createdAt: DateTime.utc(2026, 1, 1),
+          updatedAt: DateTime.utc(2026, 1, 1),
+        ),
+      ];
+      final sorted = [...batches]
+        ..sort((a, b) => b.animalCount.compareTo(a.animalCount));
+      expect(sorted.first.id, 'b2');
+    });
+  });
+
+  group('BatchPageResult', () {
+    test('copyWith preserves summary stats', () {
+      const page = BatchPageResult(
+        batches: [],
+        total: 2,
+        page: 1,
+        pageSize: 20,
+        hasMore: false,
+        withAnimalsCount: 1,
+        emptyCount: 1,
+        pendingSyncCount: 0,
       );
-      expect(input.toJson()['toBatchId'], 'b2');
-      expect(input.toJson()['notes'], 'Evening move');
+      expect(page.copyWith(fromCache: true).withAnimalsCount, 1);
+      expect(page.copyWith(fromCache: true).emptyCount, 1);
     });
   });
 }

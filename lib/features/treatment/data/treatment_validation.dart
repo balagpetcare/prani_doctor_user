@@ -13,7 +13,10 @@ abstract final class TreatmentValidation {
     return null;
   }
 
-  static String? validateMedicine(MedicineItem item, {required String message}) {
+  static String? validateMedicine(
+    MedicineItem item, {
+    required String message,
+  }) {
     if (item.name.trim().isEmpty || item.dosage.trim().isEmpty) return message;
     return null;
   }

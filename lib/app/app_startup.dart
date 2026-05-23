@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 
@@ -10,7 +10,10 @@ import '../features/finance/data/finance_repository.dart';
 import '../features/health/data/health_repository.dart';
 import '../features/vaccine/data/vaccine_repository.dart';
 import '../features/treatment/data/treatment_repository.dart';
+import '../features/ai/data/ai_repository.dart';
+import '../features/support/data/support_repository.dart';
 import '../features/notifications/data/notification_repository.dart';
+import '../features/settings/data/settings_repository.dart';
 import '../features/milk/data/milk_repository.dart';
 import '../features/batches/data/batch_repository.dart';
 import '../features/animals/data/animal_repository.dart';
@@ -35,7 +38,9 @@ class _AppStartupState extends ConsumerState<AppStartup> {
   }
 
   Future<void> _hydrateCachedConfig() async {
-    final cached = await ref.read(appConfigRepositoryProvider).readCachedConfig();
+    final cached = await ref
+        .read(appConfigRepositoryProvider)
+        .readCachedConfig();
     if (cached != null) {
       ref.read(appConfigProvider.notifier).state = cached;
     }
@@ -54,9 +59,14 @@ class _AppStartupState extends ConsumerState<AppStartup> {
     unawaited(ref.read(vaccineRepositoryProvider).readCachedList());
     unawaited(ref.read(vaccineRepositoryProvider).readCachedReminders());
     unawaited(ref.read(treatmentRepositoryProvider).readCachedList());
+    unawaited(ref.read(supportRepositoryProvider).readCachedTickets());
+    unawaited(ref.read(supportRepositoryProvider).readCachedHelp());
+    unawaited(ref.read(aiRepositoryProvider).readCachedHistory());
+    unawaited(ref.read(aiRepositoryProvider).readSettings());
     unawaited(ref.read(notificationRepositoryProvider).readCachedList());
     unawaited(ref.read(notificationRepositoryProvider).readCachedUnreadCount());
     unawaited(ref.read(notificationRepositoryProvider).readCachedSettings());
+    unawaited(ref.read(settingsRepositoryProvider).readCachedSettings());
   }
 
   @override

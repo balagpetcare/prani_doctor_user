@@ -1,4 +1,5 @@
 /// Offline sync DTOs — mirrors foundation `{ success, data }` payloads.
+library;
 
 enum OfflineConnectivityMode { online, degraded, offline }
 
@@ -13,14 +14,7 @@ enum OfflineSyncEntityType {
 
 enum OfflineSyncOperation { upsert, delete }
 
-enum OfflineSyncItemStatus {
-  pending,
-  syncing,
-  synced,
-  failed,
-  dead,
-  conflict,
-}
+enum OfflineSyncItemStatus { pending, syncing, synced, failed, dead, conflict }
 
 enum OfflineQueueUxState { queued, syncing, failed, resolved }
 
@@ -57,8 +51,9 @@ class SyncStatusDto {
       conflictCount: json['conflictCount'] as int? ?? 0,
       lastSyncAt: json['lastSyncAt'] as String?,
       lastClientSnapshotAt: json['lastClientSnapshotAt'] as String?,
-      cacheTtlMs: (json['cacheTtlMs'] as Map<String, dynamic>? ?? {})
-          .map((k, v) => MapEntry(k, v as int)),
+      cacheTtlMs: (json['cacheTtlMs'] as Map<String, dynamic>? ?? {}).map(
+        (k, v) => MapEntry(k, v as int),
+      ),
     );
   }
 }
@@ -83,14 +78,14 @@ class SyncItemInput {
   final String? serverVersion;
 
   Map<String, dynamic> toJson() => {
-        'idempotencyKey': idempotencyKey,
-        'entityType': entityTypeToApi(entityType),
-        'operation': operation == OfflineSyncOperation.delete ? 'DELETE' : 'UPSERT',
-        'payload': payload,
-        'clientSequence': clientSequence,
-        if (clientVersion != null) 'clientVersion': clientVersion,
-        if (serverVersion != null) 'serverVersion': serverVersion,
-      };
+    'idempotencyKey': idempotencyKey,
+    'entityType': entityTypeToApi(entityType),
+    'operation': operation == OfflineSyncOperation.delete ? 'DELETE' : 'UPSERT',
+    'payload': payload,
+    'clientSequence': clientSequence,
+    if (clientVersion != null) 'clientVersion': clientVersion,
+    if (serverVersion != null) 'serverVersion': serverVersion,
+  };
 }
 
 class SyncItemResultDto {
@@ -271,7 +266,9 @@ class OfflineQueueItemDto {
       serverEntityId: json['serverEntityId'] as String?,
       createdAt: json['createdAt'] as String? ?? '',
       leadDraft: json['leadDraft'] is Map<String, dynamic>
-          ? OfflineLeadDraftDto.fromJson(json['leadDraft'] as Map<String, dynamic>)
+          ? OfflineLeadDraftDto.fromJson(
+              json['leadDraft'] as Map<String, dynamic>,
+            )
           : null,
     );
   }

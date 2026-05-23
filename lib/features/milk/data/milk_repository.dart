@@ -42,81 +42,78 @@ class MilkRepository implements MilkRepositoryContract {
       limit: cached['limit'] as int? ?? 20,
       hasMore: cached['hasMore'] as bool? ?? false,
       fromCache: true,
+      pendingSyncCount: _pendingSyncCount(records),
     );
   }
 
   Future<void> _writeListCache(MilkPageResult page) async {
-    await _cache.write(
-      LocalCacheContract.milkListKey,
-      {
-        'records': page.records.map((r) => r.toJson()).toList(),
-        'total': page.total,
-        'page': page.page,
-        'limit': page.limit,
-        'hasMore': page.hasMore,
-      },
-      LocalCacheContract.profileTtl,
-    );
+    await _cache.write(LocalCacheContract.milkListKey, {
+      'records': page.records.map((r) => r.toJson()).toList(),
+      'total': page.total,
+      'page': page.page,
+      'limit': page.limit,
+      'hasMore': page.hasMore,
+      'pendingSyncCount': page.pendingSyncCount,
+    }, LocalCacheContract.profileTtl);
   }
 
   Future<void> _writeSummaryCache(String key, MilkSummary summary) async {
-    await _cache.write(
-      key,
-      {
-        'date': summary.date,
-        'from': summary.from,
-        'to': summary.to,
-        'totalLiters': summary.totalLiters,
-        'morningLiters': summary.morningLiters,
-        'eveningLiters': summary.eveningLiters,
-        'byAnimal': summary.byAnimal
-            .map(
-              (a) => {
-                'animalId': a.animalId,
-                'animalName': a.animalName,
-                'totalLiters': a.totalLiters,
-                'morningLiters': a.morningLiters,
-                'eveningLiters': a.eveningLiters,
-              },
-            )
-            .toList(),
-        'byDay': summary.byDay
-            .map(
-              (d) => {
-                'date': d.date,
-                'totalLiters': d.totalLiters,
-                'morningLiters': d.morningLiters,
-                'eveningLiters': d.eveningLiters,
-              },
-            )
-            .toList(),
-      },
-      LocalCacheContract.profileTtl,
-    );
+    await _cache.write(key, {
+      'date': summary.date,
+      'from': summary.from,
+      'to': summary.to,
+      'totalLiters': summary.totalLiters,
+      'morningLiters': summary.morningLiters,
+      'eveningLiters': summary.eveningLiters,
+      'byAnimal': summary.byAnimal
+          .map(
+            (a) => {
+              'animalId': a.animalId,
+              'animalName': a.animalName,
+              'totalLiters': a.totalLiters,
+              'morningLiters': a.morningLiters,
+              'eveningLiters': a.eveningLiters,
+            },
+          )
+          .toList(),
+      'byDay': summary.byDay
+          .map(
+            (d) => {
+              'date': d.date,
+              'totalLiters': d.totalLiters,
+              'morningLiters': d.morningLiters,
+              'eveningLiters': d.eveningLiters,
+            },
+          )
+          .toList(),
+    }, LocalCacheContract.profileTtl);
   }
 
   Future<void> _writeChartsCache(MilkChartsData charts) async {
-    await _cache.write(
-      LocalCacheContract.milkChartsKey,
-      {
-        'from': charts.from,
-        'to': charts.to,
-        'dailyProduction': charts.dailyProduction
-            .map(
-              (d) => {
-                'date': d.date,
-                'totalLiters': d.totalLiters,
-                'morningLiters': d.morningLiters,
-                'eveningLiters': d.eveningLiters,
-              },
-            )
-            .toList(),
-        'weeklyTrend': charts.weeklyTrend.map((w) => {'weekStart': w.label, 'totalLiters': w.totalLiters}).toList(),
-        'monthlyTrend': charts.monthlyTrend.map((m) => {'month': m.label, 'totalLiters': m.totalLiters}).toList(),
-        'sessionSplit': {'morning': charts.morningLiters, 'evening': charts.eveningLiters},
+    await _cache.write(LocalCacheContract.milkChartsKey, {
+      'from': charts.from,
+      'to': charts.to,
+      'dailyProduction': charts.dailyProduction
+          .map(
+            (d) => {
+              'date': d.date,
+              'totalLiters': d.totalLiters,
+              'morningLiters': d.morningLiters,
+              'eveningLiters': d.eveningLiters,
+            },
+          )
+          .toList(),
+      'weeklyTrend': charts.weeklyTrend
+          .map((w) => {'weekStart': w.label, 'totalLiters': w.totalLiters})
+          .toList(),
+      'monthlyTrend': charts.monthlyTrend
+          .map((m) => {'month': m.label, 'totalLiters': m.totalLiters})
+          .toList(),
+      'sessionSplit': {
+        'morning': charts.morningLiters,
+        'evening': charts.eveningLiters,
       },
-      LocalCacheContract.profileTtl,
-    );
+    }, LocalCacheContract.profileTtl);
   }
 
   MilkPageResult _parseListPage(Map<String, dynamic> data) {
@@ -130,7 +127,27 @@ class MilkRepository implements MilkRepositoryContract {
       page: data['page'] as int? ?? 1,
       limit: data['limit'] as int? ?? 20,
       hasMore: data['hasMore'] as bool? ?? false,
+      pendingSyncCount: records.where((r) => r.pendingSync).length,
     );
+  }
+
+  int _pendingSyncCount(List<MilkRecord> records) =>
+      records.where((r) => r.pendingSync).length;
+
+  @override
+  Future<MilkSummary?> readCachedSummary(DateTime date) async {
+    final cached = await _cache.read(
+      LocalCacheContract.milkSummaryKey(_dateParam(date)),
+    );
+    if (cached == null) return null;
+    return MilkSummary.fromJson(cached, fromCache: true);
+  }
+
+  @override
+  Future<MilkChartsData?> readCachedCharts() async {
+    final cached = await _cache.read(LocalCacheContract.milkChartsKey);
+    if (cached == null) return null;
+    return MilkChartsData.fromJson(cached, fromCache: true);
   }
 
   @override
@@ -174,7 +191,11 @@ class MilkRepository implements MilkRepositoryContract {
         'to': _dateParam(to ?? now),
         if (animalId != null && animalId.isNotEmpty) 'animalId': animalId,
       };
-      final data = await getJson(_dio, MilkApiPaths.milk, queryParameters: query);
+      final data = await getJson(
+        _dio,
+        MilkApiPaths.milk,
+        queryParameters: query,
+      );
       final pageResult = _parseListPage(data);
       if (page == 1) await _writeListCache(pageResult);
       return ApiResult.success(pageResult);
@@ -193,27 +214,34 @@ class MilkRepository implements MilkRepositoryContract {
       final data = await getJson(_dio, MilkApiPaths.record(id));
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Record not found'));
+        return const ApiResult.failure(
+          AppException(message: 'Record not found'),
+        );
       }
       final record = MilkRecord.fromJson(raw);
-      await _cache.write(
-        LocalCacheContract.milkDetailKey(id),
-        {'record': record.toJson()},
-        LocalCacheContract.profileTtl,
-      );
+      await _cache.write(LocalCacheContract.milkDetailKey(id), {
+        'record': record.toJson(),
+      }, LocalCacheContract.profileTtl);
       return ApiResult.success(record);
     } on AppException catch (e) {
       final cached = await _cache.read(LocalCacheContract.milkDetailKey(id));
       if (cached != null) {
         return ApiResult.success(
-          MilkRecord.fromJson(cached['record'] as Map<String, dynamic>, fromCache: true),
+          MilkRecord.fromJson(
+            cached['record'] as Map<String, dynamic>,
+            fromCache: true,
+          ),
         );
       }
       return ApiResult.failure(e);
     }
   }
 
-  Future<void> _enqueue(OutboxKind kind, Map<String, dynamic> payload, String keySuffix) async {
+  Future<void> _enqueue(
+    OutboxKind kind,
+    Map<String, dynamic> payload,
+    String keySuffix,
+  ) async {
     final sequence = (await _outbox.listAll()).length + 1;
     await _outbox.enqueue(
       OutboxItem(
@@ -240,11 +268,9 @@ class MilkRepository implements MilkRepositoryContract {
         hasMore: false,
       ),
     );
-    await _cache.write(
-      LocalCacheContract.milkDetailKey(record.id),
-      {'record': record.toJson()},
-      LocalCacheContract.profileTtl,
-    );
+    await _cache.write(LocalCacheContract.milkDetailKey(record.id), {
+      'record': record.toJson(),
+    }, LocalCacheContract.profileTtl);
   }
 
   Future<void> _optimisticRemove(String id) async {
@@ -287,7 +313,9 @@ class MilkRepository implements MilkRepositoryContract {
       final data = await postJson(_dio, MilkApiPaths.milk, body);
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid create response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid create response'),
+        );
       }
       final record = MilkRecord.fromJson(raw);
       await _optimisticUpsert(record);
@@ -297,8 +325,11 @@ class MilkRepository implements MilkRepositoryContract {
       if (isTransientNetworkError(e) || e.code == 'CONFLICT') {
         await _enqueue(OutboxKind.milkCreate, body, tempId);
         if (isTransientNetworkError(e)) {
-          return ApiResult.failure(
-            const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+          return const ApiResult.failure(
+            AppException(
+              message: 'Saved offline — will sync when online',
+              code: offlineQueuedCode,
+            ),
           );
         }
       }
@@ -310,7 +341,10 @@ class MilkRepository implements MilkRepositoryContract {
   Future<ApiResult<MilkRecord>> updateRecord(String id, MilkInput input) async {
     final body = input.toPatchJson();
     final existingResult = await getRecord(id);
-    final existing = existingResult.when(success: (r) => r, failure: (_) => null);
+    final existing = existingResult.when(
+      success: (r) => r,
+      failure: (_) => null,
+    );
     if (existing != null) {
       await _optimisticUpsert(
         existing.copyWith(
@@ -330,7 +364,9 @@ class MilkRepository implements MilkRepositoryContract {
       final data = await patchJson(_dio, MilkApiPaths.record(id), body);
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid update response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid update response'),
+        );
       }
       final record = MilkRecord.fromJson(raw);
       await _optimisticUpsert(record);
@@ -339,8 +375,11 @@ class MilkRepository implements MilkRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.milkPatch, {...body, 'id': id}, id);
-        return ApiResult.failure(
-          const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Saved offline — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -356,8 +395,11 @@ class MilkRepository implements MilkRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.milkDelete, {'id': id}, id);
-        return ApiResult.failure(
-          const AppException(message: 'Queued delete — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Queued delete — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -365,7 +407,11 @@ class MilkRepository implements MilkRepositoryContract {
   }
 
   @override
-  Future<ApiResult<MilkSummary>> getSummary({DateTime? date, DateTime? from, DateTime? to}) async {
+  Future<ApiResult<MilkSummary>> getSummary({
+    DateTime? date,
+    DateTime? from,
+    DateTime? to,
+  }) async {
     final cacheKey = date != null
         ? LocalCacheContract.milkSummaryKey(_dateParam(date))
         : LocalCacheContract.milkSummaryKey('range');
@@ -375,10 +421,16 @@ class MilkRepository implements MilkRepositoryContract {
         if (from != null) 'from': _dateParam(from),
         if (to != null) 'to': _dateParam(to),
       };
-      final data = await getJson(_dio, MilkApiPaths.summary, queryParameters: query);
+      final data = await getJson(
+        _dio,
+        MilkApiPaths.summary,
+        queryParameters: query,
+      );
       final raw = data['summary'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid summary response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid summary response'),
+        );
       }
       final summary = MilkSummary.fromJson(raw);
       await _writeSummaryCache(cacheKey, summary);
@@ -393,7 +445,10 @@ class MilkRepository implements MilkRepositoryContract {
   }
 
   @override
-  Future<ApiResult<MilkChartsData>> getCharts({DateTime? from, DateTime? to}) async {
+  Future<ApiResult<MilkChartsData>> getCharts({
+    DateTime? from,
+    DateTime? to,
+  }) async {
     try {
       final now = DateTime.now();
       final query = <String, dynamic>{
@@ -401,10 +456,16 @@ class MilkRepository implements MilkRepositoryContract {
         'to': _dateParam(to ?? now),
         'period': 'daily',
       };
-      final data = await getJson(_dio, MilkApiPaths.charts, queryParameters: query);
+      final data = await getJson(
+        _dio,
+        MilkApiPaths.charts,
+        queryParameters: query,
+      );
       final raw = data['charts'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid charts response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid charts response'),
+        );
       }
       final charts = MilkChartsData.fromJson(raw);
       await _writeChartsCache(charts);
@@ -412,7 +473,9 @@ class MilkRepository implements MilkRepositoryContract {
     } on AppException catch (e) {
       final cached = await _cache.read(LocalCacheContract.milkChartsKey);
       if (cached != null) {
-        return ApiResult.success(MilkChartsData.fromJson(cached, fromCache: true));
+        return ApiResult.success(
+          MilkChartsData.fromJson(cached, fromCache: true),
+        );
       }
       return ApiResult.failure(e);
     }
@@ -421,7 +484,9 @@ class MilkRepository implements MilkRepositoryContract {
   @override
   Future<void> saveDraft(MilkInput input, {String? recordId}) async {
     await _cache.write(
-      recordId == null ? LocalCacheContract.milkDraftKey : LocalCacheContract.milkEditDraftKey(recordId),
+      recordId == null
+          ? LocalCacheContract.milkDraftKey
+          : LocalCacheContract.milkEditDraftKey(recordId),
       input.toDraftJson(),
       LocalCacheContract.profileTtl,
     );
@@ -430,7 +495,9 @@ class MilkRepository implements MilkRepositoryContract {
   @override
   Future<MilkInput?> readDraft({String? recordId}) async {
     final raw = await _cache.read(
-      recordId == null ? LocalCacheContract.milkDraftKey : LocalCacheContract.milkEditDraftKey(recordId),
+      recordId == null
+          ? LocalCacheContract.milkDraftKey
+          : LocalCacheContract.milkEditDraftKey(recordId),
     );
     if (raw == null || raw.isEmpty) return null;
     return MilkInput.fromDraftJson(raw);
@@ -439,7 +506,9 @@ class MilkRepository implements MilkRepositoryContract {
   @override
   Future<void> clearDraft({String? recordId}) async {
     await _cache.write(
-      recordId == null ? LocalCacheContract.milkDraftKey : LocalCacheContract.milkEditDraftKey(recordId),
+      recordId == null
+          ? LocalCacheContract.milkDraftKey
+          : LocalCacheContract.milkEditDraftKey(recordId),
       {},
       Duration.zero,
     );

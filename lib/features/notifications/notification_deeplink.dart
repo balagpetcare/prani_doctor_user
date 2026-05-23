@@ -4,10 +4,7 @@ import '../../../routing/app_routes.dart';
 abstract final class NotificationDeepLink {
   NotificationDeepLink._();
 
-  static String resolve({
-    Map<String, dynamic>? metadata,
-    String? type,
-  }) {
+  static String resolve({Map<String, dynamic>? metadata, String? type}) {
     final meta = metadata ?? const {};
     final target = _string(meta['target'])?.toLowerCase();
     final event = _string(meta['event'])?.toLowerCase();
@@ -28,14 +25,26 @@ abstract final class NotificationDeepLink {
       if (id != null) return AppRoutes.treatmentDetail(id);
       return AppRoutes.treatments;
     }
+    if (target == 'vaccine') {
+      final id = _string(meta['vaccineId']);
+      if (id != null) return AppRoutes.vaccineDetail(id);
+      return AppRoutes.vaccines;
+    }
+    if (target == 'health') {
+      final id = _string(meta['healthId']) ?? _string(meta['healthEventId']);
+      if (id != null) return AppRoutes.healthDetail(id);
+      return AppRoutes.health;
+    }
     if (target == 'support' || target == 'complaint') {
       final id = _string(meta['ticketId']) ?? _string(meta['supportTicketId']);
       if (id != null) return AppRoutes.supportTicketDetail(id);
-      return AppRoutes.supportTickets;
+      return AppRoutes.support;
     }
 
     final serviceRequestId = _string(meta['serviceRequestId']);
-    if (serviceRequestId != null) return AppRoutes.serviceRequestDetail(serviceRequestId);
+    if (serviceRequestId != null) {
+      return AppRoutes.serviceRequestDetail(serviceRequestId);
+    }
 
     final animalId = _string(meta['animalId']);
     if (animalId != null) return AppRoutes.animalDetail(animalId);

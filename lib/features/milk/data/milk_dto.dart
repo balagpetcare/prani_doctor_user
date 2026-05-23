@@ -4,7 +4,9 @@ extension MilkSessionApi on MilkSession {
   String get apiValue => this == MilkSession.morning ? 'MORNING' : 'EVENING';
 
   static MilkSession fromApi(String value) {
-    return value.toUpperCase() == 'EVENING' ? MilkSession.evening : MilkSession.morning;
+    return value.toUpperCase() == 'EVENING'
+        ? MilkSession.evening
+        : MilkSession.morning;
   }
 }
 
@@ -68,38 +70,49 @@ class MilkRecord {
     );
   }
 
-  factory MilkRecord.fromJson(Map<String, dynamic> json, {bool fromCache = false, bool pendingSync = false}) {
+  factory MilkRecord.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+    bool pendingSync = false,
+  }) {
     return MilkRecord(
       id: json['id'] as String,
       customerId: json['customerId'] as String? ?? '',
       animalId: json['animalId'] as String,
       animalName: json['animalName'] as String? ?? 'Animal',
       farmRef: json['farmRef'] as String?,
-      recordedDate: DateTime.tryParse(json['recordedDate'] as String? ?? '') ?? DateTime.now(),
+      recordedDate:
+          DateTime.tryParse(json['recordedDate'] as String? ?? '') ??
+          DateTime.now(),
       session: MilkSessionApi.fromApi(json['session'] as String? ?? 'MORNING'),
-      quantityLiters: double.tryParse(json['quantityLiters']?.toString() ?? '') ?? 0,
+      quantityLiters:
+          double.tryParse(json['quantityLiters']?.toString() ?? '') ?? 0,
       notes: json['notes'] as String?,
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+          DateTime.now(),
       pendingSync: pendingSync,
       fromCache: fromCache,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'customerId': customerId,
-        'animalId': animalId,
-        'animalName': animalName,
-        if (farmRef != null) 'farmRef': farmRef,
-        'recordedDate': _dateOnly(recordedDate),
-        'session': session.apiValue,
-        'quantityLiters': quantityLiters.toStringAsFixed(3),
-        if (notes != null) 'notes': notes,
-        'createdAt': createdAt.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
-        'pendingSync': pendingSync,
-      };
+    'id': id,
+    'customerId': customerId,
+    'animalId': animalId,
+    'animalName': animalName,
+    if (farmRef != null) 'farmRef': farmRef,
+    'recordedDate': _dateOnly(recordedDate),
+    'session': session.apiValue,
+    'quantityLiters': quantityLiters.toStringAsFixed(3),
+    if (notes != null) 'notes': notes,
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+    'pendingSync': pendingSync,
+  };
 }
 
 String _dateOnly(DateTime d) =>
@@ -123,30 +136,32 @@ class MilkInput {
   final String? notes;
 
   Map<String, dynamic> toCreateJson() => {
-        'animalId': animalId,
-        if (farmRef != null && farmRef!.isNotEmpty) 'farmRef': farmRef,
-        'recordedDate': _dateOnly(recordedDate),
-        'session': session.apiValue,
-        'quantityLiters': quantityLiters,
-        if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
-      };
+    'animalId': animalId,
+    if (farmRef != null && farmRef!.isNotEmpty) 'farmRef': farmRef,
+    'recordedDate': _dateOnly(recordedDate),
+    'session': session.apiValue,
+    'quantityLiters': quantityLiters,
+    if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
+  };
 
   Map<String, dynamic> toPatchJson() => toCreateJson();
 
   Map<String, dynamic> toDraftJson() => {
-        'animalId': animalId,
-        'farmRef': farmRef,
-        'recordedDate': _dateOnly(recordedDate),
-        'session': session.apiValue,
-        'quantityLiters': quantityLiters,
-        'notes': notes,
-      };
+    'animalId': animalId,
+    'farmRef': farmRef,
+    'recordedDate': _dateOnly(recordedDate),
+    'session': session.apiValue,
+    'quantityLiters': quantityLiters,
+    'notes': notes,
+  };
 
   factory MilkInput.fromDraftJson(Map<String, dynamic> json) {
     return MilkInput(
       animalId: json['animalId'] as String? ?? '',
       farmRef: json['farmRef'] as String?,
-      recordedDate: DateTime.tryParse(json['recordedDate'] as String? ?? '') ?? DateTime.now(),
+      recordedDate:
+          DateTime.tryParse(json['recordedDate'] as String? ?? '') ??
+          DateTime.now(),
       session: MilkSessionApi.fromApi(json['session'] as String? ?? 'MORNING'),
       quantityLiters: (json['quantityLiters'] as num?)?.toDouble() ?? 0,
       notes: json['notes'] as String?,
@@ -162,6 +177,7 @@ class MilkPageResult {
     required this.limit,
     required this.hasMore,
     this.fromCache = false,
+    this.pendingSyncCount = 0,
   });
 
   final List<MilkRecord> records;
@@ -170,8 +186,13 @@ class MilkPageResult {
   final int limit;
   final bool hasMore;
   final bool fromCache;
+  final int pendingSyncCount;
 
-  MilkPageResult copyWith({bool? fromCache, List<MilkRecord>? records}) {
+  MilkPageResult copyWith({
+    bool? fromCache,
+    List<MilkRecord>? records,
+    int? pendingSyncCount,
+  }) {
     return MilkPageResult(
       records: records ?? this.records,
       total: total,
@@ -179,9 +200,12 @@ class MilkPageResult {
       limit: limit,
       hasMore: hasMore,
       fromCache: fromCache ?? this.fromCache,
+      pendingSyncCount: pendingSyncCount ?? this.pendingSyncCount,
     );
   }
 }
+
+enum MilkSessionFilter { all, morning, evening }
 
 class MilkAnimalSummary {
   const MilkAnimalSummary({
@@ -255,7 +279,10 @@ class MilkSummary {
   final List<MilkDaySummary> byDay;
   final bool fromCache;
 
-  factory MilkSummary.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory MilkSummary.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     return MilkSummary(
       date: json['date'] as String?,
       from: json['from'] as String? ?? '',
@@ -327,7 +354,10 @@ class MilkChartsData {
   final double eveningLiters;
   final bool fromCache;
 
-  factory MilkChartsData.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory MilkChartsData.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     final sessionSplit = json['sessionSplit'] as Map<String, dynamic>? ?? {};
     return MilkChartsData(
       from: json['from'] as String? ?? '',

@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../core/navigation/navigation_guard.dart';
+
 import '../data/support_attachment_service.dart';
 import '../data/support_dto.dart';
 import '../data/support_repository.dart';
+import 'support_navigation.dart';
 import 'support_providers.dart';
 import 'widgets/support_attachment_picker.dart';
 import 'widgets/support_feedback.dart';
@@ -18,10 +21,12 @@ class SupportTicketDetailPage extends ConsumerStatefulWidget {
   final String ticketId;
 
   @override
-  ConsumerState<SupportTicketDetailPage> createState() => _SupportTicketDetailPageState();
+  ConsumerState<SupportTicketDetailPage> createState() =>
+      _SupportTicketDetailPageState();
 }
 
-class _SupportTicketDetailPageState extends ConsumerState<SupportTicketDetailPage> {
+class _SupportTicketDetailPageState
+    extends ConsumerState<SupportTicketDetailPage> {
   final _replyController = TextEditingController();
   bool _submitting = false;
 
@@ -34,21 +39,31 @@ class _SupportTicketDetailPageState extends ConsumerState<SupportTicketDetailPag
   Future<void> _sendReply() async {
     final l10n = AppLocalizations.of(context)!;
     if (_replyController.text.trim().isEmpty) return;
+    if (ref.read(supportSubmissionProvider) ==
+        SupportSubmissionState.submitting) {
+      return;
+    }
 
     setState(() => _submitting = true);
+    ref.read(supportSubmissionProvider.notifier).state =
+        SupportSubmissionState.submitting;
     await ref.read(pendingAttachmentsProvider.notifier).uploadAll();
     final attachments = ref.read(pendingAttachmentsProvider.notifier);
     if (attachments.hasUploading || attachments.hasErrors) {
       setState(() => _submitting = false);
+      ref.read(supportSubmissionProvider.notifier).state =
+          SupportSubmissionState.idle;
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.supportUploadFailed)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.supportUploadFailed)));
       }
       return;
     }
 
-    final result = await ref.read(supportRepositoryProvider).reply(
+    final result = await ref
+        .read(supportRepositoryProvider)
+        .reply(
           SupportReplyInput(
             ticketId: widget.ticketId,
             body: _replyController.text,
@@ -59,46 +74,61 @@ class _SupportTicketDetailPageState extends ConsumerState<SupportTicketDetailPag
 
     if (!mounted) return;
     setState(() => _submitting = false);
+    ref.read(supportSubmissionProvider.notifier).state =
+        SupportSubmissionState.idle;
 
     result.when(
       success: (_) {
         _replyController.clear();
         ref.read(pendingAttachmentsProvider.notifier).clear();
-        ref.invalidate(supportTicketProvider(widget.ticketId));
-        ref.invalidate(supportTicketListProvider);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.supportReplySent)));
+        SupportNavigation.afterTicketMutation(ref, ticketId: widget.ticketId);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.supportReplySent)));
       },
       failure: (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
       },
     );
   }
 
   Future<void> _closeTicket() async {
     final l10n = AppLocalizations.of(context)!;
-    final result = await ref.read(supportRepositoryProvider).closeTicket(widget.ticketId);
+    final result = await ref
+        .read(supportRepositoryProvider)
+        .closeTicket(widget.ticketId);
     if (!mounted) return;
     result.when(
       success: (_) {
-        ref.invalidate(supportTicketProvider(widget.ticketId));
-        ref.invalidate(supportTicketListProvider);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.supportTicketClosed)));
+        SupportNavigation.afterTicketMutation(ref, ticketId: widget.ticketId);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.supportTicketClosed)));
       },
-      failure: (e) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message))),
+      failure: (e) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message))),
     );
   }
 
   Future<void> _reopenTicket() async {
     final l10n = AppLocalizations.of(context)!;
-    final result = await ref.read(supportRepositoryProvider).reopenTicket(widget.ticketId);
+    final result = await ref
+        .read(supportRepositoryProvider)
+        .reopenTicket(widget.ticketId);
     if (!mounted) return;
     result.when(
       success: (_) {
-        ref.invalidate(supportTicketProvider(widget.ticketId));
-        ref.invalidate(supportTicketListProvider);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.supportTicketReopened)));
+        SupportNavigation.afterTicketMutation(ref, ticketId: widget.ticketId);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.supportTicketReopened)));
       },
-      failure: (e) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message))),
+      failure: (e) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message))),
     );
   }
 
@@ -108,15 +138,16 @@ class _SupportTicketDetailPageState extends ConsumerState<SupportTicketDetailPag
     final ticketAsync = ref.watch(supportTicketProvider(widget.ticketId));
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.supportTicketDetailTitle)),
+      appBar: safeAppBar(context, title: Text(l10n.supportTicketDetailTitle)),
       body: Stack(
         children: [
           ticketAsync.when(
-            loading: () => SupportFeedback.loading(),
+            loading: SupportFeedback.loading,
             error: (e, _) => SupportFeedback.error(
               context,
               message: e.toString(),
-              onRetry: () => ref.invalidate(supportTicketProvider(widget.ticketId)),
+              onRetry: () =>
+                  ref.invalidate(supportTicketProvider(widget.ticketId)),
             ),
             data: (ticket) {
               final isClosed = ticket.status == SupportTicketStatus.closed;
@@ -126,22 +157,35 @@ class _SupportTicketDetailPageState extends ConsumerState<SupportTicketDetailPag
                     child: ListView(
                       padding: const EdgeInsets.all(16),
                       children: [
-                        if (ticket.fromCache) SupportFeedback.offlineHint(context),
+                        if (ticket.fromCache)
+                          SupportFeedback.offlineHint(context),
                         Row(
                           children: [
                             Expanded(
-                              child: Text(ticket.subject, style: Theme.of(context).textTheme.titleLarge),
+                              child: Text(
+                                ticket.subject,
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
                             ),
                             SupportStatusBadge(status: ticket.status),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        Text('${supportCategoryLabel(l10n, ticket.category)} · ${supportPriorityLabel(l10n, ticket.priority)}'),
+                        Text(
+                          '${supportCategoryLabel(l10n, ticket.category)} · ${supportPriorityLabel(l10n, ticket.priority)}',
+                        ),
                         const SizedBox(height: 16),
-                        Text(l10n.supportDescriptionLabel, style: Theme.of(context).textTheme.titleSmall),
+                        Text(
+                          l10n.supportDescriptionLabel,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
                         Text(ticket.description),
                         const SizedBox(height: 16),
-                        SupportTimeline(messages: ticket.timeline.isNotEmpty ? ticket.timeline : ticket.messages),
+                        SupportTimeline(
+                          messages: ticket.timeline.isNotEmpty
+                              ? ticket.timeline
+                              : ticket.messages,
+                        ),
                       ],
                     ),
                   ),
@@ -156,7 +200,9 @@ class _SupportTicketDetailPageState extends ConsumerState<SupportTicketDetailPag
                             controller: _replyController,
                             minLines: 2,
                             maxLines: 4,
-                            decoration: InputDecoration(hintText: l10n.supportReplyHint),
+                            decoration: InputDecoration(
+                              hintText: l10n.supportReplyHint,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           const SupportAttachmentPicker(),
@@ -173,7 +219,11 @@ class _SupportTicketDetailPageState extends ConsumerState<SupportTicketDetailPag
               );
             },
           ),
-          if (_submitting) SupportFeedback.submissionOverlay(context, message: l10n.supportSubmitting),
+          if (_submitting)
+            SupportFeedback.submissionOverlay(
+              context,
+              message: l10n.supportSubmitting,
+            ),
         ],
       ),
       bottomNavigationBar: ticketAsync.maybeWhen(

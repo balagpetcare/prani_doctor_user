@@ -32,12 +32,14 @@ class VaccineRepository implements VaccineRepositoryContract {
         .whereType<Map<String, dynamic>>()
         .map((j) => VaccineRecord.fromJson(j, fromCache: true))
         .toList();
+    final pendingSyncCount = records.where((r) => r.pendingSync).length;
     return VaccinePageResult(
       records: records,
       total: cached['total'] as int? ?? records.length,
       page: cached['page'] as int? ?? 1,
       limit: cached['limit'] as int? ?? 20,
       hasMore: cached['hasMore'] as bool? ?? false,
+      pendingSyncCount: pendingSyncCount,
       fromCache: true,
     );
   }
@@ -49,7 +51,10 @@ class VaccineRepository implements VaccineRepositoryContract {
     return _parseReminders(cached, fromCache: true);
   }
 
-  VaccineRemindersData _parseReminders(Map<String, dynamic> reminders, {bool fromCache = false}) {
+  VaccineRemindersData _parseReminders(
+    Map<String, dynamic> reminders, {
+    bool fromCache = false,
+  }) {
     return VaccineRemindersData(
       overdue: (reminders['overdue'] as List<dynamic>? ?? [])
           .whereType<Map<String, dynamic>>()
@@ -60,24 +65,23 @@ class VaccineRepository implements VaccineRepositoryContract {
           .map((j) => VaccineRecord.fromJson(j, fromCache: fromCache))
           .toList(),
       nextDue: reminders['nextDue'] is Map<String, dynamic>
-          ? VaccineRecord.fromJson(reminders['nextDue'] as Map<String, dynamic>, fromCache: fromCache)
+          ? VaccineRecord.fromJson(
+              reminders['nextDue'] as Map<String, dynamic>,
+              fromCache: fromCache,
+            )
           : null,
       fromCache: fromCache,
     );
   }
 
   Future<void> _writeListCache(VaccinePageResult page) async {
-    await _cache.write(
-      LocalCacheContract.vaccinesListKey,
-      {
-        'records': page.records.map((r) => r.toJson()).toList(),
-        'total': page.total,
-        'page': page.page,
-        'limit': page.limit,
-        'hasMore': page.hasMore,
-      },
-      LocalCacheContract.profileTtl,
-    );
+    await _cache.write(LocalCacheContract.vaccinesListKey, {
+      'records': page.records.map((r) => r.toJson()).toList(),
+      'total': page.total,
+      'page': page.page,
+      'limit': page.limit,
+      'hasMore': page.hasMore,
+    }, LocalCacheContract.profileTtl);
   }
 
   VaccinePageResult _parseListPage(Map<String, dynamic> data) {
@@ -91,6 +95,7 @@ class VaccineRepository implements VaccineRepositoryContract {
       page: data['page'] as int? ?? 1,
       limit: data['limit'] as int? ?? 20,
       hasMore: data['hasMore'] as bool? ?? false,
+      pendingSyncCount: records.where((r) => r.pendingSync).length,
     );
   }
 
@@ -103,7 +108,12 @@ class VaccineRepository implements VaccineRepositoryContract {
     bool forceRefresh = false,
   }) async {
     if (!forceRefresh && _listInFlight != null) return _listInFlight!;
-    final future = _loadList(animalId: animalId, status: status, page: page, limit: limit);
+    final future = _loadList(
+      animalId: animalId,
+      status: status,
+      page: page,
+      limit: limit,
+    );
     _listInFlight = future;
     try {
       return await future;
@@ -125,7 +135,11 @@ class VaccineRepository implements VaccineRepositoryContract {
         if (animalId != null && animalId.isNotEmpty) 'animalId': animalId,
         if (status != null) 'status': status.apiValue,
       };
-      final data = await getJson(_dio, VaccineApiPaths.vaccines, queryParameters: query);
+      final data = await getJson(
+        _dio,
+        VaccineApiPaths.vaccines,
+        queryParameters: query,
+      );
       final pageResult = _parseListPage(data);
       if (page == 1) await _writeListCache(pageResult);
       return ApiResult.success(pageResult);
@@ -139,14 +153,22 @@ class VaccineRepository implements VaccineRepositoryContract {
   }
 
   @override
-  Future<ApiResult<VaccineRemindersData>> getReminders({bool forceRefresh = false}) async {
+  Future<ApiResult<VaccineRemindersData>> getReminders({
+    bool forceRefresh = false,
+  }) async {
     try {
       final data = await getJson(_dio, VaccineApiPaths.reminders);
       final raw = data['reminders'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid reminders response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid reminders response'),
+        );
       }
-      await _cache.write(LocalCacheContract.vaccineRemindersKey, raw, LocalCacheContract.profileTtl);
+      await _cache.write(
+        LocalCacheContract.vaccineRemindersKey,
+        raw,
+        LocalCacheContract.profileTtl,
+      );
       return ApiResult.success(_parseReminders(raw));
     } on AppException catch (e) {
       final cached = await readCachedReminders();
@@ -155,7 +177,11 @@ class VaccineRepository implements VaccineRepositoryContract {
     }
   }
 
-  Future<void> _enqueue(OutboxKind kind, Map<String, dynamic> payload, String keySuffix) async {
+  Future<void> _enqueue(
+    OutboxKind kind,
+    Map<String, dynamic> payload,
+    String keySuffix,
+  ) async {
     final sequence = (await _outbox.listAll()).length + 1;
     await _outbox.enqueue(
       OutboxItem(
@@ -210,20 +236,23 @@ class VaccineRepository implements VaccineRepositoryContract {
       final data = await getJson(_dio, VaccineApiPaths.record(id));
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Record not found'));
+        return const ApiResult.failure(
+          AppException(message: 'Record not found'),
+        );
       }
       final record = VaccineRecord.fromJson(raw);
-      await _cache.write(
-        LocalCacheContract.vaccineDetailKey(id),
-        {'record': record.toJson()},
-        LocalCacheContract.profileTtl,
-      );
+      await _cache.write(LocalCacheContract.vaccineDetailKey(id), {
+        'record': record.toJson(),
+      }, LocalCacheContract.profileTtl);
       return ApiResult.success(record);
     } on AppException catch (e) {
       final cached = await _cache.read(LocalCacheContract.vaccineDetailKey(id));
       if (cached != null) {
         return ApiResult.success(
-          VaccineRecord.fromJson(cached['record'] as Map<String, dynamic>, fromCache: true),
+          VaccineRecord.fromJson(
+            cached['record'] as Map<String, dynamic>,
+            fromCache: true,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -244,7 +273,9 @@ class VaccineRepository implements VaccineRepositoryContract {
       scheduledDate: input.scheduledDate,
       administeredDate: input.administeredDate,
       nextDueDate: input.nextDueDate,
-      status: input.administeredDate != null ? VaccineStatus.completed : VaccineStatus.scheduled,
+      status: input.administeredDate != null
+          ? VaccineStatus.completed
+          : VaccineStatus.scheduled,
       batchNumber: input.batchNumber,
       notes: input.notes,
       createdAt: DateTime.now(),
@@ -258,7 +289,9 @@ class VaccineRepository implements VaccineRepositoryContract {
       final data = await postJson(_dio, VaccineApiPaths.vaccines, body);
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid create response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid create response'),
+        );
       }
       final record = VaccineRecord.fromJson(raw);
       await _optimisticUpsert(record);
@@ -267,8 +300,11 @@ class VaccineRepository implements VaccineRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.vaccineCreate, body, tempId);
-        return ApiResult.failure(
-          const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Saved offline — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -276,7 +312,10 @@ class VaccineRepository implements VaccineRepositoryContract {
   }
 
   @override
-  Future<ApiResult<VaccineRecord>> updateRecord(String id, VaccineInput input) async {
+  Future<ApiResult<VaccineRecord>> updateRecord(
+    String id,
+    VaccineInput input,
+  ) async {
     final body = input.toPatchJson();
     final existingResult = await getRecord(id);
     if (existingResult case ApiSuccess(data: final existing)) {
@@ -301,7 +340,9 @@ class VaccineRepository implements VaccineRepositoryContract {
       final data = await patchJson(_dio, VaccineApiPaths.record(id), body);
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid update response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid update response'),
+        );
       }
       final record = VaccineRecord.fromJson(raw);
       await _optimisticUpsert(record);
@@ -310,8 +351,11 @@ class VaccineRepository implements VaccineRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.vaccinePatch, {...body, 'id': id}, id);
-        return ApiResult.failure(
-          const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Saved offline — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -327,8 +371,11 @@ class VaccineRepository implements VaccineRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.vaccineDelete, {'id': id}, id);
-        return ApiResult.failure(
-          const AppException(message: 'Queued delete — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Queued delete — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -338,7 +385,9 @@ class VaccineRepository implements VaccineRepositoryContract {
   @override
   Future<void> saveDraft(VaccineInput input, {String? recordId}) async {
     await _cache.write(
-      recordId == null ? LocalCacheContract.vaccineDraftKey : LocalCacheContract.vaccineEditDraftKey(recordId),
+      recordId == null
+          ? LocalCacheContract.vaccineDraftKey
+          : LocalCacheContract.vaccineEditDraftKey(recordId),
       input.toDraftJson(),
       LocalCacheContract.profileTtl,
     );
@@ -347,7 +396,9 @@ class VaccineRepository implements VaccineRepositoryContract {
   @override
   Future<VaccineInput?> readDraft({String? recordId}) async {
     final raw = await _cache.read(
-      recordId == null ? LocalCacheContract.vaccineDraftKey : LocalCacheContract.vaccineEditDraftKey(recordId),
+      recordId == null
+          ? LocalCacheContract.vaccineDraftKey
+          : LocalCacheContract.vaccineEditDraftKey(recordId),
     );
     if (raw == null || raw.isEmpty) return null;
     return VaccineInput.fromDraftJson(raw);
@@ -356,7 +407,9 @@ class VaccineRepository implements VaccineRepositoryContract {
   @override
   Future<void> clearDraft({String? recordId}) async {
     await _cache.write(
-      recordId == null ? LocalCacheContract.vaccineDraftKey : LocalCacheContract.vaccineEditDraftKey(recordId),
+      recordId == null
+          ? LocalCacheContract.vaccineDraftKey
+          : LocalCacheContract.vaccineEditDraftKey(recordId),
       {},
       Duration.zero,
     );

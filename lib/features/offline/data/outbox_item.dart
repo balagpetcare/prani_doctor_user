@@ -94,15 +94,15 @@ class OutboxItem {
   }
 
   Map<String, dynamic> toJson() => {
-        'idempotencyKey': idempotencyKey,
-        'kind': kind.apiValue,
-        'payload': payload,
-        'clientSequence': clientSequence,
-        'attemptCount': attemptCount,
-        if (nextRetryAt != null) 'nextRetryAt': nextRetryAt,
-        if (lastError != null) 'lastError': lastError,
-        'createdAt': createdAt,
-      };
+    'idempotencyKey': idempotencyKey,
+    'kind': kind.apiValue,
+    'payload': payload,
+    'clientSequence': clientSequence,
+    'attemptCount': attemptCount,
+    if (nextRetryAt != null) 'nextRetryAt': nextRetryAt,
+    if (lastError != null) 'lastError': lastError,
+    'createdAt': createdAt,
+  };
 
   factory OutboxItem.fromJson(Map<String, dynamic> json) {
     return OutboxItem(
@@ -113,7 +113,8 @@ class OutboxItem {
       attemptCount: json['attemptCount'] as int? ?? 0,
       nextRetryAt: json['nextRetryAt'] as String?,
       lastError: json['lastError'] as String?,
-      createdAt: json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
+      createdAt:
+          json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
     );
   }
 }

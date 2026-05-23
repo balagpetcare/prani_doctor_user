@@ -1,6 +1,9 @@
 import '../../profile/data/mobile_me_dto.dart';
+import 'farm_location.dart';
 
 enum FarmFilter { all, hasAnimals, needsLocation }
+
+enum FarmSort { nameAsc, nameDesc, animalsDesc }
 
 class Farm {
   const Farm({
@@ -25,7 +28,10 @@ class Farm {
   final MobileMeAddressDto? address;
   final bool fromCache;
 
-  bool get hasLocation => villageId != null && villageId!.isNotEmpty;
+  bool get hasLocation {
+    final loc = FarmLocation.fromAddress(address);
+    return loc.canSaveFarm;
+  }
 
   List<String> get imageUrls {
     final urls = <String>[];
@@ -59,16 +65,16 @@ class Farm {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'locationLabel': locationLabel,
-        if (villageId != null) 'villageId': villageId,
-        'animalCount': animalCount,
-        'activeAnimalCount': activeAnimalCount,
-        if (coverPhotoUrl != null) 'coverPhotoUrl': coverPhotoUrl,
-        if (address != null) 'address': address!.toJson(),
-        'fromCache': fromCache,
-      };
+    'id': id,
+    'name': name,
+    'locationLabel': locationLabel,
+    if (villageId != null) 'villageId': villageId,
+    'animalCount': animalCount,
+    'activeAnimalCount': activeAnimalCount,
+    if (coverPhotoUrl != null) 'coverPhotoUrl': coverPhotoUrl,
+    if (address != null) 'address': address!.toJson(),
+    'fromCache': fromCache,
+  };
 
   factory Farm.fromJson(Map<String, dynamic> json) {
     MobileMeAddressDto? address;
@@ -96,24 +102,30 @@ class Farm {
     String? villageLabel,
     bool fromCache = false,
   }) {
-    final villageId = profile.address?.villageId;
-    if (villageId == null || villageId.isEmpty) return null;
+    final location = FarmLocation.fromAddress(
+      profile.address,
+      areaLabel: profile.area,
+    );
+    if (!location.canSaveFarm) return null;
 
-    final label = profile.area?.trim().isNotEmpty == true
-        ? profile.area!.trim()
-        : (villageLabel?.trim().isNotEmpty == true
-            ? villageLabel!.trim()
-            : profile.name);
+    final resolvedVillageId = location.villageId ?? location.locationKey;
+    final label = location.fullAddress?.isNotEmpty == true
+        ? location.fullAddress!
+        : (profile.area?.trim().isNotEmpty == true
+              ? profile.area!.trim()
+              : (villageLabel?.trim().isNotEmpty == true
+                    ? villageLabel!.trim()
+                    : profile.name));
 
     return Farm(
-      id: 'farm-$villageId',
+      id: location.farmIdFor(),
       name: label,
       locationLabel: profile.area ?? villageLabel ?? label,
-      villageId: villageId,
+      villageId: resolvedVillageId,
       animalCount: animalCount,
       activeAnimalCount: activeAnimalCount,
       coverPhotoUrl: profile.coverPhotoUrl,
-      address: profile.address,
+      address: location.toAddressDto(),
       fromCache: fromCache,
     );
   }
@@ -185,16 +197,44 @@ class FarmInput {
     required this.name,
     required this.address,
     this.areaLabel,
+    this.coverPhotoUrl,
   });
 
   final String name;
   final MobileMeAddressDto address;
   final String? areaLabel;
+  final String? coverPhotoUrl;
 
   PatchMobileMeInput toPatchInput() {
-    return PatchMobileMeInput(
-      area: areaLabel ?? name,
-      address: address,
+    return PatchMobileMeInput(area: areaLabel ?? name, address: address);
+  }
+
+  Map<String, dynamic> toDraftJson() => {
+    'name': name,
+    'areaLabel': areaLabel,
+    if (coverPhotoUrl != null) 'coverPhotoUrl': coverPhotoUrl,
+    'address': address.toJson(),
+    'location': FarmLocation.fromAddress(address, areaLabel: areaLabel).toJson(),
+  };
+
+  factory FarmInput.fromDraftJson(Map<String, dynamic> json) {
+    MobileMeAddressDto? address;
+    final rawAddress = json['address'];
+    if (rawAddress is Map<String, dynamic>) {
+      address = MobileMeAddressDto.fromJson(rawAddress);
+    }
+    final rawLocation = json['location'];
+    if (address == null && rawLocation is Map<String, dynamic>) {
+      address = FarmLocation.fromJson(rawLocation).toAddressDto();
+    }
+    return FarmInput(
+      name: json['name'] as String? ?? '',
+      areaLabel: json['areaLabel'] as String? ??
+          (rawLocation is Map<String, dynamic>
+              ? rawLocation['displayAddress'] as String?
+              : null),
+      coverPhotoUrl: json['coverPhotoUrl'] as String?,
+      address: address ?? const MobileMeAddressDto(),
     );
   }
 }

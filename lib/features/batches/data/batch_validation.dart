@@ -25,7 +25,9 @@ abstract final class BatchValidation {
     required String? targetId,
     required String message,
   }) {
-    if (sourceId == null || targetId == null || sourceId == targetId) return message;
+    if (sourceId == null || targetId == null || sourceId == targetId) {
+      return message;
+    }
     return null;
   }
 }

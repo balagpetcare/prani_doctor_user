@@ -52,10 +52,20 @@ class SupportAttachmentPicker extends ConsumerWidget {
     final picker = ImagePicker();
     final file = await picker.pickImage(source: ImageSource.gallery);
     if (file == null) return;
-    _addFile(ref, file.path, file.name, file.mimeType ?? 'image/jpeg', await file.length());
+    _addFile(
+      ref,
+      file.path,
+      file.name,
+      file.mimeType ?? 'image/jpeg',
+      await file.length(),
+    );
   }
 
-  Future<void> _pickDocument(BuildContext context, WidgetRef ref, AppLocalizations l10n) async {
+  Future<void> _pickDocument(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png'],
@@ -66,7 +76,13 @@ class SupportAttachmentPicker extends ConsumerWidget {
     _addFile(ref, file.path!, file.name, mime, file.size);
   }
 
-  void _addFile(WidgetRef ref, String path, String name, String mime, int size) {
+  void _addFile(
+    WidgetRef ref,
+    String path,
+    String name,
+    String mime,
+    int size,
+  ) {
     final l10nError = SupportValidation.validateFile(
       mimeType: mime,
       sizeBytes: size,
@@ -75,7 +91,9 @@ class SupportAttachmentPicker extends ConsumerWidget {
     );
     if (l10nError != null) return;
 
-    ref.read(pendingAttachmentsProvider.notifier).add(
+    ref
+        .read(pendingAttachmentsProvider.notifier)
+        .add(
           PendingSupportAttachment(
             localPath: path,
             fileName: name,
@@ -114,14 +132,23 @@ class _AttachmentTile extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: _leading(context),
-        title: Text(attachment.fileName, maxLines: 1, overflow: TextOverflow.ellipsis),
+        title: Text(
+          attachment.fileName,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (attachment.state == SupportAttachmentUploadState.uploading)
-              LinearProgressIndicator(value: attachment.progress > 0 ? attachment.progress : null),
+              LinearProgressIndicator(
+                value: attachment.progress > 0 ? attachment.progress : null,
+              ),
             if (attachment.state == SupportAttachmentUploadState.error)
-              Text(attachment.errorMessage ?? l10n.supportUploadFailed, style: const TextStyle(color: Colors.red)),
+              Text(
+                attachment.errorMessage ?? l10n.supportUploadFailed,
+                style: const TextStyle(color: Colors.red),
+              ),
             if (attachment.isUploaded) Text(l10n.supportUploadComplete),
           ],
         ),
@@ -136,7 +163,8 @@ class _AttachmentTile extends ConsumerWidget {
                 },
                 icon: const Icon(Icons.refresh),
               ),
-            if (!attachment.isUploaded && attachment.state != SupportAttachmentUploadState.uploading)
+            if (!attachment.isUploaded &&
+                attachment.state != SupportAttachmentUploadState.uploading)
               IconButton(
                 onPressed: () async {
                   final updated = await service.upload(attachment);
@@ -155,10 +183,16 @@ class _AttachmentTile extends ConsumerWidget {
   }
 
   Widget _leading(BuildContext context) {
-    if (attachment.mimeType.startsWith('image/') && File(attachment.localPath).existsSync()) {
+    if (attachment.mimeType.startsWith('image/') &&
+        File(attachment.localPath).existsSync()) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.file(File(attachment.localPath), width: 48, height: 48, fit: BoxFit.cover),
+        child: Image.file(
+          File(attachment.localPath),
+          width: 48,
+          height: 48,
+          fit: BoxFit.cover,
+        ),
       );
     }
     if (attachment.mimeType == 'application/pdf') {

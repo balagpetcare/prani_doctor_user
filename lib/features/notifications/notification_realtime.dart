@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/session/session_auth.dart';
 import '../../core/session/session_controller.dart';
 import '../../core/session/session_state.dart';
 import 'data/notification_repository.dart';
@@ -13,16 +14,18 @@ const notificationPollInterval = Duration(seconds: 30);
 class NotificationRealtimeNotifier extends Notifier<int?> {
   Timer? _timer;
   int? _lastUnread;
+  final Set<String> _deliveredIds = {};
 
   @override
   int? build() {
     ref.onDispose(_stop);
     ref.listen<SessionState>(sessionControllerProvider, (previous, next) {
-      if (next.isAuthenticated) {
+      if (SessionAuth.canCallProtectedApis(next)) {
         start();
       } else {
         _stop();
         _lastUnread = null;
+        _deliveredIds.clear();
         state = null;
       }
     }, fireImmediately: true);
@@ -30,10 +33,9 @@ class NotificationRealtimeNotifier extends Notifier<int?> {
   }
 
   void start() {
-    if (!ref.read(sessionControllerProvider).isAuthenticated) return;
+    // Automatic notification polling disabled — offline-first.
     _timer?.cancel();
-    unawaited(_poll());
-    _timer = Timer.periodic(notificationPollInterval, (_) => _poll());
+    _timer = null;
   }
 
   void _stop() {
@@ -42,16 +44,25 @@ class NotificationRealtimeNotifier extends Notifier<int?> {
   }
 
   Future<void> _poll() async {
-    if (!ref.read(sessionControllerProvider).isAuthenticated) return;
+    if (!SessionAuth.canCallProtectedApis(
+      ref.read(sessionControllerProvider),
+    )) {
+      return;
+    }
 
-    final result = await ref.read(notificationRepositoryProvider).getUnreadCount();
+    final result = await ref
+        .read(notificationRepositoryProvider)
+        .getUnreadCount();
     await result.when(
       success: (count) async {
         final previous = _lastUnread;
         _lastUnread = count;
         state = count;
         ref.invalidate(unreadNotificationCountProvider);
-        ref.invalidate(notificationListProvider);
+
+        if (previous != null && count != previous) {
+          ref.invalidate(notificationListProvider);
+        }
 
         if (previous != null && count > previous) {
           await _showLatestUnread();
@@ -69,7 +80,14 @@ class NotificationRealtimeNotifier extends Notifier<int?> {
       success: (data) {
         if (data.items.isEmpty) return;
         final item = data.items.first;
-        ref.read(notificationServiceProvider).showLocal(
+        if (_deliveredIds.contains(item.id)) return;
+        _deliveredIds.add(item.id);
+        if (_deliveredIds.length > 100) {
+          _deliveredIds.remove(_deliveredIds.first);
+        }
+        ref
+            .read(notificationServiceProvider)
+            .showLocal(
               title: item.title,
               body: item.body,
               metadata: item.metadata,
@@ -81,4 +99,6 @@ class NotificationRealtimeNotifier extends Notifier<int?> {
 }
 
 final notificationRealtimeProvider =
-    NotifierProvider<NotificationRealtimeNotifier, int?>(NotificationRealtimeNotifier.new);
+    NotifierProvider<NotificationRealtimeNotifier, int?>(
+      NotificationRealtimeNotifier.new,
+    );

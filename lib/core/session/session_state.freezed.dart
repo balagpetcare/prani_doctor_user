@@ -18,6 +18,9 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$SessionState {
   bool get isAuthenticated => throw _privateConstructorUsedError;
+
+  /// True after cold-start restore or a login/logout mutation finished.
+  bool get sessionReady => throw _privateConstructorUsedError;
   String? get userId => throw _privateConstructorUsedError;
   String? get displayName => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
@@ -38,6 +41,7 @@ abstract class $SessionStateCopyWith<$Res> {
   @useResult
   $Res call({
     bool isAuthenticated,
+    bool sessionReady,
     String? userId,
     String? displayName,
     String? phone,
@@ -60,6 +64,7 @@ class _$SessionStateCopyWithImpl<$Res, $Val extends SessionState>
   @override
   $Res call({
     Object? isAuthenticated = null,
+    Object? sessionReady = null,
     Object? userId = freezed,
     Object? displayName = freezed,
     Object? phone = freezed,
@@ -69,6 +74,10 @@ class _$SessionStateCopyWithImpl<$Res, $Val extends SessionState>
             isAuthenticated: null == isAuthenticated
                 ? _value.isAuthenticated
                 : isAuthenticated // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            sessionReady: null == sessionReady
+                ? _value.sessionReady
+                : sessionReady // ignore: cast_nullable_to_non_nullable
                       as bool,
             userId: freezed == userId
                 ? _value.userId
@@ -99,6 +108,7 @@ abstract class _$$SessionStateImplCopyWith<$Res>
   @useResult
   $Res call({
     bool isAuthenticated,
+    bool sessionReady,
     String? userId,
     String? displayName,
     String? phone,
@@ -120,6 +130,7 @@ class __$$SessionStateImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? isAuthenticated = null,
+    Object? sessionReady = null,
     Object? userId = freezed,
     Object? displayName = freezed,
     Object? phone = freezed,
@@ -129,6 +140,10 @@ class __$$SessionStateImplCopyWithImpl<$Res>
         isAuthenticated: null == isAuthenticated
             ? _value.isAuthenticated
             : isAuthenticated // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        sessionReady: null == sessionReady
+            ? _value.sessionReady
+            : sessionReady // ignore: cast_nullable_to_non_nullable
                   as bool,
         userId: freezed == userId
             ? _value.userId
@@ -152,6 +167,7 @@ class __$$SessionStateImplCopyWithImpl<$Res>
 class _$SessionStateImpl implements _SessionState {
   const _$SessionStateImpl({
     this.isAuthenticated = false,
+    this.sessionReady = false,
     this.userId,
     this.displayName,
     this.phone,
@@ -160,6 +176,11 @@ class _$SessionStateImpl implements _SessionState {
   @override
   @JsonKey()
   final bool isAuthenticated;
+
+  /// True after cold-start restore or a login/logout mutation finished.
+  @override
+  @JsonKey()
+  final bool sessionReady;
   @override
   final String? userId;
   @override
@@ -169,7 +190,7 @@ class _$SessionStateImpl implements _SessionState {
 
   @override
   String toString() {
-    return 'SessionState(isAuthenticated: $isAuthenticated, userId: $userId, displayName: $displayName, phone: $phone)';
+    return 'SessionState(isAuthenticated: $isAuthenticated, sessionReady: $sessionReady, userId: $userId, displayName: $displayName, phone: $phone)';
   }
 
   @override
@@ -179,6 +200,8 @@ class _$SessionStateImpl implements _SessionState {
             other is _$SessionStateImpl &&
             (identical(other.isAuthenticated, isAuthenticated) ||
                 other.isAuthenticated == isAuthenticated) &&
+            (identical(other.sessionReady, sessionReady) ||
+                other.sessionReady == sessionReady) &&
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.displayName, displayName) ||
                 other.displayName == displayName) &&
@@ -186,8 +209,14 @@ class _$SessionStateImpl implements _SessionState {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, isAuthenticated, userId, displayName, phone);
+  int get hashCode => Object.hash(
+    runtimeType,
+    isAuthenticated,
+    sessionReady,
+    userId,
+    displayName,
+    phone,
+  );
 
   /// Create a copy of SessionState
   /// with the given fields replaced by the non-null parameter values.
@@ -201,6 +230,7 @@ class _$SessionStateImpl implements _SessionState {
 abstract class _SessionState implements SessionState {
   const factory _SessionState({
     final bool isAuthenticated,
+    final bool sessionReady,
     final String? userId,
     final String? displayName,
     final String? phone,
@@ -208,6 +238,10 @@ abstract class _SessionState implements SessionState {
 
   @override
   bool get isAuthenticated;
+
+  /// True after cold-start restore or a login/logout mutation finished.
+  @override
+  bool get sessionReady;
   @override
   String? get userId;
   @override

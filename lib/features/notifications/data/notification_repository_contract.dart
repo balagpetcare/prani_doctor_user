@@ -25,5 +25,7 @@ abstract class NotificationRepositoryContract {
 
   Future<ApiResult<NotificationSettingsDto>> getSettings({bool forceRefresh});
 
-  Future<ApiResult<NotificationSettingsDto>> saveSettings(NotificationSettingsDto settings);
+  Future<ApiResult<NotificationSettingsDto>> saveSettings(
+    NotificationSettingsDto settings,
+  );
 }

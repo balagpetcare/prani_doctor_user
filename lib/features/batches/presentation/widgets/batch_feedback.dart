@@ -6,7 +6,11 @@ class BatchFeedback {
 
   static Widget loading() => const Center(child: CircularProgressIndicator());
 
-  static Widget error(BuildContext context, {required VoidCallback onRetry, String? message}) {
+  static Widget error(
+    BuildContext context, {
+    required VoidCallback onRetry,
+    String? message,
+  }) {
     final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
@@ -14,7 +18,11 @@ class BatchFeedback {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 16),
             Text(message ?? l10n.batchLoadError, textAlign: TextAlign.center),
             const SizedBox(height: 16),
@@ -48,7 +56,10 @@ class BatchFeedback {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(12),
-      child: Text(l10n.batchOfflineHint, style: Theme.of(context).textTheme.bodySmall),
+      child: Text(
+        l10n.batchOfflineHint,
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
     );
   }
 }

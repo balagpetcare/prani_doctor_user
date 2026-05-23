@@ -9,6 +9,7 @@ abstract class BatchRepositoryContract {
     int pageSize,
     String search,
     BatchFilter filter,
+    BatchSort sort = BatchSort.recentFirst,
     bool forceRefresh,
   });
 
@@ -17,6 +18,8 @@ abstract class BatchRepositoryContract {
   Future<ApiResult<AnimalBatch>> createBatch(BatchInput input);
 
   Future<ApiResult<AnimalBatch>> updateBatch(String id, BatchInput input);
+
+  Future<ApiResult<void>> deleteBatch(String id);
 
   Future<ApiResult<AnimalBatch>> moveAnimals(BatchMoveInput input);
 

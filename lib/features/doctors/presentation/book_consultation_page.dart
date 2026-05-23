@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../core/navigation/navigation_guard.dart';
 import '../../area/presentation/area_picker.dart';
 import '../../service_requests/data/service_request_dto.dart';
 import '../../animals/data/animal_repository.dart';
@@ -23,7 +24,8 @@ class BookConsultationPage extends ConsumerStatefulWidget {
   final String doctorId;
 
   @override
-  ConsumerState<BookConsultationPage> createState() => _BookConsultationPageState();
+  ConsumerState<BookConsultationPage> createState() =>
+      _BookConsultationPageState();
 }
 
 class _BookConsultationPageState extends ConsumerState<BookConsultationPage> {
@@ -93,8 +95,12 @@ class _BookConsultationPageState extends ConsumerState<BookConsultationPage> {
         return;
       }
 
-      final doctor = await ref.read(doctorDetailProvider(widget.doctorId).future);
-      final result = await ref.read(serviceRequestRepositoryProvider).createRequest(
+      final doctor = await ref.read(
+        doctorDetailProvider(widget.doctorId).future,
+      );
+      final result = await ref
+          .read(serviceRequestRepositoryProvider)
+          .createRequest(
             CreateServiceRequestInput(
               animalId: _animalId!,
               serviceCategoryId: category.id,
@@ -112,18 +118,18 @@ class _BookConsultationPageState extends ConsumerState<BookConsultationPage> {
       if (!mounted) return;
       result.when(
         success: (request) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.bookingSubmitted)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.bookingSubmitted)));
           context.go(AppRoutes.serviceRequestDetail(request.id));
         },
         failure: (e) {
           if (e.code == offlineQueuedCode) {
             ref.invalidate(localOutboxCountProvider);
             ref.read(syncCoordinatorProvider).syncNow(background: true);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(l10n.savedOffline)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(l10n.savedOffline)));
             context.go(AppRoutes.inbox);
             return;
           }
@@ -136,7 +142,9 @@ class _BookConsultationPageState extends ConsumerState<BookConsultationPage> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   ConsultationType _resolveType(ProviderDoctorDetailDto doctor) {
@@ -156,7 +164,7 @@ class _BookConsultationPageState extends ConsumerState<BookConsultationPage> {
     final animalsAsync = ref.watch(animalsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.bookConsultation)),
+      appBar: safeAppBar(context, title: Text(l10n.bookConsultation)),
       body: doctorAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(e.toString())),
@@ -190,7 +198,10 @@ class _BookConsultationPageState extends ConsumerState<BookConsultationPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(doctor.name, style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  doctor.name,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 16),
                 SegmentedButton<ConsultationType>(
                   segments: segments,
@@ -216,11 +227,15 @@ class _BookConsultationPageState extends ConsumerState<BookConsultationPage> {
                           .map(
                             (a) => DropdownMenuItem(
                               value: a.id,
-                              child: Text('${a.name} (${a.animalType ?? a.species})'),
+                              child: Text(
+                                '${a.name} (${a.animalType ?? a.species})',
+                              ),
                             ),
                           )
                           .toList(),
-                      onChanged: _loading ? null : (v) => setState(() => _animalId = v),
+                      onChanged: _loading
+                          ? null
+                          : (v) => setState(() => _animalId = v),
                     );
                   },
                 ),
@@ -235,12 +250,17 @@ class _BookConsultationPageState extends ConsumerState<BookConsultationPage> {
                   const SizedBox(height: 12),
                   TextField(
                     controller: _preferredTimeController,
-                    decoration: InputDecoration(labelText: l10n.preferredTimeLabel),
+                    decoration: InputDecoration(
+                      labelText: l10n.preferredTimeLabel,
+                    ),
                     enabled: !_loading,
                   ),
                 ],
                 const SizedBox(height: 16),
-                Text(l10n.locationSectionTitle, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  l10n.locationSectionTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
                 AreaPicker(
                   divisionLabel: l10n.divisionLabel,
@@ -248,19 +268,21 @@ class _BookConsultationPageState extends ConsumerState<BookConsultationPage> {
                   upazilaLabel: l10n.upazilaLabel,
                   unionLabel: l10n.unionLabel,
                   villageLabel: l10n.villageLabel,
-                  onChanged: ({
-                    divisionId,
-                    districtId,
-                    upazilaId,
-                    unionId,
-                    villageId,
-                    selectedLabel,
-                  }) {
-                    setState(() {
-                      _villageId = villageId;
-                      _locationLabel = selectedLabel;
-                    });
-                  },
+                  onChanged:
+                      ({
+                        divisionId,
+                        districtId,
+                        upazilaId,
+                        unionId,
+                        villageId,
+                        villageName,
+                        selectedLabel,
+                      }) {
+                        setState(() {
+                          _villageId = villageId;
+                          _locationLabel = selectedLabel;
+                        });
+                      },
                 ),
                 const SizedBox(height: 24),
                 FilledButton(

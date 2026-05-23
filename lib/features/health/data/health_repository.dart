@@ -36,12 +36,14 @@ class HealthRepository implements HealthRepositoryContract {
         .whereType<Map<String, dynamic>>()
         .map((j) => HealthEvent.fromJson(j, fromCache: true))
         .toList();
+    final pendingSyncCount = records.where((r) => r.pendingSync).length;
     return HealthPageResult(
       records: records,
       total: cached['total'] as int? ?? records.length,
       page: cached['page'] as int? ?? 1,
       limit: cached['limit'] as int? ?? 20,
       hasMore: cached['hasMore'] as bool? ?? false,
+      pendingSyncCount: pendingSyncCount,
       fromCache: true,
     );
   }
@@ -54,38 +56,30 @@ class HealthRepository implements HealthRepositoryContract {
   }
 
   Future<void> _writeListCache(HealthPageResult page) async {
-    await _cache.write(
-      LocalCacheContract.healthHistoryListKey,
-      {
-        'records': page.records.map((r) => r.toJson()).toList(),
-        'total': page.total,
-        'page': page.page,
-        'limit': page.limit,
-        'hasMore': page.hasMore,
-      },
-      LocalCacheContract.profileTtl,
-    );
+    await _cache.write(LocalCacheContract.healthHistoryListKey, {
+      'records': page.records.map((r) => r.toJson()).toList(),
+      'total': page.total,
+      'page': page.page,
+      'limit': page.limit,
+      'hasMore': page.hasMore,
+    }, LocalCacheContract.profileTtl);
   }
 
   Future<void> _writeTimelineCache(HealthTimelineResult timeline) async {
-    await _cache.write(
-      LocalCacheContract.healthTimelineKey,
-      {
-        'groups': timeline.groups
-            .map(
-              (g) => {
-                'date': g.date,
-                'events': g.events.map((e) => e.toJson()).toList(),
-              },
-            )
-            .toList(),
-        'total': timeline.total,
-        'page': timeline.page,
-        'limit': timeline.limit,
-        'hasMore': timeline.hasMore,
-      },
-      LocalCacheContract.profileTtl,
-    );
+    await _cache.write(LocalCacheContract.healthTimelineKey, {
+      'groups': timeline.groups
+          .map(
+            (g) => {
+              'date': g.date,
+              'events': g.events.map((e) => e.toJson()).toList(),
+            },
+          )
+          .toList(),
+      'total': timeline.total,
+      'page': timeline.page,
+      'limit': timeline.limit,
+      'hasMore': timeline.hasMore,
+    }, LocalCacheContract.profileTtl);
   }
 
   HealthPageResult _parseListPage(Map<String, dynamic> data) {
@@ -99,6 +93,7 @@ class HealthRepository implements HealthRepositoryContract {
       page: data['page'] as int? ?? 1,
       limit: data['limit'] as int? ?? 20,
       hasMore: data['hasMore'] as bool? ?? false,
+      pendingSyncCount: records.where((r) => r.pendingSync).length,
     );
   }
 
@@ -241,7 +236,9 @@ class HealthRepository implements HealthRepositoryContract {
       );
       final raw = data['timeline'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid timeline response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid timeline response'),
+        );
       }
       final timeline = HealthTimelineResult.fromJson(raw);
       if (page == 1) await _writeTimelineCache(timeline);
@@ -255,7 +252,11 @@ class HealthRepository implements HealthRepositoryContract {
     }
   }
 
-  Future<void> _enqueue(OutboxKind kind, Map<String, dynamic> payload, String keySuffix) async {
+  Future<void> _enqueue(
+    OutboxKind kind,
+    Map<String, dynamic> payload,
+    String keySuffix,
+  ) async {
     final sequence = (await _outbox.listAll()).length + 1;
     await _outbox.enqueue(
       OutboxItem(
@@ -310,20 +311,23 @@ class HealthRepository implements HealthRepositoryContract {
       final data = await getJson(_dio, HealthApiPaths.record(id));
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Record not found'));
+        return const ApiResult.failure(
+          AppException(message: 'Record not found'),
+        );
       }
       final record = HealthEvent.fromJson(raw);
-      await _cache.write(
-        LocalCacheContract.healthDetailKey(id),
-        {'record': record.toJson()},
-        LocalCacheContract.profileTtl,
-      );
+      await _cache.write(LocalCacheContract.healthDetailKey(id), {
+        'record': record.toJson(),
+      }, LocalCacheContract.profileTtl);
       return ApiResult.success(record);
     } on AppException catch (e) {
       final cached = await _cache.read(LocalCacheContract.healthDetailKey(id));
       if (cached != null) {
         return ApiResult.success(
-          HealthEvent.fromJson(cached['record'] as Map<String, dynamic>, fromCache: true),
+          HealthEvent.fromJson(
+            cached['record'] as Map<String, dynamic>,
+            fromCache: true,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -359,7 +363,9 @@ class HealthRepository implements HealthRepositoryContract {
       final data = await postJson(_dio, HealthApiPaths.history, body);
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid create response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid create response'),
+        );
       }
       final record = HealthEvent.fromJson(raw);
       await _optimisticUpsert(record);
@@ -368,8 +374,11 @@ class HealthRepository implements HealthRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.healthCreate, body, tempId);
-        return ApiResult.failure(
-          const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Saved offline — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -377,7 +386,10 @@ class HealthRepository implements HealthRepositoryContract {
   }
 
   @override
-  Future<ApiResult<HealthEvent>> updateRecord(String id, HealthInput input) async {
+  Future<ApiResult<HealthEvent>> updateRecord(
+    String id,
+    HealthInput input,
+  ) async {
     final body = input.toPatchJson();
     final existingResult = await getRecord(id);
     if (existingResult case ApiSuccess(data: final existing)) {
@@ -404,7 +416,9 @@ class HealthRepository implements HealthRepositoryContract {
       final data = await patchJson(_dio, HealthApiPaths.record(id), body);
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid update response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid update response'),
+        );
       }
       final record = HealthEvent.fromJson(raw);
       await _optimisticUpsert(record);
@@ -413,8 +427,11 @@ class HealthRepository implements HealthRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.healthPatch, {...body, 'id': id}, id);
-        return ApiResult.failure(
-          const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Saved offline — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -430,8 +447,11 @@ class HealthRepository implements HealthRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.healthDelete, {'id': id}, id);
-        return ApiResult.failure(
-          const AppException(message: 'Queued delete — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Queued delete — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -441,7 +461,9 @@ class HealthRepository implements HealthRepositoryContract {
   @override
   Future<void> saveDraft(HealthInput input, {String? recordId}) async {
     await _cache.write(
-      recordId == null ? LocalCacheContract.healthDraftKey : LocalCacheContract.healthEditDraftKey(recordId),
+      recordId == null
+          ? LocalCacheContract.healthDraftKey
+          : LocalCacheContract.healthEditDraftKey(recordId),
       input.toDraftJson(),
       LocalCacheContract.profileTtl,
     );
@@ -450,7 +472,9 @@ class HealthRepository implements HealthRepositoryContract {
   @override
   Future<HealthInput?> readDraft({String? recordId}) async {
     final raw = await _cache.read(
-      recordId == null ? LocalCacheContract.healthDraftKey : LocalCacheContract.healthEditDraftKey(recordId),
+      recordId == null
+          ? LocalCacheContract.healthDraftKey
+          : LocalCacheContract.healthEditDraftKey(recordId),
     );
     if (raw == null || raw.isEmpty) return null;
     return HealthInput.fromDraftJson(raw);
@@ -459,7 +483,9 @@ class HealthRepository implements HealthRepositoryContract {
   @override
   Future<void> clearDraft({String? recordId}) async {
     await _cache.write(
-      recordId == null ? LocalCacheContract.healthDraftKey : LocalCacheContract.healthEditDraftKey(recordId),
+      recordId == null
+          ? LocalCacheContract.healthDraftKey
+          : LocalCacheContract.healthEditDraftKey(recordId),
       {},
       Duration.zero,
     );

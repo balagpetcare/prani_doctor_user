@@ -33,10 +33,8 @@ class WelcomePage extends ConsumerWidget {
           child: Column(
             children: [
               const Spacer(),
-              BrandImage.logo(
-                asset: BrandAssets.primaryLogo,
-                height: 88,
-              ),              const SizedBox(height: 24),
+              BrandImage.logo(asset: BrandAssets.primaryLogo, height: 88),
+              const SizedBox(height: 24),
               Text(
                 l10n.welcomeTitle,
                 style: theme.textTheme.headlineMedium?.copyWith(

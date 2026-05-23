@@ -5,10 +5,14 @@ abstract class AreaCacheContract {
   static const boxName = 'area_engine_cache_v1';
 
   static String divisionsKey(String locale) => 'divisions:$locale';
-  static String districtsKey(String divisionId, String locale) => 'districts:$divisionId:$locale';
-  static String upazilasKey(String districtId, String locale) => 'upazilas:$districtId:$locale';
-  static String unionsKey(String upazilaId, String locale) => 'unions:$upazilaId:$locale';
-  static String villagesKey(String unionId, String locale) => 'villages:$unionId:$locale';
+  static String districtsKey(String divisionId, String locale) =>
+      'districts:$divisionId:$locale';
+  static String upazilasKey(String districtId, String locale) =>
+      'upazilas:$districtId:$locale';
+  static String unionsKey(String upazilaId, String locale) =>
+      'unions:$upazilaId:$locale';
+  static String villagesKey(String unionId, String locale) =>
+      'villages:$unionId:$locale';
   static String searchKey(String hash) => 'search:$hash';
   static const seedVersionKey = 'seed_version';
   static const divisionsKeyBn = 'divisions:bn';

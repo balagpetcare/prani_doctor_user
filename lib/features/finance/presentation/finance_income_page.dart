@@ -25,7 +25,8 @@ class _FinanceIncomePageState extends ConsumerState<FinanceIncomePage> {
   void initState() {
     super.initState();
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
         ref.read(financeIncomeListProvider.notifier).loadMore();
       }
     });
@@ -39,8 +40,46 @@ class _FinanceIncomePageState extends ConsumerState<FinanceIncomePage> {
   }
 
   void _applySearch() {
-    ref.read(financeIncomeSearchProvider.notifier).state = _searchController.text.trim();
+    ref.read(financeIncomeSearchProvider.notifier).state = _searchController
+        .text
+        .trim();
     ref.read(financeIncomeListProvider.notifier).applyQuery();
+  }
+
+  Future<void> _pickFromDate() async {
+    final current = ref.read(financeFromDateProvider);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: current,
+      firstDate: DateTime(2020),
+      lastDate: ref.read(financeToDateProvider),
+    );
+    if (picked != null) {
+      ref.read(financeFromDateProvider.notifier).state = DateTime(
+        picked.year,
+        picked.month,
+        picked.day,
+      );
+      ref.read(financeIncomeListProvider.notifier).applyQuery();
+    }
+  }
+
+  Future<void> _pickToDate() async {
+    final current = ref.read(financeToDateProvider);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: current,
+      firstDate: ref.read(financeFromDateProvider),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      ref.read(financeToDateProvider.notifier).state = DateTime(
+        picked.year,
+        picked.month,
+        picked.day,
+      );
+      ref.read(financeIncomeListProvider.notifier).applyQuery();
+    }
   }
 
   @override
@@ -48,6 +87,8 @@ class _FinanceIncomePageState extends ConsumerState<FinanceIncomePage> {
     final l10n = AppLocalizations.of(context)!;
     final listAsync = ref.watch(financeIncomeListProvider);
     final sourceFilter = ref.watch(financeIncomeSourceFilterProvider);
+    final fromDate = ref.watch(financeFromDateProvider);
+    final toDate = ref.watch(financeToDateProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -65,11 +106,13 @@ class _FinanceIncomePageState extends ConsumerState<FinanceIncomePage> {
         ],
       ),
       body: listAsync.when(
-        loading: () => FinanceFeedback.loading(),
+        loading: FinanceFeedback.loading,
         error: (e, _) => FinanceFeedback.error(
           context,
           message: e.toString(),
-          onRetry: () => ref.read(financeIncomeListProvider.notifier).reload(forceRefresh: true),
+          onRetry: () => ref
+              .read(financeIncomeListProvider.notifier)
+              .reload(forceRefresh: true),
         ),
         data: (state) {
           if (state.records.isEmpty &&
@@ -82,12 +125,50 @@ class _FinanceIncomePageState extends ConsumerState<FinanceIncomePage> {
             );
           }
           return RefreshIndicator(
-            onRefresh: () => ref.read(financeIncomeListProvider.notifier).refresh(),
+            onRefresh: () =>
+                ref.read(financeIncomeListProvider.notifier).refresh(),
             child: CustomScrollView(
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                if (state.fromCache) SliverToBoxAdapter(child: FinanceFeedback.offlineHint(context)),
+                if (state.fromCache)
+                  SliverToBoxAdapter(
+                    child: FinanceFeedback.offlineHint(context),
+                  ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: _pickFromDate,
+                            child: Text(
+                              '${l10n.financeFromDate}: ${fromDate.toLocal().toString().split(' ').first}',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: _pickToDate,
+                            child: Text(
+                              '${l10n.financeToDate}: ${toDate.toLocal().toString().split(' ').first}',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      '${l10n.financeSummaryEntries}: ${state.total} · ${l10n.financeSummaryPendingSync}: ${state.pendingSyncCount}',
+                    ),
+                  ),
+                ),
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -115,8 +196,16 @@ class _FinanceIncomePageState extends ConsumerState<FinanceIncomePage> {
                           selected: sourceFilter == null,
                           label: Text(l10n.financeFilterAll),
                           onSelected: (_) {
-                            ref.read(financeIncomeSourceFilterProvider.notifier).state = null;
-                            ref.read(financeIncomeListProvider.notifier).applyQuery();
+                            ref
+                                    .read(
+                                      financeIncomeSourceFilterProvider
+                                          .notifier,
+                                    )
+                                    .state =
+                                null;
+                            ref
+                                .read(financeIncomeListProvider.notifier)
+                                .applyQuery();
                           },
                         ),
                         ...IncomeSource.values.map((source) {
@@ -126,8 +215,16 @@ class _FinanceIncomePageState extends ConsumerState<FinanceIncomePage> {
                               selected: sourceFilter == source,
                               label: Text(incomeSourceLabel(l10n, source)),
                               onSelected: (_) {
-                                ref.read(financeIncomeSourceFilterProvider.notifier).state = source;
-                                ref.read(financeIncomeListProvider.notifier).applyQuery();
+                                ref
+                                        .read(
+                                          financeIncomeSourceFilterProvider
+                                              .notifier,
+                                        )
+                                        .state =
+                                    source;
+                                ref
+                                    .read(financeIncomeListProvider.notifier)
+                                    .applyQuery();
                               },
                             ),
                           );
@@ -136,18 +233,27 @@ class _FinanceIncomePageState extends ConsumerState<FinanceIncomePage> {
                     ),
                   ),
                 ),
-                SliverPadding(
-                  padding: const EdgeInsets.all(16),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: FinanceRecordCard(record: state.records[index], isExpense: false),
+                if (state.records.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(child: Text(l10n.financeNoResults)),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.all(16),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: FinanceRecordCard(
+                            record: state.records[index],
+                            isExpense: false,
+                          ),
+                        ),
+                        childCount: state.records.length,
                       ),
-                      childCount: state.records.length,
                     ),
                   ),
-                ),
               ],
             ),
           );

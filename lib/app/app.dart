@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../features/profile/presentation/profile_providers.dart';
 import '../routing/app_router.dart';
 import '../theme/theme_controller.dart';
+import '../core/network/app_lifecycle_coordinator.dart';
 import '../features/notifications/notification_coordinator.dart';
 import '../features/offline/offline_coordinator.dart';
 import 'app_startup.dart';
@@ -21,11 +22,13 @@ class PraniDoctorApp extends ConsumerWidget {
     final dark = ref.watch(darkThemeProvider);
 
     return AppStartup(
-      child: OfflineCoordinator(
-        child: NotificationCoordinator(
-          child: MaterialApp.router(
+      child: AppLifecycleCoordinator(
+        child: OfflineCoordinator(
+          child: NotificationCoordinator(
+            child: MaterialApp.router(
             debugShowCheckedModeBanner: false,
-            onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+            onGenerateTitle: (context) =>
+                AppLocalizations.of(context)!.appTitle,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: locale,
@@ -33,11 +36,10 @@ class PraniDoctorApp extends ConsumerWidget {
             darkTheme: dark,
             themeMode: themeMode,
             routerConfig: router,
+            ),
           ),
         ),
       ),
     );
   }
 }
-
-

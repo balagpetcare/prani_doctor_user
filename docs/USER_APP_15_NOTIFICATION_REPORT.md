@@ -5,79 +5,113 @@
 **Date:** 2026-05-22  
 **Status:** Complete
 
-## Existing findings (audit)
+## 1. Current audit (at start)
 
-- Inbox tab had basic notification list with mark read / mark all / pull refresh
-- FCM token registration and 30s polling existed
-- No dedicated unread-count, delete, or settings APIs
-- No offline cache; deep links only handled `serviceRequestId`
-- Background FCM handler only initialized Firebase
+- Inbox tab had list, mark read/all, delete, pagination, grouping
+- Repository had cache read/write but providers hit network on every `build()`
+- No notification center, detail, or permission screens
+- Deep links via coordinator only; no safe handler route
+- No client search/unread filter UI
+- Poll invalidated list every 30s; duplicate local alerts possible
 
-## Completed work
+## 2. Plan
 
-### Backend (`pranidoctor-backend`)
+See `docs/user_app/USER_APP_15_NOTIFICATION.md`.
 
-| Addition | Path |
-|----------|------|
-| `NotificationSettings` model | `prisma/schema.prisma` |
-| Migration | `prisma/migrations/20260522180000_phase6_notification_settings/` |
-| Unread count, delete, settings | `lib/notifications/notification-service.ts` |
-| Routes | `routes/mobile/notifications/unread-count`, `settings`, `[id]` DELETE |
+## 3. Implementation
 
-### Web BFF (`pranidoctor-web`)
+| Feature | Status |
+|---------|--------|
+| Cache-first list/settings/unread providers | Done |
+| Notification center (`/notifications`) | Done |
+| Notification detail (`/notifications/:id`) | Done |
+| Permission flow (`/notifications/permission`) | Done |
+| Deep-link handler (`/notifications/open`) | Done |
+| Client search + unread filter | Done |
+| Duplicate alert dedup + conditional list invalidation | Done |
+| `NotificationNavigation` invalidation helper | Done |
+| Deep links: health, vaccine, treatment, support, appointment | Done |
 
-Proxies for unread-count, settings (GET/PUT), notification DELETE.
+## 4. Changed files
 
-### Flutter (`pranidoctor_user`)
+**New**
+- `docs/user_app/USER_APP_15_NOTIFICATION.md`
+- `lib/features/notifications/presentation/notification_center_page.dart`
+- `lib/features/notifications/presentation/notification_detail_page.dart`
+- `lib/features/notifications/presentation/notification_permission_page.dart`
+- `lib/features/notifications/presentation/notification_deeplink_page.dart`
+- `lib/features/notifications/presentation/notification_navigation.dart`
+- `lib/features/notifications/presentation/widgets/notification_summary_section.dart`
 
-| Area | Changes |
-|------|---------|
-| Repository | Cache-first list/unread/settings; delete; dedicated unread API |
-| Providers | `notificationListProvider` (pagination, grouping), `notificationSettingsProvider` |
-| UI | Grouped list (Today/Yesterday/Earlier), skeleton, swipe delete, settings page |
-| Deep links | `NotificationDeepLink` — appointment, animal, treatment, support, dashboard |
-| Push | Background tray display; coordinator uses deep link resolver |
-| Analytics | `NotificationAnalytics` debug hooks |
-| Integration | Cache keys, app startup warm, settings route + link from Settings |
+**Updated**
+- `notification_providers.dart`, `notification_list_page.dart`, `notification_card.dart`
+- `notification_settings_page.dart`, `notification_service.dart`, `notification_realtime.dart`
+- `notification_deeplink.dart`, `notification_repository.dart`
+- `app_routes.dart`, `app_router.dart`, `app_en.arb`
+- `home_summary_section.dart`, `home_greeting_header.dart`, `app_shell_scaffold.dart`
+- `test/notifications/notification_integration_test.dart`
 
-## API connected
+## 5. API mapping
 
-| Method | Path | Status |
-|--------|------|--------|
-| GET | `/api/mobile/notifications` | Connected |
-| GET | `/api/mobile/notifications/unread-count` | **New** |
-| PATCH | `/api/mobile/notifications/:id/read` | Connected |
-| PATCH | `/api/mobile/notifications/read-all` | Connected |
-| DELETE | `/api/mobile/notifications/:id` | **New** |
-| GET/PUT | `/api/mobile/notifications/settings` | **New** |
-| POST | `/api/mobile/devices/register` | Connected |
+| Method | Path | Flutter |
+|--------|------|---------|
+| GET | `/api/mobile/notifications` | `listNotifications` |
+| GET | `/api/mobile/notifications/unread-count` | `getUnreadCount` |
+| PATCH | `/api/mobile/notifications/:id/read` | `markRead` |
+| PATCH | `/api/mobile/notifications/read-all` | `markAllRead` |
+| DELETE | `/api/mobile/notifications/:id` | `deleteNotification` |
+| GET/PUT | `/api/mobile/notifications/settings` | `getSettings` / `saveSettings` |
+| POST | `/api/mobile/devices/register` | `registerDevice` |
 
-## Files changed
+## 6. State / provider flow
 
-**Backend:** schema, migration, notification-service, 3 route files  
-**Web:** 3 proxy route files  
-**Flutter:** `notification_repository*.dart`, `notification_dto.dart`, `notification_api_paths.dart`, `notification_grouping.dart`, `notification_deeplink.dart`, `notification_analytics.dart`, `notification_providers.dart`, `notification_list_page.dart`, `notification_settings_page.dart`, widgets, coordinator, realtime, fcm_background, push_registration, local_cache_contract, app_routes, app_router, settings_page, app_startup, app_en.arb, dio_helpers (putJson)
+- `notificationListProvider` — cache → paint → silent refresh; filters via `notificationUnreadOnlyProvider`, search client-side
+- `unreadNotificationCountProvider` — independent badge (cache-first)
+- `notificationSettingsProvider` — cache-first AsyncNotifier
+- `notificationDetailProvider` — resolves from list/cache, fallback refresh
+- `notificationRealtimeProvider` — poll unread; invalidate list only when count changes; dedupe local alerts by ID
 
-## Pending limitations
+## 7. Push / deep-link flow
 
-- Backend FCM **send** not implemented (tokens stored; delivery future work)
-- Settings toggles persisted server-side; not yet enforced in event dispatch/SMS
-- 30s polling remains (no WebSocket/SSE)
-- Widget/provider tests minimal (DTO/deeplink/grouping covered)
+- FCM foreground/background → local tray with metadata payload
+- Tap → `NotificationCoordinator` → `NotificationDeepLink.resolve` → `go_router`
+- `/notifications/open?target=…` → session check → resolve → navigate
+- Permission page → `requestPermission` → `pushRegistrationProvider.register`
 
-## Testing evidence
+## 8. Cache strategy
+
+- Disk keys: list, unread count, settings (profile TTL)
+- Optimistic cache on mark read / delete
+- Offline fallback in repository; offline hint in UI
+
+## 9. Validation
 
 ```bash
-cd pranidoctor_user
 flutter gen-l10n
-flutter test test/notifications/
-dart analyze lib/features/notifications
+flutter test test/notifications/   # 9/9 passed
+dart analyze lib/features/notifications lib/routing/app_router.dart  # 0 errors
 ```
 
-## Rollback notes
+## 10. Remaining blockers / risks
 
-- Revert migration `20260522180000_phase6_notification_settings` if settings table causes issues
-- Flutter falls back to cached list when network fails; safe to deploy independently of push send
-- `/api/mobile/health` probe unchanged
+| Item | Risk |
+|------|------|
+| No backend FCM send | Push delivery not end-to-end until server send exists |
+| No GET notification by id | Detail depends on list/cache |
+| No server search | Search only filters loaded items |
+| Settings not enforced in dispatch | Toggles saved but may not affect all channels |
+| 30s polling | Battery/network vs real-time tradeoff |
+
+## 11. Manual QA checklist
+
+- [ ] `/notifications` — summary cards, recent list, pull refresh
+- [ ] Inbox → Notifications tab — search, unread filter, pagination, grouping
+- [ ] Tap card → detail → Mark read / Open action
+- [ ] Mark all read — badge clears
+- [ ] Swipe delete — item removed, badge updates
+- [ ] Settings save + permission page flow
+- [ ] Offline — cached data + hint
+- [ ] Deep link `/notifications/open?target=animal&animalId=…`
+- [ ] Logout — polling stops
 
 **USER_APP_15_COMPLETE**

@@ -19,16 +19,16 @@ class SocialLoginButtons extends ConsumerWidget {
       success: (_) {},
       failure: (error) {
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
       },
     );
     if (!context.mounted) return;
     if (!ref.read(socialAuthProvider).isAvailable) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.socialLoginComingSoon)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.socialLoginComingSoon)));
     }
   }
 

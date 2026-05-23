@@ -23,8 +23,12 @@ abstract final class FeedValidation {
     String? batchId,
     required String message,
   }) {
-    if (target == FeedTarget.animal && (animalId == null || animalId.isEmpty)) return message;
-    if (target == FeedTarget.group && (batchId == null || batchId.isEmpty)) return message;
+    if (target == FeedTarget.animal && (animalId == null || animalId.isEmpty)) {
+      return message;
+    }
+    if (target == FeedTarget.group && (batchId == null || batchId.isEmpty)) {
+      return message;
+    }
     return null;
   }
 

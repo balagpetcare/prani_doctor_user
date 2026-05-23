@@ -9,6 +9,7 @@ import '../../farm/presentation/farm_providers.dart';
 import '../data/vaccine_dto.dart';
 import '../data/vaccine_repository.dart';
 import '../data/vaccine_validation.dart';
+import 'vaccine_navigation.dart';
 import 'vaccine_providers.dart';
 
 class VaccineFormPage extends ConsumerStatefulWidget {
@@ -32,6 +33,7 @@ class _VaccineFormPageState extends ConsumerState<VaccineFormPage> {
   DateTime? _administeredDate;
   DateTime? _nextDueDate;
   bool _loading = false;
+  bool _submitting = false;
   String? _error;
 
   @override
@@ -58,7 +60,9 @@ class _VaccineFormPageState extends ConsumerState<VaccineFormPage> {
       return;
     }
     if (widget.recordId != null) {
-      final record = await ref.read(vaccineRecordProvider(widget.recordId!).future);
+      final record = await ref.read(
+        vaccineRecordProvider(widget.recordId!).future,
+      );
       _applyInput(
         VaccineInput(
           farmRef: record.farmRef,
@@ -108,19 +112,33 @@ class _VaccineFormPageState extends ConsumerState<VaccineFormPage> {
   }
 
   Future<void> _saveDraft() async {
-    await ref.read(vaccineRepositoryProvider).saveDraft(_currentInput(), recordId: widget.recordId);
+    await ref
+        .read(vaccineRepositoryProvider)
+        .saveDraft(_currentInput(), recordId: widget.recordId);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.vaccineDraftSaved)),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.vaccineDraftSaved),
+        ),
       );
     }
   }
 
   Future<void> _submit() async {
+    if (_submitting) return;
     final l10n = AppLocalizations.of(context)!;
-    final nameError = VaccineValidation.validateName(_nameController.text, message: l10n.vaccineNameRequired);
-    final animalError = VaccineValidation.validateAnimal(_animalId, message: l10n.vaccineAnimalRequired);
-    final dateError = VaccineValidation.validateScheduledDate(_scheduledDate, message: l10n.vaccineDateInvalid);
+    final nameError = VaccineValidation.validateName(
+      _nameController.text,
+      message: l10n.vaccineNameRequired,
+    );
+    final animalError = VaccineValidation.validateAnimal(
+      _animalId,
+      message: l10n.vaccineAnimalRequired,
+    );
+    final dateError = VaccineValidation.validateScheduledDate(
+      _scheduledDate,
+      message: l10n.vaccineDateInvalid,
+    );
     final error = nameError ?? animalError ?? dateError;
     if (error != null) {
       setState(() => _error = error);
@@ -129,6 +147,7 @@ class _VaccineFormPageState extends ConsumerState<VaccineFormPage> {
 
     setState(() {
       _loading = true;
+      _submitting = true;
       _error = null;
     });
 
@@ -139,20 +158,23 @@ class _VaccineFormPageState extends ConsumerState<VaccineFormPage> {
         : await repo.updateRecord(widget.recordId!, input);
 
     if (!mounted) return;
-    setState(() => _loading = false);
+    setState(() {
+      _loading = false;
+      _submitting = false;
+    });
 
     result.when(
       success: (_) {
-        ref.invalidate(vaccineProvider);
-        ref.invalidate(vaccineReminderProvider);
+        VaccineNavigation.afterSave(ref, recordId: widget.recordId);
         context.pop();
       },
       failure: (e) {
         if (e.code == offlineQueuedCode) {
-          ref.invalidate(vaccineProvider);
-          ref.invalidate(vaccineReminderProvider);
+          VaccineNavigation.afterSave(ref, recordId: widget.recordId);
           context.pop();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.vaccineOfflineSaved)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.vaccineOfflineSaved)));
           return;
         }
         setState(() => _error = e.message);
@@ -170,8 +192,14 @@ class _VaccineFormPageState extends ConsumerState<VaccineFormPage> {
         title: Text(l10n.vaccineDeleteTitle),
         content: Text(l10n.vaccineDeleteConfirm),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.vaccineDeleteAction)),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.vaccineDeleteAction),
+          ),
         ],
       ),
     );
@@ -183,16 +211,16 @@ class _VaccineFormPageState extends ConsumerState<VaccineFormPage> {
     setState(() => _loading = false);
     result.when(
       success: (_) {
-        ref.invalidate(vaccineProvider);
-        ref.invalidate(vaccineReminderProvider);
+        VaccineNavigation.afterDelete(ref);
         context.pop();
       },
       failure: (e) {
         if (e.code == offlineQueuedCode) {
-          ref.invalidate(vaccineProvider);
-          ref.invalidate(vaccineReminderProvider);
+          VaccineNavigation.afterDelete(ref);
           context.pop();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.vaccineOfflineSaved)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.vaccineOfflineSaved)));
           return;
         }
         setState(() => _error = e.message);
@@ -201,7 +229,9 @@ class _VaccineFormPageState extends ConsumerState<VaccineFormPage> {
   }
 
   Future<void> _pickDate({required bool scheduled}) async {
-    final initial = scheduled ? _scheduledDate : (_administeredDate ?? DateTime.now());
+    final initial = scheduled
+        ? _scheduledDate
+        : (_administeredDate ?? DateTime.now());
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -224,15 +254,22 @@ class _VaccineFormPageState extends ConsumerState<VaccineFormPage> {
     final animalsAsync = ref.watch(animalListProvider);
     final farmsAsync = ref.watch(farmListProvider);
     final isEdit = widget.recordId != null;
-    final livestock = animalsAsync.value?.animals.where((a) => a.active).toList() ?? [];
+    final livestock =
+        animalsAsync.value?.animals.where((a) => a.active).toList() ?? [];
 
     return Scaffold(
       appBar: AppBar(
         title: Text(isEdit ? l10n.vaccineEditTitle : l10n.vaccineAddTitle),
         actions: [
           if (isEdit)
-            IconButton(onPressed: _loading ? null : _delete, icon: const Icon(Icons.delete_outline)),
-          TextButton(onPressed: _loading ? null : _saveDraft, child: Text(l10n.vaccineSaveDraft)),
+            IconButton(
+              onPressed: _loading ? null : _delete,
+              icon: const Icon(Icons.delete_outline),
+            ),
+          TextButton(
+            onPressed: _loading ? null : _saveDraft,
+            child: Text(l10n.vaccineSaveDraft),
+          ),
         ],
       ),
       body: ListView(
@@ -241,32 +278,47 @@ class _VaccineFormPageState extends ConsumerState<VaccineFormPage> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ),
           farmsAsync.when(
             loading: () => const LinearProgressIndicator(),
-            error: (_, __) => Text(l10n.vaccineFarmLoadError),
+            error: (_, _) => Text(l10n.vaccineFarmLoadError),
             data: (farms) {
               if (farms.farms.isEmpty) return Text(l10n.vaccineNoFarm);
               return DropdownButtonFormField<String>(
-                value: _farmRef ?? farms.farms.first.id,
+                initialValue: _farmRef ?? farms.farms.first.id,
                 decoration: InputDecoration(labelText: l10n.vaccineFarmLabel),
-                items: farms.farms.map((f) => DropdownMenuItem(value: f.id, child: Text(f.name))).toList(),
-                onChanged: _loading ? null : (v) => setState(() => _farmRef = v),
+                items: farms.farms
+                    .map(
+                      (f) => DropdownMenuItem(value: f.id, child: Text(f.name)),
+                    )
+                    .toList(),
+                onChanged: _loading
+                    ? null
+                    : (v) => setState(() => _farmRef = v),
               );
             },
           ),
           const SizedBox(height: 12),
           animalsAsync.when(
             loading: () => const LinearProgressIndicator(),
-            error: (_, __) => Text(l10n.vaccineAnimalLoadError),
+            error: (_, _) => Text(l10n.vaccineAnimalLoadError),
             data: (_) {
               if (livestock.isEmpty) return Text(l10n.vaccineNoAnimals);
               return DropdownButtonFormField<String>(
-                value: _animalId,
+                initialValue: _animalId,
                 decoration: InputDecoration(labelText: l10n.vaccineAnimalLabel),
-                items: livestock.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
-                onChanged: _loading ? null : (v) => setState(() => _animalId = v),
+                items: livestock
+                    .map(
+                      (a) => DropdownMenuItem(value: a.id, child: Text(a.name)),
+                    )
+                    .toList(),
+                onChanged: _loading
+                    ? null
+                    : (v) => setState(() => _animalId = v),
               );
             },
           ),
@@ -284,7 +336,9 @@ class _VaccineFormPageState extends ConsumerState<VaccineFormPage> {
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(l10n.vaccineScheduledDateLabel),
-            subtitle: Text(_scheduledDate.toLocal().toString().split(' ').first),
+            subtitle: Text(
+              _scheduledDate.toLocal().toString().split(' ').first,
+            ),
             trailing: IconButton(
               onPressed: () => _pickDate(scheduled: true),
               icon: const Icon(Icons.calendar_today_outlined),
@@ -293,7 +347,10 @@ class _VaccineFormPageState extends ConsumerState<VaccineFormPage> {
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(l10n.vaccineAdministeredDateLabel),
-            subtitle: Text(_administeredDate?.toLocal().toString().split(' ').first ?? l10n.vaccineNotAdministered),
+            subtitle: Text(
+              _administeredDate?.toLocal().toString().split(' ').first ??
+                  l10n.vaccineNotAdministered,
+            ),
             trailing: IconButton(
               onPressed: () => _pickDate(scheduled: false),
               icon: const Icon(Icons.event_available_outlined),
@@ -314,8 +371,14 @@ class _VaccineFormPageState extends ConsumerState<VaccineFormPage> {
           FilledButton(
             onPressed: _loading ? null : _submit,
             child: _loading
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : Text(isEdit ? l10n.vaccineSaveChanges : l10n.vaccineCreateAction),
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(
+                    isEdit ? l10n.vaccineSaveChanges : l10n.vaccineCreateAction,
+                  ),
           ),
         ],
       ),

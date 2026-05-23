@@ -18,13 +18,15 @@ class OfflineRepository {
       final data = await getJson(
         _dio,
         OfflineRepositoryContract.syncStatusPath,
-        queryParameters: {if (deviceId != null) 'deviceId': deviceId},
+        queryParameters: {'deviceId': ?deviceId},
       );
       return ApiResult.success(SyncStatusDto.fromJson(data));
     } on AppException catch (e) {
       return ApiResult.failure(e);
     } catch (e) {
-      return ApiResult.failure(AppException(message: 'Could not load sync status', cause: e));
+      return ApiResult.failure(
+        AppException(message: 'Could not load sync status', cause: e),
+      );
     }
   }
 
@@ -37,9 +39,10 @@ class OfflineRepository {
   }) async {
     try {
       final data = await postJson(_dio, OfflineRepositoryContract.syncPath, {
-        if (deviceId != null) 'deviceId': deviceId,
-        if (connectivityMode != null) 'connectivityMode': connectivityToApi(connectivityMode),
-        if (manualOverride != null) 'manualOverride': manualOverride,
+        'deviceId': ?deviceId,
+        if (connectivityMode != null)
+          'connectivityMode': connectivityToApi(connectivityMode),
+        'manualOverride': ?manualOverride,
         'mode': mode,
         if (items != null) 'items': items.map((e) => e.toJson()).toList(),
       });
@@ -58,12 +61,13 @@ class OfflineRepository {
     bool resume = false,
   }) async {
     try {
-      final data = await postJson(_dio, OfflineRepositoryContract.syncRetryPath, {
-        if (idempotencyKeys != null) 'idempotencyKeys': idempotencyKeys,
-        'includeDead': includeDead,
-        'pause': pause,
-        'resume': resume,
-      });
+      final data =
+          await postJson(_dio, OfflineRepositoryContract.syncRetryPath, {
+            'idempotencyKeys': ?idempotencyKeys,
+            'includeDead': includeDead,
+            'pause': pause,
+            'resume': resume,
+          });
       return ApiResult.success(SyncRetryResponseDto.fromJson(data));
     } on AppException catch (e) {
       return ApiResult.failure(e);
@@ -74,12 +78,17 @@ class OfflineRepository {
 
   Future<ApiResult<OfflineQueueDto>> getOfflineQueue() async {
     try {
-      final data = await getJson(_dio, OfflineRepositoryContract.offlineQueuePath);
+      final data = await getJson(
+        _dio,
+        OfflineRepositoryContract.offlineQueuePath,
+      );
       return ApiResult.success(OfflineQueueDto.fromJson(data));
     } on AppException catch (e) {
       return ApiResult.failure(e);
     } catch (e) {
-      return ApiResult.failure(AppException(message: 'Could not load offline queue', cause: e));
+      return ApiResult.failure(
+        AppException(message: 'Could not load offline queue', cause: e),
+      );
     }
   }
 }

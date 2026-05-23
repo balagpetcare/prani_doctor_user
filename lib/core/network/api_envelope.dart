@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../error/app_exception.dart';
+import '../error/http_error_mapper.dart';
 
 /// Parses legacy compat `{ ok, data }` and foundation `{ success, data }` responses.
 class ApiEnvelope {
@@ -46,7 +47,10 @@ class ApiEnvelope {
     if (error is Map<String, dynamic>) {
       final message = error['message'] as String? ?? 'Request failed';
       final code = error['code'] as String?;
-      return AppException(message: message, code: code ?? statusCode?.toString());
+      return AppException(
+        message: message,
+        code: code ?? statusCode?.toString(),
+      );
     }
     return AppException(
       message: 'Request failed',
@@ -61,12 +65,7 @@ class ApiEnvelope {
         (data['ok'] == false || data['success'] == false)) {
       return exceptionFromBody(data, response?.statusCode);
     }
-    final status = response?.statusCode;
-    return AppException(
-      message: error.message ?? 'Network error',
-      code: status?.toString(),
-      cause: error,
-    );
+    return HttpErrorMapper.fromDio(error);
   }
 
   static Map<String, dynamic> _bodyMap(Response<dynamic> response) {

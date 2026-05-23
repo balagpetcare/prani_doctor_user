@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pranidoctor_user/features/notifications/data/notification_dto.dart';
 import 'package:pranidoctor_user/features/notifications/data/notification_grouping.dart';
 import 'package:pranidoctor_user/features/notifications/notification_deeplink.dart';
+import 'package:pranidoctor_user/features/notifications/presentation/notification_providers.dart';
 
 void main() {
   group('MobileNotificationDto', () {
@@ -61,6 +62,32 @@ void main() {
     });
   });
 
+  group('NotificationListState', () {
+    test('filters items by search query', () {
+      const state = NotificationListState(
+        items: [
+          MobileNotificationDto(
+            id: '1',
+            type: 'SYSTEM',
+            title: 'Vaccine due',
+            body: 'Cow needs vaccine',
+            createdAt: '2026-05-22T00:00:00.000Z',
+          ),
+          MobileNotificationDto(
+            id: '2',
+            type: 'SYSTEM',
+            title: 'Payment',
+            body: 'Invoice ready',
+            createdAt: '2026-05-22T00:00:00.000Z',
+          ),
+        ],
+      );
+      final grouped = state.groupedBy('vaccine');
+      expect(grouped.length, 1);
+      expect(grouped.first.items.first.id, '1');
+    });
+  });
+
   group('NotificationDeepLink', () {
     test('routes service request', () {
       final route = NotificationDeepLink.resolve(
@@ -75,6 +102,20 @@ void main() {
         metadata: {'target': 'animal', 'animalId': 'a-1'},
       );
       expect(route, '/animals/a-1');
+    });
+
+    test('routes health target', () {
+      final route = NotificationDeepLink.resolve(
+        metadata: {'target': 'health', 'healthId': 'h-1'},
+      );
+      expect(route, '/health/h-1');
+    });
+
+    test('routes vaccine target', () {
+      final route = NotificationDeepLink.resolve(
+        metadata: {'target': 'vaccine', 'vaccineId': 'v-1'},
+      );
+      expect(route, '/vaccines/v-1');
     });
 
     test('falls back to inbox', () {

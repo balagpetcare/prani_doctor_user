@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../core/layout/shell_page_padding.dart';
 import '../../routing/app_routes.dart';
 import '../notifications/presentation/notifications_panel.dart';
 import '../service_requests/data/service_request_dto.dart';
@@ -22,8 +23,11 @@ class InboxPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Text(l10n.navInbox, style: Theme.of(context).textTheme.headlineSmall),
+            padding: ShellPagePadding.page(context).copyWith(bottom: 0),
+            child: Text(
+              l10n.navInbox,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
           ),
           TabBar(
             tabs: [
@@ -33,10 +37,7 @@ class InboxPage extends ConsumerWidget {
           ),
           const Expanded(
             child: TabBarView(
-              children: [
-                _AppointmentsTab(),
-                NotificationsPanel(),
-              ],
+              children: [_AppointmentsTab(), NotificationsPanel()],
             ),
           ),
         ],
@@ -66,7 +67,8 @@ class _AppointmentsTab extends ConsumerWidget {
                 label: l10n.segmentActive,
                 selected: segment == InboxSegment.active,
                 onSelected: () {
-                  ref.read(inboxSegmentProvider.notifier).state = InboxSegment.active;
+                  ref.read(inboxSegmentProvider.notifier).state =
+                      InboxSegment.active;
                   ref.invalidate(serviceRequestListProvider);
                 },
               ),
@@ -74,7 +76,8 @@ class _AppointmentsTab extends ConsumerWidget {
                 label: l10n.segmentCompleted,
                 selected: segment == InboxSegment.completed,
                 onSelected: () {
-                  ref.read(inboxSegmentProvider.notifier).state = InboxSegment.completed;
+                  ref.read(inboxSegmentProvider.notifier).state =
+                      InboxSegment.completed;
                   ref.invalidate(serviceRequestListProvider);
                 },
               ),
@@ -82,7 +85,8 @@ class _AppointmentsTab extends ConsumerWidget {
                 label: l10n.segmentClosed,
                 selected: segment == InboxSegment.closed,
                 onSelected: () {
-                  ref.read(inboxSegmentProvider.notifier).state = InboxSegment.closed;
+                  ref.read(inboxSegmentProvider.notifier).state =
+                      InboxSegment.closed;
                   ref.invalidate(serviceRequestListProvider);
                 },
               ),
@@ -90,7 +94,8 @@ class _AppointmentsTab extends ConsumerWidget {
                 label: l10n.segmentAll,
                 selected: segment == InboxSegment.all,
                 onSelected: () {
-                  ref.read(inboxSegmentProvider.notifier).state = InboxSegment.all;
+                  ref.read(inboxSegmentProvider.notifier).state =
+                      InboxSegment.all;
                   ref.invalidate(serviceRequestListProvider);
                 },
               ),
@@ -118,11 +123,12 @@ class _AppointmentsTab extends ConsumerWidget {
                 );
               }
               return RefreshIndicator(
-                onRefresh: () async => ref.invalidate(serviceRequestListProvider),
+                onRefresh: () async =>
+                    ref.invalidate(serviceRequestListProvider),
                 child: ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: requests.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final request = requests[index];
                     return _AppointmentCard(request: request);

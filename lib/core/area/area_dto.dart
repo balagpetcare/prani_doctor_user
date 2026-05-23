@@ -1,4 +1,4 @@
-/// Bangladesh area hierarchy DTO — mirrors GET /api/area/* foundation responses.
+/// Bangladesh area hierarchy DTO — mirrors GET /api/mobile/locations/* responses.
 class AreaNodeDto {
   const AreaNodeDto({
     required this.id,
@@ -41,6 +41,31 @@ class AreaNodeDto {
       isVerified: json['isVerified'] as bool? ?? false,
     );
   }
+
+  /// Maps mobile location rows (`MobileLocationDto`) plus caller context.
+  factory AreaNodeDto.fromMobileJson(
+    Map<String, dynamic> json, {
+    required String level,
+    String? parentId,
+    String locale = 'bn',
+  }) {
+    final nameBn = json['nameBn'] as String? ?? '';
+    final nameEn = json['nameEn'] as String? ?? '';
+    final label = locale == 'en' && nameEn.isNotEmpty ? nameEn : nameBn;
+    return AreaNodeDto(
+      id: json['id'] as String,
+      slug: json['slug'] as String? ?? json['id'] as String,
+      code: json['code'] as String?,
+      nameBn: nameBn,
+      nameEn: nameEn,
+      label: label.isNotEmpty ? label : (nameBn.isNotEmpty ? nameBn : nameEn),
+      level: level,
+      parentId: parentId,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      isVerified: json['isVerified'] as bool? ?? false,
+    );
+  }
 }
 
 class AreaSearchHitDto extends AreaNodeDto {
@@ -77,6 +102,28 @@ class AreaSearchHitDto extends AreaNodeDto {
       breadcrumb: json['breadcrumb'] as String?,
     );
   }
+
+  factory AreaSearchHitDto.fromMobileJson(
+    Map<String, dynamic> json, {
+    String locale = 'bn',
+  }) {
+    final level = json['level'] as String? ?? 'VILLAGE';
+    final node = AreaNodeDto.fromMobileJson(json, level: level, locale: locale);
+    return AreaSearchHitDto(
+      id: node.id,
+      slug: node.slug,
+      code: node.code,
+      nameBn: node.nameBn,
+      nameEn: node.nameEn,
+      label: node.label,
+      level: node.level,
+      parentId: node.parentId,
+      latitude: node.latitude,
+      longitude: node.longitude,
+      isVerified: node.isVerified,
+      breadcrumb: json['breadcrumb'] as String?,
+    );
+  }
 }
 
 class AreaPageMeta {
@@ -103,8 +150,13 @@ class AreaPageMeta {
 }
 
 class AreaPage<T> {
-  const AreaPage({required this.data, required this.meta});
+  const AreaPage({
+    required this.data,
+    required this.meta,
+    this.fromCache = false,
+  });
 
   final List<T> data;
   final AreaPageMeta meta;
+  final bool fromCache;
 }

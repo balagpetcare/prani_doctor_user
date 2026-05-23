@@ -9,7 +9,11 @@ class LocalCacheService implements LocalCacheContract {
   static String _entryKey(String key) => 'local_cache:$key';
 
   @override
-  Future<void> write(String key, Map<String, dynamic> payload, Duration ttl) async {
+  Future<void> write(
+    String key,
+    Map<String, dynamic> payload,
+    Duration ttl,
+  ) async {
     await _store.put(_entryKey(key), {
       'payload': payload,
       'expiresAt': DateTime.now().add(ttl).millisecondsSinceEpoch,
@@ -21,7 +25,8 @@ class LocalCacheService implements LocalCacheContract {
     final entry = _store.read<Map<dynamic, dynamic>>(_entryKey(key));
     if (entry == null) return null;
     final expiresAt = entry['expiresAt'] as int?;
-    if (expiresAt != null && DateTime.now().millisecondsSinceEpoch > expiresAt) {
+    if (expiresAt != null &&
+        DateTime.now().millisecondsSinceEpoch > expiresAt) {
       await _store.delete(_entryKey(key));
       return null;
     }

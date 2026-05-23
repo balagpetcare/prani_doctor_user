@@ -1,22 +1,62 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
+
+import '../../../../core/error/http_error_mapper.dart';
+import 'profile_edit_skeleton.dart';
 
 class ProfileFeedback {
   ProfileFeedback._();
 
   static Widget loading() => const Center(child: CircularProgressIndicator());
 
+  static Widget editSkeleton() {
+    return const ProfileEditSkeleton();
+  }
+
   static Widget error(BuildContext context, {required VoidCallback onRetry}) {
+    return errorFromObject(context, failure: null, onRetry: onRetry);
+  }
+
+  static Widget errorFromObject(
+    BuildContext context, {
+    required Object? failure,
+    required VoidCallback onRetry,
+  }) {
+    if (kDebugMode && failure != null) {
+      HttpErrorMapper.logDeveloper(failure, tag: 'PROFILE');
+    }
     final l10n = AppLocalizations.of(context)!;
+    final title = failure != null
+        ? HttpErrorMapper.profileErrorTitle(failure)
+        : HttpErrorMapper.profileLoadTitle;
+    final subtitle = failure != null
+        ? HttpErrorMapper.profileErrorMessage(failure)
+        : HttpErrorMapper.genericSubtitle;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 16),
-            Text(l10n.profileLoadError, textAlign: TextAlign.center),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
             FilledButton(onPressed: onRetry, child: Text(l10n.bootRetry)),
           ],
@@ -61,7 +101,9 @@ class ProfileAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initials = name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : '?';
+    final initials = name.trim().isNotEmpty
+        ? name.trim()[0].toUpperCase()
+        : '?';
     final avatar = CircleAvatar(
       radius: radius,
       backgroundImage: photoUrl != null && photoUrl!.isNotEmpty

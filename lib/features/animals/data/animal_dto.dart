@@ -1,4 +1,8 @@
+import '../../../core/util/safe_numeric.dart';
+
 enum AnimalFilter { all, active, inactive, livestock, pets }
+
+enum AnimalSort { nameAsc, nameDesc, recentFirst, typeAsc }
 
 class AnimalProfile {
   const AnimalProfile({
@@ -49,6 +53,9 @@ class AnimalProfile {
 
   String get displayTag => microchipOrTag ?? '';
 
+  /// Primary animal image — separate from user profile avatar.
+  String? get primaryImageUrl => photoUrl;
+
   AnimalProfile copyWith({
     String? name,
     String? breed,
@@ -84,7 +91,10 @@ class AnimalProfile {
     );
   }
 
-  factory AnimalProfile.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory AnimalProfile.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     return AnimalProfile(
       id: json['id'] as String,
       customerId: json['customerId'] as String? ?? '',
@@ -97,8 +107,8 @@ class AnimalProfile {
       dateOfBirth: json['dateOfBirth'] == null
           ? null
           : DateTime.tryParse(json['dateOfBirth'] as String),
-      ageYears: (json['ageYears'] as num?)?.toInt(),
-      ageMonths: (json['ageMonths'] as num?)?.toInt(),
+      ageYears: safeNullableInt(json['ageYears']),
+      ageMonths: safeNullableInt(json['ageMonths']),
       sex: json['sex'] as String?,
       gender: json['gender'] as String?,
       microchipOrTag: json['microchipOrTag'] as String?,
@@ -106,34 +116,38 @@ class AnimalProfile {
       photoUrl: json['photoUrl'] as String?,
       pregnancyStatus: json['pregnancyStatus'] as String?,
       active: json['active'] as bool? ?? true,
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+          DateTime.now(),
       fromCache: fromCache,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'customerId': customerId,
-        'name': name,
-        'species': species,
-        'category': category,
-        if (animalType != null) 'animalType': animalType,
-        if (breed != null) 'breed': breed,
-        if (weightKg != null) 'weightKg': weightKg,
-        if (dateOfBirth != null) 'dateOfBirth': dateOfBirth!.toIso8601String(),
-        if (ageYears != null) 'ageYears': ageYears,
-        if (ageMonths != null) 'ageMonths': ageMonths,
-        if (sex != null) 'sex': sex,
-        if (gender != null) 'gender': gender,
-        if (microchipOrTag != null) 'microchipOrTag': microchipOrTag,
-        if (notes != null) 'notes': notes,
-        if (photoUrl != null) 'photoUrl': photoUrl,
-        if (pregnancyStatus != null) 'pregnancyStatus': pregnancyStatus,
-        'active': active,
-        'createdAt': createdAt.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
-      };
+    'id': id,
+    'customerId': customerId,
+    'name': name,
+    'species': species,
+    'category': category,
+    if (animalType != null) 'animalType': animalType,
+    if (breed != null) 'breed': breed,
+    if (weightKg != null) 'weightKg': weightKg,
+    if (dateOfBirth != null) 'dateOfBirth': dateOfBirth!.toIso8601String(),
+    if (ageYears != null) 'ageYears': ageYears,
+    if (ageMonths != null) 'ageMonths': ageMonths,
+    if (sex != null) 'sex': sex,
+    if (gender != null) 'gender': gender,
+    if (microchipOrTag != null) 'microchipOrTag': microchipOrTag,
+    if (notes != null) 'notes': notes,
+    if (photoUrl != null) 'photoUrl': photoUrl,
+    if (pregnancyStatus != null) 'pregnancyStatus': pregnancyStatus,
+    'active': active,
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+  };
 }
 
 class AnimalPageResult {
@@ -143,6 +157,9 @@ class AnimalPageResult {
     required this.page,
     required this.pageSize,
     required this.hasMore,
+    this.activeCount = 0,
+    this.inactiveCount = 0,
+    this.livestockCount = 0,
     this.fromCache = false,
   });
 
@@ -151,15 +168,26 @@ class AnimalPageResult {
   final int page;
   final int pageSize;
   final bool hasMore;
+  final int activeCount;
+  final int inactiveCount;
+  final int livestockCount;
   final bool fromCache;
 
-  AnimalPageResult copyWith({bool? fromCache}) {
+  AnimalPageResult copyWith({
+    bool? fromCache,
+    int? activeCount,
+    int? inactiveCount,
+    int? livestockCount,
+  }) {
     return AnimalPageResult(
       animals: animals,
       total: total,
       page: page,
       pageSize: pageSize,
       hasMore: hasMore,
+      activeCount: activeCount ?? this.activeCount,
+      inactiveCount: inactiveCount ?? this.inactiveCount,
+      livestockCount: livestockCount ?? this.livestockCount,
       fromCache: fromCache ?? this.fromCache,
     );
   }
@@ -240,7 +268,8 @@ class AnimalInput {
       if (dateOfBirth != null) 'dateOfBirth': dateOfBirth,
       if (gender != null) 'gender': gender,
       if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
-      if (photoUrl != null && photoUrl!.trim().isNotEmpty) 'photoUrl': photoUrl!.trim(),
+      if (photoUrl != null && photoUrl!.trim().isNotEmpty)
+        'photoUrl': photoUrl!.trim(),
       if (weightKg != null) 'weightKg': weightKg,
     };
   }
@@ -254,24 +283,25 @@ class AnimalInput {
       if (dateOfBirth != null) 'dateOfBirth': dateOfBirth,
       if (gender != null) 'gender': gender,
       if (notes != null) 'notes': notes!.trim().isEmpty ? null : notes!.trim(),
-      if (photoUrl != null) 'photoUrl': photoUrl!.trim().isEmpty ? null : photoUrl!.trim(),
+      if (photoUrl != null)
+        'photoUrl': photoUrl!.trim().isEmpty ? null : photoUrl!.trim(),
       if (weightKg != null) 'weightKg': weightKg,
       'animalType': animalType,
     };
   }
 
   Map<String, dynamic> toDraftJson() => {
-        'animalType': animalType,
-        'name': name,
-        'tag': tag,
-        'breed': breed,
-        'ageYears': ageYears,
-        'dateOfBirth': dateOfBirth,
-        'gender': gender,
-        'notes': notes,
-        'photoUrl': photoUrl,
-        'weightKg': weightKg,
-      };
+    'animalType': animalType,
+    'name': name,
+    'tag': tag,
+    'breed': breed,
+    'ageYears': ageYears,
+    'dateOfBirth': dateOfBirth,
+    'gender': gender,
+    'notes': notes,
+    'photoUrl': photoUrl,
+    'weightKg': weightKg,
+  };
 
   factory AnimalInput.fromDraftJson(Map<String, dynamic> json) {
     return AnimalInput(
@@ -279,12 +309,12 @@ class AnimalInput {
       name: json['name'] as String?,
       tag: json['tag'] as String?,
       breed: json['breed'] as String?,
-      ageYears: (json['ageYears'] as num?)?.toInt(),
+      ageYears: safeNullableInt(json['ageYears']),
       dateOfBirth: json['dateOfBirth'] as String?,
       gender: json['gender'] as String?,
       notes: json['notes'] as String?,
       photoUrl: json['photoUrl'] as String?,
-      weightKg: (json['weightKg'] as num?)?.toDouble(),
+      weightKg: safeNullableDouble(json['weightKg']),
     );
   }
 }

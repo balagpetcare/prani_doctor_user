@@ -56,14 +56,12 @@ class OtpFlowNotifier extends StateNotifier<OtpFlowState> {
 
   Future<void> bootstrap(String? phone) async {
     if (phone == null || phone.isEmpty) return;
-    final cached =
-        await _ref.read(authRepositoryProvider).readCachedOtpRequest(phone);
+    final cached = await _ref
+        .read(authRepositoryProvider)
+        .readCachedOtpRequest(phone);
     if (cached != null) {
       _startCountdown(cached.resendCooldownSeconds);
-      state = state.copyWith(
-        phone: phone,
-        otpTtlSeconds: cached.otpTtlSeconds,
-      );
+      state = state.copyWith(phone: phone, otpTtlSeconds: cached.otpTtlSeconds);
     }
   }
 
@@ -121,13 +119,12 @@ class OtpFlowNotifier extends StateNotifier<OtpFlowState> {
   }
 }
 
-final otpFlowProvider =
-    StateNotifierProvider<OtpFlowNotifier, OtpFlowState>((ref) {
+final otpFlowProvider = StateNotifierProvider<OtpFlowNotifier, OtpFlowState>((
+  ref,
+) {
   return OtpFlowNotifier(ref);
 });
 
 final welcomeSeenProvider = FutureProvider<bool>((ref) async {
   return ref.read(authPreferencesProvider).isWelcomeSeen();
 });
-
-final rememberSessionProvider = StateProvider<bool>((ref) => true);

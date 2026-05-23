@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/area/area_cache_contract.dart';
 import '../../../core/area/area_dto.dart';
-import '../../../core/area/area_entities.dart';
 import '../../../core/area/area_repository_contract.dart';
 import '../../../core/cache/cache_providers.dart';
 import '../../../core/error/app_exception.dart';
@@ -24,6 +23,7 @@ class AreaRepository implements AreaRepositoryContract {
 
   static const _defaultPageSize = 100;
   static const _maxAttempts = 2;
+  static const _maxPages = 5;
 
   @override
   Future<AreaPage<AreaNodeDto>> getDivisions({
@@ -37,6 +37,7 @@ class AreaRepository implements AreaRepositoryContract {
       page: page,
       pageSize: pageSize,
       locale: locale,
+      level: 'DIVISION',
     );
   }
 
@@ -48,11 +49,14 @@ class AreaRepository implements AreaRepositoryContract {
     String locale = 'bn',
   }) {
     return _fetchNodes(
-      path: AreaApiPaths.districts(divisionId),
+      path: AreaApiPaths.districts,
       cacheKey: AreaCacheContract.districtsKey(divisionId, locale),
       page: page,
       pageSize: pageSize,
       locale: locale,
+      level: 'DISTRICT',
+      parentId: divisionId,
+      query: {'divisionId': divisionId},
     );
   }
 
@@ -64,27 +68,34 @@ class AreaRepository implements AreaRepositoryContract {
     String locale = 'bn',
   }) {
     return _fetchNodes(
-      path: AreaApiPaths.upazilas(districtId),
+      path: AreaApiPaths.upazilas,
       cacheKey: AreaCacheContract.upazilasKey(districtId, locale),
       page: page,
       pageSize: pageSize,
       locale: locale,
+      level: 'UPAZILA',
+      parentId: districtId,
+      query: {'districtId': districtId},
     );
   }
 
   @override
-  Future<AreaPage<AreaNodeDto>> getUnions(
-    String upazilaId, {
+  Future<AreaPage<AreaNodeDto>> getUnions({
+    required String districtId,
+    required String upazilaId,
     int page = 1,
     int pageSize = 20,
     String locale = 'bn',
   }) {
     return _fetchNodes(
-      path: AreaApiPaths.unions(upazilaId),
+      path: AreaApiPaths.unions,
       cacheKey: AreaCacheContract.unionsKey(upazilaId, locale),
       page: page,
       pageSize: pageSize,
       locale: locale,
+      level: 'UNION',
+      parentId: upazilaId,
+      query: {'districtId': districtId, 'upazilaId': upazilaId},
     );
   }
 
@@ -96,11 +107,14 @@ class AreaRepository implements AreaRepositoryContract {
     String locale = 'bn',
   }) {
     return _fetchNodes(
-      path: AreaApiPaths.villages(unionId),
+      path: AreaApiPaths.villages,
       cacheKey: AreaCacheContract.villagesKey(unionId, locale),
       page: page,
       pageSize: pageSize,
       locale: locale,
+      level: 'VILLAGE',
+      parentId: unionId,
+      query: {'unionId': unionId},
     );
   }
 
@@ -113,55 +127,36 @@ class AreaRepository implements AreaRepositoryContract {
     }
   }
 
-  /// Fetches with cache metadata for providers.
-  Future<AreaLevelResult> fetchLevel(Future<AreaPage<AreaNodeDto>> Function() load) async {
-    try {
-      final page = await load();
-      if (page.data.isEmpty) return AreaLevelResult.empty;
-      return AreaLevelResult(nodes: page.data);
-    } on AppException catch (e) {
-      if (isTransientNetworkError(e)) rethrow;
-      rethrow;
-    }
-  }
-
   @override
   Future<AreaPage<AreaSearchHitDto>> search({
     required String query,
     String level = 'ALL',
-    int page = 1,
-    int pageSize = 20,
+    int limit = 25,
     String locale = 'bn',
     String? divisionId,
     String? districtId,
     String? upazilaId,
     String? unionId,
   }) async {
-    final result = await getJsonList(
+    final data = await getJson(
       _dio,
       AreaApiPaths.search,
-      queryParameters: {
-        'q': query,
-        'level': level,
-        'page': page,
-        'pageSize': pageSize,
-        'locale': locale,
-        if (divisionId != null) 'divisionId': divisionId,
-        if (districtId != null) 'districtId': districtId,
-        if (upazilaId != null) 'upazilaId': upazilaId,
-        if (unionId != null) 'unionId': unionId,
-      },
+      queryParameters: {'q': query, 'level': level, 'limit': limit},
     );
-
-    final nodes = result.data
+    final items = (data['items'] as List<dynamic>? ?? [])
         .whereType<Map<String, dynamic>>()
-        .map(AreaSearchHitDto.fromJson)
+        .map((json) => AreaSearchHitDto.fromMobileJson(json, locale: locale))
         .toList();
-    final meta = result.meta != null
-        ? AreaPageMeta.fromJson(result.meta!)
-        : AreaPageMeta(total: nodes.length, page: page, pageSize: pageSize, hasMore: false);
 
-    return AreaPage(data: nodes, meta: meta);
+    return AreaPage(
+      data: items,
+      meta: AreaPageMeta(
+        total: items.length,
+        page: 1,
+        pageSize: limit,
+        hasMore: false,
+      ),
+    );
   }
 
   Future<AreaPage<AreaNodeDto>> _fetchNodes({
@@ -170,6 +165,9 @@ class AreaRepository implements AreaRepositoryContract {
     required int page,
     required int pageSize,
     required String locale,
+    required String level,
+    String? parentId,
+    Map<String, dynamic>? query,
   }) async {
     final inFlight = _memory.inFlight(cacheKey);
     if (inFlight != null) return inFlight;
@@ -180,6 +178,9 @@ class AreaRepository implements AreaRepositoryContract {
       page: page,
       pageSize: pageSize,
       locale: locale,
+      level: level,
+      parentId: parentId,
+      query: query,
     );
     _memory.track(cacheKey, future);
     return future;
@@ -191,44 +192,61 @@ class AreaRepository implements AreaRepositoryContract {
     required int page,
     required int pageSize,
     required String locale,
+    required String level,
+    String? parentId,
+    Map<String, dynamic>? query,
   }) async {
     final effectivePageSize = page == 1 ? _defaultPageSize : pageSize;
 
     for (var attempt = 0; attempt < _maxAttempts; attempt++) {
       try {
-        final result = await getJsonList(
-          _dio,
-          path,
-          queryParameters: {
-            'page': page,
-            'pageSize': effectivePageSize,
-            'locale': locale,
-          },
+        final first = await _fetchPage(
+          path: path,
+          page: page,
+          pageSize: effectivePageSize,
+          locale: locale,
+          level: level,
+          parentId: parentId,
+          query: query,
         );
 
-        final nodes = result.data
-            .whereType<Map<String, dynamic>>()
-            .map(AreaNodeDto.fromJson)
-            .toList();
+        final allNodes = List<AreaNodeDto>.from(first.data);
+        var meta = first.meta;
+        var nextPage = page + 1;
 
-        if (page == 1 && nodes.isNotEmpty) {
-          _memory.write(cacheKey, nodes);
+        while (page == 1 && meta.hasMore && nextPage <= _maxPages) {
+          final next = await _fetchPage(
+            path: path,
+            page: nextPage,
+            pageSize: effectivePageSize,
+            locale: locale,
+            level: level,
+            parentId: parentId,
+            query: query,
+          );
+          allNodes.addAll(next.data);
+          meta = next.meta;
+          if (next.data.isEmpty) break;
+          nextPage++;
+        }
+
+        if (page == 1 && allNodes.isNotEmpty) {
+          _memory.write(cacheKey, allNodes);
           await _cache.writeJson(cacheKey, {
             'cachedAt': DateTime.now().toIso8601String(),
-            'items': result.data,
+            'items': allNodes.map(_nodeToJson).toList(),
           });
         }
 
-        final meta = result.meta != null
-            ? AreaPageMeta.fromJson(result.meta!)
-            : AreaPageMeta(
-                total: nodes.length,
-                page: page,
-                pageSize: effectivePageSize,
-                hasMore: false,
-              );
-
-        return AreaPage(data: nodes, meta: meta);
+        return AreaPage(
+          data: allNodes,
+          meta: AreaPageMeta(
+            total: meta.total > 0 ? meta.total : allNodes.length,
+            page: page,
+            pageSize: effectivePageSize,
+            hasMore: meta.hasMore && nextPage > _maxPages,
+          ),
+        );
       } on AppException catch (e) {
         final cached = await _loadFallback(cacheKey);
         if (cached != null) return cached;
@@ -255,6 +273,58 @@ class AreaRepository implements AreaRepositoryContract {
     );
   }
 
+  Future<AreaPage<AreaNodeDto>> _fetchPage({
+    required String path,
+    required int page,
+    required int pageSize,
+    required String locale,
+    required String level,
+    String? parentId,
+    Map<String, dynamic>? query,
+  }) async {
+    final data = await getJson(
+      _dio,
+      path,
+      queryParameters: {if (query != null) ...query},
+    );
+
+    final nodes = (data['items'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(
+          (json) => AreaNodeDto.fromMobileJson(
+            json,
+            level: level,
+            parentId: parentId,
+            locale: locale,
+          ),
+        )
+        .toList();
+
+    return AreaPage(
+      data: nodes,
+      meta: AreaPageMeta(
+        total: nodes.length,
+        page: page,
+        pageSize: pageSize,
+        hasMore: false,
+      ),
+    );
+  }
+
+  Map<String, dynamic> _nodeToJson(AreaNodeDto node) => {
+    'id': node.id,
+    'slug': node.slug,
+    'code': node.code,
+    'nameBn': node.nameBn,
+    'nameEn': node.nameEn,
+    'label': node.label,
+    'level': node.level,
+    'parentId': node.parentId,
+    'latitude': node.latitude,
+    'longitude': node.longitude,
+    'isVerified': node.isVerified,
+  };
+
   Future<AreaPage<AreaNodeDto>?> _loadFallback(String cacheKey) async {
     final mem = _memory.read(cacheKey);
     if (mem != null && mem.isNotEmpty) {
@@ -268,9 +338,13 @@ class AreaRepository implements AreaRepositoryContract {
     return null;
   }
 
-  AreaPage<AreaNodeDto> _pageFromList(List<AreaNodeDto> nodes, {bool fromCache = false}) {
+  AreaPage<AreaNodeDto> _pageFromList(
+    List<AreaNodeDto> nodes, {
+    bool fromCache = false,
+  }) {
     return AreaPage(
       data: nodes,
+      fromCache: fromCache,
       meta: AreaPageMeta(
         total: nodes.length,
         page: 1,

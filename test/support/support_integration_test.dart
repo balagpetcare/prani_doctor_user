@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:pranidoctor_user/features/support/data/support_dto.dart';
 import 'package:pranidoctor_user/features/support/data/support_validation.dart';
+import 'package:pranidoctor_user/features/support/presentation/support_providers.dart';
 
 void main() {
   group('SupportTicketSummary', () {
@@ -51,12 +52,12 @@ void main() {
 
   group('SupportTicketInput', () {
     test('create json includes attachment ids', () {
-      final input = SupportTicketInput(
+      const input = SupportTicketInput(
         category: SupportTicketCategory.billing,
         subject: 'Invoice issue',
         description: 'I was charged twice for the same service.',
         priority: SupportTicketPriority.high,
-        attachmentFileIds: const ['f1'],
+        attachmentFileIds: ['f1'],
       );
       final json = input.toCreateJson();
       expect(json['category'], 'BILLING');
@@ -109,12 +110,7 @@ void main() {
     test('parses faq and contact', () {
       final help = SupportHelpData.fromJson({
         'faq': [
-          {
-            'id': 'f1',
-            'category': 'ACCOUNT',
-            'question': 'Q?',
-            'answer': 'A.',
-          },
+          {'id': 'f1', 'category': 'ACCOUNT', 'question': 'Q?', 'answer': 'A.'},
         ],
         'contact': {'phone': '+880123', 'whatsapp': '+880123'},
         'quickActions': [
@@ -124,6 +120,44 @@ void main() {
       expect(help.faq.single.question, 'Q?');
       expect(help.contact.phone, '+880123');
       expect(help.quickActions.single.action, 'create_ticket');
+    });
+  });
+
+  group('SupportSummary', () {
+    test('counts ticket statuses', () {
+      final summary = SupportSummary.fromTickets([
+        SupportTicketSummary(
+          id: '1',
+          category: SupportTicketCategory.other,
+          subject: 'A',
+          priority: SupportTicketPriority.medium,
+          status: SupportTicketStatus.open,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        SupportTicketSummary(
+          id: '2',
+          category: SupportTicketCategory.other,
+          subject: 'B',
+          priority: SupportTicketPriority.medium,
+          status: SupportTicketStatus.closed,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ]);
+      expect(summary.open, 1);
+      expect(summary.closed, 1);
+    });
+  });
+
+  group('SupportCreateDraft', () {
+    test('round trips json', () {
+      const draft = SupportCreateDraft(
+        subject: 'Help',
+        description: 'Need assistance with billing',
+      );
+      final restored = SupportCreateDraft.fromJson(draft.toJson());
+      expect(restored.subject, 'Help');
     });
   });
 

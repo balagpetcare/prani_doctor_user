@@ -9,6 +9,7 @@ import '../../animals/presentation/animal_providers.dart';
 import '../data/batch_dto.dart';
 import '../data/batch_repository.dart';
 import '../data/batch_validation.dart';
+import 'batch_navigation.dart';
 import 'batch_providers.dart';
 
 class BatchFormPage extends ConsumerStatefulWidget {
@@ -55,7 +56,9 @@ class _BatchFormPageState extends ConsumerState<BatchFormPage> {
       return;
     }
     if (widget.batchId != null) {
-      final detail = await ref.read(batchDetailProvider(widget.batchId!).future);
+      final detail = await ref.read(
+        batchDetailProvider(widget.batchId!).future,
+      );
       _applyInput(
         BatchInput(
           name: detail.batch.name,
@@ -91,7 +94,9 @@ class _BatchFormPageState extends ConsumerState<BatchFormPage> {
   }
 
   Future<void> _saveDraft() async {
-    await ref.read(batchRepositoryProvider).saveDraft(_currentInput(), batchId: widget.batchId);
+    await ref
+        .read(batchRepositoryProvider)
+        .saveDraft(_currentInput(), batchId: widget.batchId);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.batchDraftSaved)),
@@ -100,8 +105,12 @@ class _BatchFormPageState extends ConsumerState<BatchFormPage> {
   }
 
   Future<void> _submit() async {
+    if (_loading) return;
     final l10n = AppLocalizations.of(context)!;
-    final nameError = BatchValidation.validateName(_nameController.text, message: l10n.batchNameRequired);
+    final nameError = BatchValidation.validateName(
+      _nameController.text,
+      message: l10n.batchNameRequired,
+    );
     if (nameError != null) {
       setState(() => _error = nameError);
       return;
@@ -123,14 +132,16 @@ class _BatchFormPageState extends ConsumerState<BatchFormPage> {
 
     result.when(
       success: (batch) {
-        ref.invalidate(batchListProvider);
+        BatchNavigation.afterSave(ref, batch.id);
         context.go(AppRoutes.batchDetail(batch.id));
       },
       failure: (e) {
         if (e.code == offlineQueuedCode) {
-          ref.invalidate(batchListProvider);
+          BatchNavigation.afterSave(ref, widget.batchId ?? '');
           context.pop();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.batchOfflineSaved)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.batchOfflineSaved)));
           return;
         }
         setState(() => _error = e.message);
@@ -148,7 +159,10 @@ class _BatchFormPageState extends ConsumerState<BatchFormPage> {
       appBar: AppBar(
         title: Text(isEdit ? l10n.batchEditTitle : l10n.batchAddTitle),
         actions: [
-          TextButton(onPressed: _loading ? null : _saveDraft, child: Text(l10n.batchSaveDraft)),
+          TextButton(
+            onPressed: _loading ? null : _saveDraft,
+            child: Text(l10n.batchSaveDraft),
+          ),
         ],
       ),
       body: ListView(
@@ -157,7 +171,10 @@ class _BatchFormPageState extends ConsumerState<BatchFormPage> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ),
           TextField(
             controller: _nameController,
@@ -165,12 +182,14 @@ class _BatchFormPageState extends ConsumerState<BatchFormPage> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _animalType,
+            initialValue: _animalType,
             decoration: InputDecoration(labelText: l10n.batchTypeLabel),
             items: _types
                 .map((t) => DropdownMenuItem(value: t, child: Text(t)))
                 .toList(),
-            onChanged: _loading ? null : (v) => setState(() => _animalType = v ?? 'OTHER'),
+            onChanged: _loading
+                ? null
+                : (v) => setState(() => _animalType = v ?? 'OTHER'),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -184,10 +203,13 @@ class _BatchFormPageState extends ConsumerState<BatchFormPage> {
             maxLines: 3,
           ),
           const SizedBox(height: 16),
-          Text(l10n.batchSelectAnimals, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l10n.batchSelectAnimals,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           animalsAsync.when(
             loading: () => const LinearProgressIndicator(),
-            error: (_, __) => Text(l10n.batchAnimalsLoadError),
+            error: (_, _) => Text(l10n.batchAnimalsLoadError),
             data: (state) {
               if (state.animals.isEmpty) return Text(l10n.batchNoAnimals);
               return Column(

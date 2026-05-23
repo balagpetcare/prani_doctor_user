@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../core/navigation/navigation_guard.dart';
+
+import '../../../routing/app_routes.dart';
 import '../notification_analytics.dart';
 import '../data/notification_dto.dart';
 import '../data/notification_repository.dart';
+import 'notification_navigation.dart';
 import 'notification_providers.dart';
 import 'widgets/notification_feedback.dart';
 
@@ -12,10 +17,12 @@ class NotificationSettingsPage extends ConsumerStatefulWidget {
   const NotificationSettingsPage({super.key});
 
   @override
-  ConsumerState<NotificationSettingsPage> createState() => _NotificationSettingsPageState();
+  ConsumerState<NotificationSettingsPage> createState() =>
+      _NotificationSettingsPageState();
 }
 
-class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsPage> {
+class _NotificationSettingsPageState
+    extends ConsumerState<NotificationSettingsPage> {
   NotificationSettingsDto? _draft;
   bool _saving = false;
   String? _error;
@@ -27,15 +34,21 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
       _saving = true;
       _error = null;
     });
-    final result = await ref.read(notificationRepositoryProvider).saveSettings(draft);
+    final result = await ref
+        .read(notificationRepositoryProvider)
+        .saveSettings(draft);
     if (!mounted) return;
     setState(() => _saving = false);
     result.when(
       success: (_) {
         NotificationAnalytics.settingsSaved();
-        ref.invalidate(notificationSettingsProvider);
+        NotificationNavigation.afterSettingsSave(ref);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.notificationSettingsSaved)),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.notificationSettingsSaved,
+            ),
+          ),
         );
       },
       failure: (e) => setState(() => _error = e.message),
@@ -48,9 +61,9 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
     final settingsAsync = ref.watch(notificationSettingsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.notificationSettingsTitle)),
+      appBar: safeAppBar(context, title: Text(l10n.notificationSettingsTitle)),
       body: settingsAsync.when(
-        loading: () => NotificationFeedback.loading(),
+        loading: NotificationFeedback.loading,
         error: (e, _) => NotificationFeedback.error(
           context,
           message: e.toString(),
@@ -66,7 +79,12 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
               if (_error != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  child: Text(
+                    _error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
                 ),
               SwitchListTile(
                 title: Text(l10n.notificationPushToggle),
@@ -74,35 +92,54 @@ class _NotificationSettingsPageState extends ConsumerState<NotificationSettingsP
                 value: draft.pushEnabled,
                 onChanged: _saving
                     ? null
-                    : (v) => setState(() => _draft = draft.copyWith(pushEnabled: v)),
+                    : (v) => setState(
+                        () => _draft = draft.copyWith(pushEnabled: v),
+                      ),
+              ),
+              ListTile(
+                title: Text(l10n.notificationPermissionTitle),
+                subtitle: Text(l10n.notificationPermissionBody),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRoutes.notificationPermission),
               ),
               SwitchListTile(
                 title: Text(l10n.notificationMarketingToggle),
                 value: draft.marketingEnabled,
                 onChanged: _saving
                     ? null
-                    : (v) => setState(() => _draft = draft.copyWith(marketingEnabled: v)),
+                    : (v) => setState(
+                        () => _draft = draft.copyWith(marketingEnabled: v),
+                      ),
               ),
               SwitchListTile(
                 title: Text(l10n.notificationTreatmentReminderToggle),
                 value: draft.treatmentReminderEnabled,
                 onChanged: _saving
                     ? null
-                    : (v) => setState(() => _draft = draft.copyWith(treatmentReminderEnabled: v)),
+                    : (v) => setState(
+                        () => _draft = draft.copyWith(
+                          treatmentReminderEnabled: v,
+                        ),
+                      ),
               ),
               SwitchListTile(
                 title: Text(l10n.notificationVaccineReminderToggle),
                 value: draft.vaccineReminderEnabled,
                 onChanged: _saving
                     ? null
-                    : (v) => setState(() => _draft = draft.copyWith(vaccineReminderEnabled: v)),
+                    : (v) => setState(
+                        () =>
+                            _draft = draft.copyWith(vaccineReminderEnabled: v),
+                      ),
               ),
               SwitchListTile(
                 title: Text(l10n.notificationOrderServiceToggle),
                 value: draft.orderServiceEnabled,
                 onChanged: _saving
                     ? null
-                    : (v) => setState(() => _draft = draft.copyWith(orderServiceEnabled: v)),
+                    : (v) => setState(
+                        () => _draft = draft.copyWith(orderServiceEnabled: v),
+                      ),
               ),
               const SizedBox(height: 24),
               FilledButton(

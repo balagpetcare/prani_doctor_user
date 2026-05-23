@@ -9,6 +9,7 @@ import '../../farm/presentation/farm_providers.dart';
 import '../data/milk_dto.dart';
 import '../data/milk_repository.dart';
 import '../data/milk_validation.dart';
+import 'milk_navigation.dart';
 import 'milk_providers.dart';
 
 class MilkEntryFormPage extends ConsumerStatefulWidget {
@@ -55,7 +56,9 @@ class _MilkEntryFormPageState extends ConsumerState<MilkEntryFormPage> {
       return;
     }
     if (widget.recordId != null) {
-      final record = await ref.read(milkRecordProvider(widget.recordId!).future);
+      final record = await ref.read(
+        milkRecordProvider(widget.recordId!).future,
+      );
       _applyInput(
         MilkInput(
           animalId: record.animalId,
@@ -96,7 +99,9 @@ class _MilkEntryFormPageState extends ConsumerState<MilkEntryFormPage> {
   }
 
   Future<void> _saveDraft() async {
-    await ref.read(milkRepositoryProvider).saveDraft(_currentInput(), recordId: widget.recordId);
+    await ref
+        .read(milkRepositoryProvider)
+        .saveDraft(_currentInput(), recordId: widget.recordId);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.milkDraftSaved)),
@@ -105,10 +110,20 @@ class _MilkEntryFormPageState extends ConsumerState<MilkEntryFormPage> {
   }
 
   Future<void> _submit() async {
+    if (_loading) return;
     final l10n = AppLocalizations.of(context)!;
-    final animalError = MilkValidation.validateAnimal(_animalId, message: l10n.milkAnimalRequired);
-    final qtyError = MilkValidation.validateQuantity(_quantityController.text, message: l10n.milkQuantityRequired);
-    final dateError = MilkValidation.validateDate(_recordedDate, message: l10n.milkDateInvalid);
+    final animalError = MilkValidation.validateAnimal(
+      _animalId,
+      message: l10n.milkAnimalRequired,
+    );
+    final qtyError = MilkValidation.validateQuantity(
+      _quantityController.text,
+      message: l10n.milkQuantityRequired,
+    );
+    final dateError = MilkValidation.validateDate(
+      _recordedDate,
+      message: l10n.milkDateInvalid,
+    );
     final error = animalError ?? qtyError ?? dateError;
     if (error != null) {
       setState(() => _error = error);
@@ -130,17 +145,17 @@ class _MilkEntryFormPageState extends ConsumerState<MilkEntryFormPage> {
     setState(() => _loading = false);
 
     result.when(
-      success: (_) {
-        ref.invalidate(milkListProvider);
-        ref.invalidate(milkSummaryProvider);
-        ref.invalidate(milkChartsProvider);
-        context.pop();
+      success: (record) async {
+        await MilkNavigation.afterSave(ref, recordId: record.id);
+        if (context.mounted) context.pop();
       },
       failure: (e) {
         if (e.code == offlineQueuedCode) {
-          ref.invalidate(milkListProvider);
+          MilkNavigation.afterSave(ref, recordId: widget.recordId);
           context.pop();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.milkOfflineSaved)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.milkOfflineSaved)));
           return;
         }
         setState(() => _error = e.message);
@@ -158,8 +173,14 @@ class _MilkEntryFormPageState extends ConsumerState<MilkEntryFormPage> {
         title: Text(l10n.milkDeleteTitle),
         content: Text(l10n.milkDeleteConfirm),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.milkDeleteAction)),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.milkDeleteAction),
+          ),
         ],
       ),
     );
@@ -170,17 +191,17 @@ class _MilkEntryFormPageState extends ConsumerState<MilkEntryFormPage> {
     if (!mounted) return;
     setState(() => _loading = false);
     result.when(
-      success: (_) {
-        ref.invalidate(milkListProvider);
-        ref.invalidate(milkSummaryProvider);
-        ref.invalidate(milkChartsProvider);
-        context.pop();
+      success: (_) async {
+        await MilkNavigation.afterDelete(ref);
+        if (context.mounted) context.pop();
       },
       failure: (e) {
         if (e.code == offlineQueuedCode) {
-          ref.invalidate(milkListProvider);
+          MilkNavigation.afterDelete(ref);
           context.pop();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.milkOfflineSaved)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.milkOfflineSaved)));
           return;
         }
         setState(() => _error = e.message);
@@ -204,8 +225,13 @@ class _MilkEntryFormPageState extends ConsumerState<MilkEntryFormPage> {
     final animalsAsync = ref.watch(animalListProvider);
     final farmsAsync = ref.watch(farmListProvider);
     final isEdit = widget.recordId != null;
-    final cattle = animalsAsync.value?.animals
-            .where((a) => a.active && (a.animalType == 'CATTLE' || a.category == 'LIVESTOCK'))
+    final cattle =
+        animalsAsync.value?.animals
+            .where(
+              (a) =>
+                  a.active &&
+                  (a.animalType == 'CATTLE' || a.category == 'LIVESTOCK'),
+            )
             .toList() ??
         [];
 
@@ -214,8 +240,14 @@ class _MilkEntryFormPageState extends ConsumerState<MilkEntryFormPage> {
         title: Text(isEdit ? l10n.milkEditTitle : l10n.milkAddTitle),
         actions: [
           if (isEdit)
-            IconButton(onPressed: _loading ? null : _delete, icon: const Icon(Icons.delete_outline)),
-          TextButton(onPressed: _loading ? null : _saveDraft, child: Text(l10n.milkSaveDraft)),
+            IconButton(
+              onPressed: _loading ? null : _delete,
+              icon: const Icon(Icons.delete_outline),
+            ),
+          TextButton(
+            onPressed: _loading ? null : _saveDraft,
+            child: Text(l10n.milkSaveDraft),
+          ),
         ],
       ),
       body: ListView(
@@ -224,34 +256,47 @@ class _MilkEntryFormPageState extends ConsumerState<MilkEntryFormPage> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ),
           farmsAsync.when(
             loading: () => const LinearProgressIndicator(),
-            error: (_, __) => Text(l10n.milkFarmLoadError),
+            error: (_, _) => Text(l10n.milkFarmLoadError),
             data: (state) {
               if (state.farms.isEmpty) return Text(l10n.milkNoFarm);
               return DropdownButtonFormField<String>(
                 initialValue: _farmRef ?? state.farms.first.id,
                 decoration: InputDecoration(labelText: l10n.milkFarmLabel),
                 items: state.farms
-                    .map((f) => DropdownMenuItem(value: f.id, child: Text(f.name)))
+                    .map(
+                      (f) => DropdownMenuItem(value: f.id, child: Text(f.name)),
+                    )
                     .toList(),
-                onChanged: _loading ? null : (v) => setState(() => _farmRef = v),
+                onChanged: _loading
+                    ? null
+                    : (v) => setState(() => _farmRef = v),
               );
             },
           ),
           const SizedBox(height: 12),
           animalsAsync.when(
             loading: () => const LinearProgressIndicator(),
-            error: (_, __) => Text(l10n.milkAnimalLoadError),
+            error: (_, _) => Text(l10n.milkAnimalLoadError),
             data: (_) {
               if (cattle.isEmpty) return Text(l10n.milkNoCattle);
               return DropdownButtonFormField<String>(
                 initialValue: _animalId ?? cattle.first.id,
                 decoration: InputDecoration(labelText: l10n.milkAnimalLabel),
-                items: cattle.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
-                onChanged: _loading ? null : (v) => setState(() => _animalId = v),
+                items: cattle
+                    .map(
+                      (a) => DropdownMenuItem(value: a.id, child: Text(a.name)),
+                    )
+                    .toList(),
+                onChanged: _loading
+                    ? null
+                    : (v) => setState(() => _animalId = v),
               );
             },
           ),
@@ -260,16 +305,29 @@ class _MilkEntryFormPageState extends ConsumerState<MilkEntryFormPage> {
             contentPadding: EdgeInsets.zero,
             title: Text(l10n.milkDateLabel),
             subtitle: Text(_recordedDate.toLocal().toString().split(' ').first),
-            trailing: IconButton(onPressed: _loading ? null : _pickDate, icon: const Icon(Icons.calendar_today)),
+            trailing: IconButton(
+              onPressed: _loading ? null : _pickDate,
+              icon: const Icon(Icons.calendar_today),
+            ),
           ),
           const SizedBox(height: 12),
           SegmentedButton<MilkSession>(
             segments: [
-              ButtonSegment(value: MilkSession.morning, label: Text(l10n.milkSessionMorning), icon: const Icon(Icons.wb_sunny_outlined)),
-              ButtonSegment(value: MilkSession.evening, label: Text(l10n.milkSessionEvening), icon: const Icon(Icons.nights_stay_outlined)),
+              ButtonSegment(
+                value: MilkSession.morning,
+                label: Text(l10n.milkSessionMorning),
+                icon: const Icon(Icons.wb_sunny_outlined),
+              ),
+              ButtonSegment(
+                value: MilkSession.evening,
+                label: Text(l10n.milkSessionEvening),
+                icon: const Icon(Icons.nights_stay_outlined),
+              ),
             ],
             selected: {_session},
-            onSelectionChanged: _loading ? null : (s) => setState(() => _session = s.first),
+            onSelectionChanged: _loading
+                ? null
+                : (s) => setState(() => _session = s.first),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -287,7 +345,11 @@ class _MilkEntryFormPageState extends ConsumerState<MilkEntryFormPage> {
           FilledButton(
             onPressed: _loading ? null : _submit,
             child: _loading
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : Text(isEdit ? l10n.milkSaveChanges : l10n.milkCreateAction),
           ),
         ],

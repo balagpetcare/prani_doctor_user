@@ -63,7 +63,11 @@ class DoctorRepository {
         if (filters.areaSlug != null) 'areaSlug': filters.areaSlug,
       };
 
-      final data = await getJson(_dio, ProviderApiPaths.doctors, queryParameters: params);
+      final data = await getJson(
+        _dio,
+        ProviderApiPaths.doctors,
+        queryParameters: params,
+      );
       final doctors = (data['doctors'] as List<dynamic>? ?? [])
           .whereType<Map<String, dynamic>>()
           .map(ProviderDoctorListItemDto.fromJson)
@@ -87,7 +91,9 @@ class DoctorRepository {
     } on AppException catch (e) {
       return ApiResult.failure(e);
     } catch (e) {
-      return ApiResult.failure(AppException(message: 'Could not load doctors', cause: e));
+      return ApiResult.failure(
+        AppException(message: 'Could not load doctors', cause: e),
+      );
     }
   }
 
@@ -96,19 +102,24 @@ class DoctorRepository {
       final data = await getJson(_dio, ProviderApiPaths.doctor(id));
       final doctor = data['doctor'];
       if (doctor is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Doctor not found'));
+        return const ApiResult.failure(
+          AppException(message: 'Doctor not found'),
+        );
       }
       return ApiResult.success(ProviderDoctorDetailDto.fromJson(doctor));
     } on AppException catch (e) {
       return ApiResult.failure(e);
     } catch (e) {
-      return ApiResult.failure(AppException(message: 'Could not load doctor', cause: e));
+      return ApiResult.failure(
+        AppException(message: 'Could not load doctor', cause: e),
+      );
     }
   }
 }
 
-final doctorDiscoveryFiltersProvider =
-    StateProvider<DoctorDiscoveryFilters>((ref) => const DoctorDiscoveryFilters());
+final doctorDiscoveryFiltersProvider = StateProvider<DoctorDiscoveryFilters>(
+  (ref) => const DoctorDiscoveryFilters(),
+);
 
 final doctorRepositoryProvider = Provider<DoctorRepository>((ref) {
   return DoctorRepository(ref.watch(dioProvider));
@@ -117,17 +128,11 @@ final doctorRepositoryProvider = Provider<DoctorRepository>((ref) {
 final doctorListProvider = FutureProvider<DoctorListResultDto>((ref) async {
   final filters = ref.watch(doctorDiscoveryFiltersProvider);
   final result = await ref.read(doctorRepositoryProvider).listDoctors(filters);
-  return result.when(
-    success: (data) => data,
-    failure: (e) => throw e,
-  );
+  return result.when(success: (data) => data, failure: (e) => throw e);
 });
 
 final doctorDetailProvider =
     FutureProvider.family<ProviderDoctorDetailDto, String>((ref, id) async {
-  final result = await ref.read(doctorRepositoryProvider).getDoctor(id);
-  return result.when(
-    success: (data) => data,
-    failure: (e) => throw e,
-  );
-});
+      final result = await ref.read(doctorRepositoryProvider).getDoctor(id);
+      return result.when(success: (data) => data, failure: (e) => throw e);
+    });

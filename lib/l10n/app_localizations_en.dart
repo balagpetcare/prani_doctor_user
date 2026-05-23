@@ -27,7 +27,62 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerTitle => 'Menu';
 
   @override
+  String get drawerFarmSection => 'Farm';
+
+  @override
+  String get drawerFatteningSection => 'Fattening';
+
+  @override
+  String get drawerMilkSection => 'Milk production';
+
+  @override
+  String get drawerAnimalsSection => 'Animals';
+
+  @override
+  String get drawerRecordsSection => 'Records';
+
+  @override
+  String get drawerFarmDashboard => 'Farm dashboard';
+
+  @override
+  String get drawerGrowthRecords => 'Growth';
+
+  @override
+  String get exitAppTitle => 'Exit app?';
+
+  @override
+  String get exitAppMessage => 'Do you want to close PraniDoctor?';
+
+  @override
+  String get exitAppConfirm => 'Exit';
+
+  @override
+  String get logoutConfirmTitle => 'Sign out?';
+
+  @override
+  String get logoutConfirmMessage =>
+      'You will need to sign in again to access your account.';
+
+  @override
   String get loginTitle => 'Sign in';
+
+  @override
+  String get loginWelcomeBack => 'Welcome back';
+
+  @override
+  String get loginWelcomeSubtitle =>
+      'Sign in to manage your farm, animals, and veterinary care.';
+
+  @override
+  String loginLastLogin(String identifier) {
+    return 'Last signed in with $identifier';
+  }
+
+  @override
+  String get authGoogleSignIn => 'Continue with Google';
+
+  @override
+  String get authGoogleComingSoon => 'Google sign-in coming soon';
 
   @override
   String get loginDevContinue => 'Continue (development)';
@@ -117,6 +172,59 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileIncomplete => 'Profile incomplete';
 
   @override
+  String get profileAccountInfoTitle => 'Account information';
+
+  @override
+  String get profileCompletionTitle => 'Complete your profile';
+
+  @override
+  String get profileCompletionSubtitle =>
+      'Add your name and location so we can personalize services for your farm.';
+
+  @override
+  String get profileCompletionNameStep => 'Your name';
+
+  @override
+  String get profileCompletionAddressStep => 'Farm location';
+
+  @override
+  String get profileCompletionPhotoStep => 'Profile photo';
+
+  @override
+  String get profileCompletionOptional => 'Optional';
+
+  @override
+  String get profileCompletionContinue => 'Continue to home';
+
+  @override
+  String get profileCompletionHint =>
+      'Add your name and location (union required; village optional) before using the app.';
+
+  @override
+  String get profileChangePasswordTitle => 'Change password';
+
+  @override
+  String get profileChangePasswordBody =>
+      'In-app password change is not available yet. Reset your password or contact support for help.';
+
+  @override
+  String get profileChangePasswordForgotLink => 'Reset via forgot password';
+
+  @override
+  String get profileNameTooLong => 'Name must be 120 characters or fewer.';
+
+  @override
+  String get profileEmailTooLong => 'Email must be 200 characters or fewer.';
+
+  @override
+  String get profileAddressLineTooLong =>
+      'Address line must be 500 characters or fewer.';
+
+  @override
+  String get profilePostalTooLong =>
+      'Postal code must be 20 characters or fewer.';
+
+  @override
   String get addressTitle => 'Address';
 
   @override
@@ -126,7 +234,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postalCodeLabel => 'Postal code (optional)';
 
   @override
-  String get addressRequired => 'Select your village to save address';
+  String get addressRequired =>
+      'Select division, district, upazila, and union to save address';
+
+  @override
+  String get addressHierarchyRequired =>
+      'Division, district, upazila, and union are required';
+
+  @override
+  String get areaVillageOptionalHelper =>
+      'Village is optional — type a name if yours is not listed';
+
+  @override
+  String get areaVillageNotFoundOptional => 'Village not found (optional)';
+
+  @override
+  String get areaVillageManualHint => 'Enter village (optional)';
 
   @override
   String get languageTitle => 'Language';
@@ -157,6 +280,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get areaEmptyVillages => 'No villages for this union';
+
+  @override
+  String get areaSearchHint => 'Search by name…';
+
+  @override
+  String get areaSearchNoResults => 'No locations match your search';
+
+  @override
+  String get areaSearchVillagesTitle => 'Search villages';
+
+  @override
+  String get areaSelectedLocation => 'Selected location';
+
+  @override
+  String get areaSelectLevel => 'Select your location';
+
+  @override
+  String get areaRefresh => 'Refresh locations';
 
   @override
   String get locationSectionTitle => 'Location';
@@ -478,6 +619,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please update PraniDoctor from your app store.';
 
   @override
+  String get bootOptionalUpdateTitle => 'Update available';
+
+  @override
+  String bootOptionalUpdateVersion(String current, String recommended) {
+    return 'Installed: $current · Latest: $recommended';
+  }
+
+  @override
+  String get bootUpdateLater => 'Not now';
+
+  @override
+  String get bootMaintenanceTitle => 'Under maintenance';
+
+  @override
+  String get bootMaintenanceDefault =>
+      'PraniDoctor is temporarily unavailable. Please try again shortly.';
+
+  @override
   String get welcomeTitle => 'Welcome to PraniDoctor';
 
   @override
@@ -523,6 +682,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get forgotPasswordUnavailable =>
       'Support phone is unavailable offline. Try again when connected.';
+
+  @override
+  String get forgotPasswordUseOtp => 'Sign in with OTP instead';
+
+  @override
+  String get authInvalidPhone =>
+      'Enter a valid Bangladesh mobile number (01XXXXXXXXX).';
+
+  @override
+  String get authInvalidEmail => 'Enter a valid email address.';
+
+  @override
+  String get authInvalidOtp => 'Enter the 4–6 digit code from SMS.';
+
+  @override
+  String get authPasswordTooShort => 'Password must be at least 6 characters.';
 
   @override
   String get socialLoginComingSoon =>
@@ -581,6 +756,89 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dashboardUnauthorized =>
       'Your session expired. Please sign in again.';
+
+  @override
+  String get dashboardGreetingMorning => 'Good morning';
+
+  @override
+  String get dashboardGreetingAfternoon => 'Good afternoon';
+
+  @override
+  String get dashboardGreetingEvening => 'Good evening';
+
+  @override
+  String get dashboardSectionError => 'Could not load this section';
+
+  @override
+  String get dashboardSectionOffline => 'This section is unavailable offline';
+
+  @override
+  String get dashboardUpcomingAppointments => 'Upcoming appointments';
+
+  @override
+  String get dashboardNoAppointments => 'No active appointments';
+
+  @override
+  String get dashboardAppointmentFallback => 'Service request';
+
+  @override
+  String get dashboardViewAllAppointments => 'View all appointments';
+
+  @override
+  String get dashboardRecentActivity => 'Recent activity';
+
+  @override
+  String get dashboardNoActivity => 'No recent notifications';
+
+  @override
+  String get dashboardViewAllActivity => 'View all notifications';
+
+  @override
+  String get dashboardHealthAlerts => 'Health alerts';
+
+  @override
+  String get dashboardNoHealthAlerts => 'No vaccine reminders right now';
+
+  @override
+  String get dashboardHealthOverdue => 'Overdue vaccines';
+
+  @override
+  String get dashboardHealthUpcoming => 'Due soon';
+
+  @override
+  String get dashboardViewHealthAlerts => 'View vaccine reminders';
+
+  @override
+  String get dashboardSupportTitle => 'Support';
+
+  @override
+  String get dashboardSupportSubtitle => 'Contact us or open a support ticket';
+
+  @override
+  String get dashboardSupportHelpSubtitle => 'Browse help articles and FAQs';
+
+  @override
+  String get dashboardSupportTickets => 'My support tickets';
+
+  @override
+  String dashboardEmergencyPhone(String phone) {
+    return 'Emergency: $phone';
+  }
+
+  @override
+  String get dashboardAiTechnicianTitle => 'Technician dashboard';
+
+  @override
+  String get dashboardAiTodayRequests => 'Today\'s requests';
+
+  @override
+  String get dashboardAiPendingRequests => 'Pending requests';
+
+  @override
+  String get dashboardAiCompletedServices => 'Completed services';
+
+  @override
+  String get dashboardAiRating => 'Rating';
 
   @override
   String get farmListTitle => 'My farms';
@@ -647,6 +905,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get farmUploadFailed => 'Upload failed';
 
   @override
+  String get farmSaveDraft => 'Save draft';
+
+  @override
+  String get farmDraftSaved => 'Draft saved';
+
+  @override
+  String get farmFilterNeedsLocation => 'Needs location';
+
+  @override
+  String get farmSortLabel => 'Sort by';
+
+  @override
+  String get farmSortNameAsc => 'Name (A–Z)';
+
+  @override
+  String get farmSortNameDesc => 'Name (Z–A)';
+
+  @override
+  String get farmSortAnimalsDesc => 'Most animals';
+
+  @override
+  String get farmSettingsTitle => 'Farm settings';
+
+  @override
+  String get farmRefreshData => 'Refresh farm data';
+
+  @override
+  String get farmRefreshStarted => 'Refreshing farm data…';
+
+  @override
+  String get farmActiveFarm => 'Active farm';
+
+  @override
+  String get farmActiveFarmHint => 'Used as default for records and dashboard';
+
+  @override
+  String get farmSetActive => 'Set as active farm';
+
+  @override
+  String get farmSingleFarmNotice =>
+      'Your farm is linked to your profile location. Multiple farms and delete are not available yet.';
+
+  @override
+  String farmCardStats(int total, int active) {
+    return '$total animals · $active active';
+  }
+
+  @override
   String get animalListTitle => 'My animals';
 
   @override
@@ -654,6 +960,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get animalAddTitle => 'Add animal';
+
+  @override
+  String get animalFormStepBasics => 'Basics';
+
+  @override
+  String get animalFormStepDetails => 'Details';
+
+  @override
+  String get animalFormStepMetrics => 'Metrics';
+
+  @override
+  String get animalFormStepNotes => 'Notes';
+
+  @override
+  String animalFormStepOf(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get animalFormNext => 'Next';
+
+  @override
+  String get animalFormBack => 'Back';
+
+  @override
+  String get animalBreedSearchHint => 'Search breed';
+
+  @override
+  String get animalHealthScore => 'Health score';
+
+  @override
+  String get animalHealthScorePlaceholder => 'Coming soon';
+
+  @override
+  String get animalNextReminder => 'Next reminder';
+
+  @override
+  String get animalNextReminderPlaceholder => 'No upcoming reminders';
+
+  @override
+  String get animalQrCode => 'Animal QR';
+
+  @override
+  String get animalQrPlaceholder => 'QR code coming soon';
+
+  @override
+  String get animalOverviewTitle => 'Overview';
+
+  @override
+  String get animalDocumentsTitle => 'Documents';
+
+  @override
+  String get animalDocumentsEmpty => 'No documents uploaded';
+
+  @override
+  String get animalVaccinesTitle => 'Vaccines';
+
+  @override
+  String get animalReportsTitle => 'Reports';
+
+  @override
+  String get animalDoctorHistoryTitle => 'Doctor visits';
 
   @override
   String get animalEditTitle => 'Edit animal';
@@ -726,6 +1094,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get animalDraftSaved => 'Draft saved';
+
+  @override
+  String get animalSummaryTotal => 'Total';
+
+  @override
+  String get animalSummaryActive => 'Active';
+
+  @override
+  String get animalSummaryLivestock => 'Livestock';
+
+  @override
+  String get animalFilterInactive => 'Inactive';
+
+  @override
+  String get animalFilterPets => 'Pets';
+
+  @override
+  String get animalSortLabel => 'Sort by';
+
+  @override
+  String get animalSortRecent => 'Recently added';
+
+  @override
+  String get animalSortNameAsc => 'Name (A–Z)';
+
+  @override
+  String get animalSortNameDesc => 'Name (Z–A)';
+
+  @override
+  String get animalSortType => 'Type';
+
+  @override
+  String get animalStatusInactive => 'Inactive';
+
+  @override
+  String get animalDeactivateTitle => 'Deactivate animal';
+
+  @override
+  String get animalDeactivateMessage =>
+      'This animal will be marked inactive. You can still view it using the Inactive filter.';
+
+  @override
+  String get animalDeactivateConfirm => 'Deactivate';
+
+  @override
+  String get animalViewPhoto => 'View full photo';
+
+  @override
+  String get animalVaccinesShortcut => 'Vaccines';
+
+  @override
+  String get animalTreatmentsShortcut => 'Treatments';
+
+  @override
+  String get animalWeightInvalid => 'Enter a valid weight in kg';
+
+  @override
+  String get animalAgeInvalid => 'Enter a valid age in years';
 
   @override
   String get animalUploadCamera => 'Camera';
@@ -880,6 +1306,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get batchCreateAction => 'Create batch';
 
   @override
+  String get batchSummaryTotal => 'Total batches';
+
+  @override
+  String get batchSummaryWithAnimals => 'With animals';
+
+  @override
+  String get batchSummaryPendingSync => 'Pending sync';
+
+  @override
+  String get batchSortLabel => 'Sort by';
+
+  @override
+  String get batchSortRecent => 'Recently updated';
+
+  @override
+  String get batchSortNameAsc => 'Name (A–Z)';
+
+  @override
+  String get batchSortNameDesc => 'Name (Z–A)';
+
+  @override
+  String get batchSortAnimalsDesc => 'Most animals';
+
+  @override
+  String get batchDeleteAction => 'Delete batch';
+
+  @override
+  String get batchDeleteConfirm =>
+      'Remove this batch? Animals will not be deleted.';
+
+  @override
+  String get batchDeleteSuccess => 'Batch deleted';
+
+  @override
+  String get batchEmptyStatus => 'Empty';
+
+  @override
   String get offlineItemBatch => 'Batch change';
 
   @override
@@ -1006,6 +1469,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get milkQuickAction => 'Record milk';
+
+  @override
+  String get milkDetailTitle => 'Milk record details';
+
+  @override
+  String get milkSearchHint => 'Search records';
+
+  @override
+  String get milkNoResults => 'No records match your filters';
+
+  @override
+  String get milkFromDate => 'From';
+
+  @override
+  String get milkToDate => 'To';
+
+  @override
+  String get milkFilterAllAnimals => 'All animals';
+
+  @override
+  String get milkFilterAllSessions => 'All sessions';
+
+  @override
+  String get milkSummaryToday => 'Today';
+
+  @override
+  String get milkSummaryEntries => 'Entries';
+
+  @override
+  String get milkSummaryPendingSync => 'Pending sync';
+
+  @override
+  String get milkDeleteSuccess => 'Record deleted';
 
   @override
   String get offlineItemMilk => 'Milk record';
@@ -1179,6 +1675,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedQuickAction => 'Record feed';
+
+  @override
+  String get feedDetailTitle => 'Feed record details';
+
+  @override
+  String get feedNoResults => 'No records match your filters';
+
+  @override
+  String get feedFromDate => 'From';
+
+  @override
+  String get feedToDate => 'To';
+
+  @override
+  String get feedFilterAllAnimals => 'All animals';
+
+  @override
+  String get feedFilterAllGroups => 'All groups';
+
+  @override
+  String get feedFilterAllTargets => 'All targets';
+
+  @override
+  String get feedSummaryCost => 'Period cost';
+
+  @override
+  String get feedSummaryEntries => 'Entries';
+
+  @override
+  String get feedSummaryPendingSync => 'Pending sync';
+
+  @override
+  String get feedDeleteSuccess => 'Record deleted';
 
   @override
   String get offlineItemFeed => 'Feed record';
@@ -1395,6 +1924,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get financeSourceOther => 'Other';
 
   @override
+  String get financeDashboardTitle => 'Finance';
+
+  @override
+  String get financeLedgerTitle => 'Recent transactions';
+
+  @override
+  String get financeLedgerEmpty =>
+      'No transactions yet. Add income or expenses to build your ledger.';
+
+  @override
+  String get financeExpenseDetailTitle => 'Expense details';
+
+  @override
+  String get financeIncomeDetailTitle => 'Income details';
+
+  @override
+  String get financeNoResults => 'No records match your filters';
+
+  @override
+  String get financeFromDate => 'From';
+
+  @override
+  String get financeToDate => 'To';
+
+  @override
+  String get financeSummaryEntries => 'Entries';
+
+  @override
+  String get financeSummaryPendingSync => 'Pending sync';
+
+  @override
+  String get financeDeleteSuccess => 'Record deleted';
+
+  @override
   String get offlineItemFinanceExpense => 'Expense record';
 
   @override
@@ -1530,6 +2093,67 @@ class AppLocalizationsEn extends AppLocalizations {
   String get healthQuickAction => 'Record health';
 
   @override
+  String get healthDashboardTitle => 'Health';
+
+  @override
+  String get healthRecordsTitle => 'Medical records';
+
+  @override
+  String get healthAnalyticsTitle => 'Health analytics';
+
+  @override
+  String get healthRecentEventsTitle => 'Recent events';
+
+  @override
+  String get healthFromDate => 'From';
+
+  @override
+  String get healthToDate => 'To';
+
+  @override
+  String get healthSummaryTotal => 'Total events';
+
+  @override
+  String get healthSummaryDisease => 'Disease / diagnosis';
+
+  @override
+  String get healthSummaryCheckup => 'Checkups';
+
+  @override
+  String get healthSummaryTreatment => 'Treatments';
+
+  @override
+  String get healthSummaryEntries => 'Entries';
+
+  @override
+  String get healthSummaryPendingSync => 'Pending sync';
+
+  @override
+  String get healthNoResults => 'No records match your filters';
+
+  @override
+  String get healthDeleteSuccess => 'Health record deleted';
+
+  @override
+  String get healthTreatmentLinkLabel => 'Linked treatment';
+
+  @override
+  String get healthVaccineRefLabel => 'Vaccine reference';
+
+  @override
+  String get healthAnalyticsTypeBreakdown => 'Event type breakdown';
+
+  @override
+  String get healthAnalyticsDiseaseFrequency => 'Disease frequency';
+
+  @override
+  String get healthAnalyticsNoDiseases =>
+      'No disease names recorded in this period';
+
+  @override
+  String get healthAnalyticsMonthlyTrend => 'Monthly event trend';
+
+  @override
   String get offlineItemHealth => 'Health record';
 
   @override
@@ -1654,6 +2278,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vaccineStatusCompleted => 'Completed';
+
+  @override
+  String get vaccineDashboardTitle => 'Vaccines';
+
+  @override
+  String get vaccineHistoryTitle => 'Vaccine history';
+
+  @override
+  String get vaccineCalendarTitle => 'Vaccine calendar';
+
+  @override
+  String get vaccineDetailTitle => 'Vaccine record';
+
+  @override
+  String get vaccineSearchHint => 'Search vaccines';
+
+  @override
+  String get vaccineFromDate => 'From';
+
+  @override
+  String get vaccineToDate => 'To';
+
+  @override
+  String get vaccineSummaryCompleted => 'Completed';
+
+  @override
+  String get vaccineSummaryUpcoming => 'Upcoming';
+
+  @override
+  String get vaccineSummaryOverdue => 'Overdue';
+
+  @override
+  String get vaccineSummaryEntries => 'Entries';
+
+  @override
+  String get vaccineSummaryPendingSync => 'Pending sync';
+
+  @override
+  String get vaccineNoResults => 'No vaccines match your filters';
+
+  @override
+  String get vaccineDeleteSuccess => 'Vaccine record deleted';
+
+  @override
+  String get vaccineNextDueLabel => 'Next due date';
+
+  @override
+  String get vaccineNextDueTitle => 'Next due';
+
+  @override
+  String vaccineReminderBody(Object animal, Object name) {
+    return '$name for $animal';
+  }
+
+  @override
+  String get vaccineCalendarLegend => 'Scheduled this month';
 
   @override
   String get offlineItemVaccine => 'Vaccine record';
@@ -1800,6 +2480,62 @@ class AppLocalizationsEn extends AppLocalizations {
   String get treatmentStatusCancelled => 'Cancelled';
 
   @override
+  String get treatmentDashboardTitle => 'Treatments';
+
+  @override
+  String get treatmentTimelineTitle => 'Treatment timeline';
+
+  @override
+  String get treatmentMedicinePlanTitle => 'Medicine plan';
+
+  @override
+  String get treatmentFollowUpTitle => 'Follow-up';
+
+  @override
+  String get treatmentFollowUpAction => 'Update follow-up';
+
+  @override
+  String treatmentFollowUpBody(Object title, Object animal) {
+    return '$title for $animal';
+  }
+
+  @override
+  String get treatmentNoFollowUp => 'No follow-ups due soon';
+
+  @override
+  String get treatmentViewPrescription => 'View full prescription';
+
+  @override
+  String get treatmentFilterAll => 'All';
+
+  @override
+  String get treatmentFromDate => 'From';
+
+  @override
+  String get treatmentToDate => 'To';
+
+  @override
+  String get treatmentSummaryActive => 'Active';
+
+  @override
+  String get treatmentSummaryCompleted => 'Completed';
+
+  @override
+  String get treatmentSummaryOverdue => 'Overdue follow-up';
+
+  @override
+  String get treatmentSummaryEntries => 'Entries';
+
+  @override
+  String get treatmentSummaryPendingSync => 'Pending sync';
+
+  @override
+  String get treatmentNoResults => 'No treatments match your filters';
+
+  @override
+  String get treatmentDeleteSuccess => 'Treatment deleted';
+
+  @override
   String treatmentMedicineCount(int count) {
     return '$count medicines';
   }
@@ -1864,6 +2600,72 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationUnreadLabel => 'Unread notification';
+
+  @override
+  String get notificationCenterTitle => 'Notification center';
+
+  @override
+  String get notificationViewAll => 'View all';
+
+  @override
+  String get notificationRecentTitle => 'Recent notifications';
+
+  @override
+  String get notificationSummaryUnread => 'Unread';
+
+  @override
+  String get notificationSummaryRecent => 'Loaded';
+
+  @override
+  String get notificationDetailTitle => 'Notification';
+
+  @override
+  String get notificationDetailNotFound => 'Notification not found';
+
+  @override
+  String get notificationMarkRead => 'Mark as read';
+
+  @override
+  String get notificationOpenAction => 'Open';
+
+  @override
+  String get notificationSearchHint => 'Search notifications';
+
+  @override
+  String get notificationFilterAll => 'All';
+
+  @override
+  String get notificationFilterUnread => 'Unread';
+
+  @override
+  String get notificationPermissionTitle => 'Notification permission';
+
+  @override
+  String get notificationPermissionBody =>
+      'Allow notifications to receive appointment updates, reminders, and service alerts on this device.';
+
+  @override
+  String get notificationPermissionRequest => 'Allow notifications';
+
+  @override
+  String get notificationPermissionOpenSettings => 'Open app settings';
+
+  @override
+  String get notificationPermissionGranted => 'Notifications enabled';
+
+  @override
+  String get notificationPermissionGrantedStatus => 'Notifications are enabled';
+
+  @override
+  String get notificationPermissionDenied => 'Notifications are disabled';
+
+  @override
+  String get notificationPermissionDeniedPermanent =>
+      'Notifications blocked — enable in system settings';
+
+  @override
+  String get notificationPermissionUnknown =>
+      'Notification permission status unknown';
 
   @override
   String get supportTicketListTitle => 'Support tickets';
@@ -2039,6 +2841,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get supportFaqTitle => 'FAQ';
 
   @override
+  String get supportHomeTitle => 'Support';
+
+  @override
+  String get supportRecentTicketsTitle => 'Recent tickets';
+
+  @override
+  String get supportSummaryOpen => 'Open';
+
+  @override
+  String get supportSummaryPending => 'Pending';
+
+  @override
+  String get supportSummaryResolved => 'Resolved';
+
+  @override
+  String get supportSummaryClosed => 'Closed';
+
+  @override
+  String get supportFaqSearchHint => 'Search FAQ';
+
+  @override
+  String get supportFaqEmpty => 'No matching questions';
+
+  @override
+  String get supportContactBody =>
+      'Reach our team by phone, WhatsApp, email, or open a support ticket.';
+
+  @override
+  String get supportOpenAttachment => 'Open attachment';
+
+  @override
   String get offlineItemSupport => 'Support ticket';
 
   @override
@@ -2157,6 +2990,66 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiEmptyTranscript => 'No speech detected — try again';
 
   @override
+  String get aiHomeTitle => 'AI Assistant';
+
+  @override
+  String get aiHomeActiveSession => 'You have an active conversation.';
+
+  @override
+  String get aiHistoryTitle => 'Conversation history';
+
+  @override
+  String get aiSessionLabel => 'Session';
+
+  @override
+  String get aiClearHistory => 'Clear and start new chat';
+
+  @override
+  String get aiSettingsTitle => 'AI settings';
+
+  @override
+  String get aiSettingsLanguage => 'Language';
+
+  @override
+  String get aiSettingsSuggestions => 'Show suggested prompts';
+
+  @override
+  String get aiSettingsMemory => 'Remember conversations';
+
+  @override
+  String get aiSettingsMemoryHint => 'Keep recent chats on this device';
+
+  @override
+  String get aiSaveSettings => 'Save settings';
+
+  @override
+  String get aiSettingsSaved => 'Settings saved';
+
+  @override
+  String get aiResultTitle => 'AI result';
+
+  @override
+  String get aiResultEmpty => 'No result to display';
+
+  @override
+  String get aiRegenerate => 'Regenerate';
+
+  @override
+  String get aiCopied => 'Copied to clipboard';
+
+  @override
+  String get aiPendingSync => 'Pending sync';
+
+  @override
+  String get aiEscalationHint => 'Human help may be needed';
+
+  @override
+  String get aiEscalateSupport => 'Contact support';
+
+  @override
+  String get aiViewResult => 'View full result';
+
+  @override
   String get settingsRetry => 'Try again';
 
   @override
@@ -2190,5 +3083,403 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTermsAccepted => 'Terms accepted';
 
   @override
+  String get settingsAccountTitle => 'Account settings';
+
+  @override
+  String get settingsAccountManageTitle => 'Manage account';
+
+  @override
+  String get settingsPreferencesTitle => 'Preferences';
+
+  @override
+  String get settingsPreferencesSubtitle =>
+      'Language, theme, and notifications';
+
+  @override
+  String get settingsPreferencesSection => 'Your preferences';
+
+  @override
+  String get settingsAppTitle => 'App settings';
+
+  @override
+  String get settingsAppSubtitle => 'App behavior and sync';
+
+  @override
+  String get settingsAppSection => 'Application';
+
+  @override
+  String get settingsThemeTitle => 'Theme';
+
+  @override
+  String get settingsThemeLight => 'Light';
+
+  @override
+  String get settingsThemeDark => 'Dark';
+
+  @override
+  String get settingsThemeSystem => 'System default';
+
+  @override
+  String get settingsThemeSaved => 'Theme saved';
+
+  @override
+  String get settingsLanguageSaved => 'Language saved';
+
+  @override
+  String get settingsAboutTitle => 'About';
+
+  @override
+  String get settingsAboutSupportTitle => 'Support';
+
+  @override
+  String get settingsAboutLegalTitle => 'Legal';
+
+  @override
+  String get settingsDataSyncTitle => 'Data & sync';
+
+  @override
+  String get settingsLastSyncTitle => 'Last settings sync';
+
+  @override
+  String get settingsLastSyncNever => 'Not synced yet';
+
+  @override
+  String settingsPendingSettingsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count settings changes pending',
+      one: '1 settings change pending',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsHubAccountSection => 'Account';
+
+  @override
+  String get settingsHubAppSection => 'App';
+
+  @override
+  String get settingsHubLegalSection => 'Legal & privacy';
+
+  @override
+  String get settingsHubSupportSection => 'Support & about';
+
+  @override
+  String get networkConnectionTitle => 'Connection check';
+
+  @override
+  String get networkConnectionSubtitle =>
+      'Verify phone can reach the PC backend over WiFi';
+
+  @override
+  String get networkApiUrlLabel => 'API URL';
+
+  @override
+  String get networkApiSourceLabel => 'URL source';
+
+  @override
+  String get networkApiPortLabel => 'API port';
+
+  @override
+  String get networkWebUrlLabel => 'Web URL';
+
+  @override
+  String get networkTimeoutLabel => 'Timeouts';
+
+  @override
+  String get networkRunChecks => 'Run checks';
+
+  @override
+  String get networkReconnect => 'Reconnect & sync';
+
+  @override
+  String get networkLastChecked => 'Last checked';
+
+  @override
+  String get networkChecksPending => 'Tap Run checks to test the connection';
+
+  @override
+  String get networkProbeLive => 'API health (/live)';
+
+  @override
+  String get networkProbeAppConfig => 'Mobile app-config';
+
+  @override
+  String get networkProbeAuth => 'Auth profile (/me)';
+
+  @override
+  String get networkProbeRefresh => 'Refresh token';
+
+  @override
+  String get networkProbeUpload => 'Upload / storage';
+
+  @override
   String get offlineItemSettingsSync => 'Settings sync';
+
+  @override
+  String get profileEditPersonalInfo => 'Personal information';
+
+  @override
+  String get profileEditAddressSection => 'Address';
+
+  @override
+  String get profileEditPreviewSection => 'Preview';
+
+  @override
+  String get profileSaving => 'Saving profile…';
+
+  @override
+  String get profileUploading => 'Uploading…';
+
+  @override
+  String get profileUpdatedSuccess => 'Profile updated';
+
+  @override
+  String get profileDiscardChangesTitle => 'Discard changes?';
+
+  @override
+  String get profileDiscardChangesBody =>
+      'You have unsaved changes. Leave without saving?';
+
+  @override
+  String get profileDiscard => 'Discard';
+
+  @override
+  String get profileKeepEditing => 'Keep editing';
+
+  @override
+  String get profileCoverUpload => 'Upload cover';
+
+  @override
+  String get profileAvatarChange => 'Change photo';
+
+  @override
+  String get profileRemovePhoto => 'Remove photo';
+
+  @override
+  String get profileRemoveCover => 'Remove cover';
+
+  @override
+  String get profilePreviewTitle => 'Preview';
+
+  @override
+  String get profilePhoneReadonly => 'Phone number cannot be changed here';
+
+  @override
+  String get profileUpdatedButton => 'Profile updated';
+
+  @override
+  String get homeVaccineDue => 'Vaccine due';
+
+  @override
+  String get homeTasksLabel => 'Tasks';
+
+  @override
+  String get homeViewAll => 'View all';
+
+  @override
+  String get homeNoAnimalsYet =>
+      'No animals yet. Add your first animal to get started.';
+
+  @override
+  String get homeHealthTasksTitle => 'Upcoming health tasks';
+
+  @override
+  String get homeNoHealthTasks => 'No upcoming health tasks right now.';
+
+  @override
+  String get homeBookDoctor => 'Book doctor';
+
+  @override
+  String get homeNearbyServices => 'Nearby services';
+
+  @override
+  String get homeUploadReport => 'Upload report';
+
+  @override
+  String get homeHealthHistoryAction => 'Health history';
+
+  @override
+  String get homeDrawerDashboard => 'Dashboard';
+
+  @override
+  String get homeDrawerOrders => 'Orders';
+
+  @override
+  String get homeMarketplaceTitle => 'Marketplace';
+
+  @override
+  String get homeMarketplaceSubtitle =>
+      'Browse farm supplies and services from trusted sellers.';
+
+  @override
+  String get homeCommunityTitle => 'Community';
+
+  @override
+  String get homeCommunitySubtitle =>
+      'Connect with farmers and share knowledge.';
+
+  @override
+  String get homeDrawerPayments => 'Payments';
+
+  @override
+  String get homeNoDoctorsNearby =>
+      'No doctors found nearby. Try adjusting your location filters.';
+
+  @override
+  String get homePlaceholderBody =>
+      'This section is coming soon. Check back in a future update.';
+
+  @override
+  String get homeReportsExportHint =>
+      'Export CSV or PDF from the full reports screen.';
+
+  @override
+  String get homeMarketplaceEmpty => 'No services available in your area yet.';
+
+  @override
+  String get homeMarketplaceCategories => 'Categories';
+
+  @override
+  String get homeCommunityEmpty =>
+      'No community tips yet. Visit help for guides.';
+
+  @override
+  String get homeOrdersEmpty => 'No orders yet. Book a service to get started.';
+
+  @override
+  String get homeOrdersPending => 'Pending';
+
+  @override
+  String get homeOrdersCompleted => 'Completed';
+
+  @override
+  String get homeOrdersCancelled => 'Cancelled';
+
+  @override
+  String get homeOrdersRecentTitle => 'Recent orders';
+
+  @override
+  String get homeSearchPlaceholder =>
+      'ডাক্তার, সার্ভিস, AI, চিকিৎসা সার্চ করুন';
+
+  @override
+  String get homeSearchVoice => 'Voice search';
+
+  @override
+  String get homeSearchListening => 'Listening…';
+
+  @override
+  String get homeSearchStop => 'Stop';
+
+  @override
+  String get homeSearchRecentTitle => 'Recent searches';
+
+  @override
+  String get homeSearchRecentEmpty => 'No recent searches yet.';
+
+  @override
+  String get homeSearchSourcesTitle => 'Search in';
+
+  @override
+  String get homeSearchSourceDoctors => 'Doctors';
+
+  @override
+  String get homeSearchSourceAi => 'AI Assistant';
+
+  @override
+  String get homeSearchSourceServices => 'Services';
+
+  @override
+  String get homeSearchSourceAnimals => 'Animals';
+
+  @override
+  String get homeSearchSourceMarketplace => 'Marketplace';
+
+  @override
+  String get homeSearchSourceReports => 'Reports';
+
+  @override
+  String get homeSearchSourceCommunity => 'Community';
+
+  @override
+  String get homeSearchSourceEmergency => 'Emergency';
+
+  @override
+  String get homeSearchNoResults => 'No results found.';
+
+  @override
+  String get homeGreetingMorningBn => 'সুপ্রভাত';
+
+  @override
+  String get homeGreetingAfternoonBn => 'শুভ অপরাহ্ন';
+
+  @override
+  String get homeGreetingEveningBn => 'শুভ সন্ধ্যা';
+
+  @override
+  String get homeChangeCover => 'Change cover';
+
+  @override
+  String get homeActionAiDoctor => 'AI Doctor';
+
+  @override
+  String get homeActionCallDoctor => 'Call doctor';
+
+  @override
+  String get homeActionAiTechnician => 'AI Technician';
+
+  @override
+  String get homeActionVideoCall => 'Video call';
+
+  @override
+  String get homeInstantCareTitle => 'Instant care';
+
+  @override
+  String get homeInstantCareSubtitle => 'Choose the fastest way to get help.';
+
+  @override
+  String get homeCareAiDoctor => 'AI Doctor';
+
+  @override
+  String get homeCareAiDoctorEta => 'Typical response: under 1 min';
+
+  @override
+  String get homeCareCallDoctor => 'Call doctor';
+
+  @override
+  String get homeCareCallDoctorEta => 'Typical response: 5–15 min';
+
+  @override
+  String get homeCareEmergencyVisit => 'Emergency visit';
+
+  @override
+  String get homeCareEmergencyVisitEta => 'Typical response: 15–30 min';
+
+  @override
+  String get homeCareVideoConsultation => 'Video consultation';
+
+  @override
+  String get homeCareVideoConsultationEta => 'Typical response: 10–20 min';
+
+  @override
+  String get homeCareNearestService => 'Nearest service';
+
+  @override
+  String get homeCareNearestServiceEta => 'Based on your location';
+
+  @override
+  String get homeCareChat => 'Chat support';
+
+  @override
+  String get homeCareChatEta => 'Typical response: under 5 min';
+
+  @override
+  String get profileMemberSince => 'PraniDoctor member';
+
+  @override
+  String get offlineModeBanner =>
+      'অফলাইন মোড — সর্বশেষ সংরক্ষিত তথ্য দেখানো হচ্ছে';
 }

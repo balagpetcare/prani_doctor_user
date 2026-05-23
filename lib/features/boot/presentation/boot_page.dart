@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/branding/brand_assets.dart';
-import '../../../core/branding/brand_image.dart';import '../boot_controller.dart';
-import '../boot_navigation.dart';
+import '../../../core/branding/brand_image.dart';
+import '../boot_controller.dart';
 import '../boot_state.dart';
 import 'pages/splash_page.dart';
 
+/// Boot UI only — post-boot navigation is handled by [GoRouter] redirect ([nav_guard]).
 class BootPage extends ConsumerStatefulWidget {
   const BootPage({super.key});
 
@@ -26,30 +26,16 @@ class _BootPageState extends ConsumerState<BootPage> {
     Future.microtask(() => ref.read(bootControllerProvider.notifier).run());
   }
 
-  void _tryNavigate(BootState boot) {
-    if (!boot.isReady || !_splashAnimationDone || !mounted) return;
-    resolveBootDestination(ref).then((destination) {
-      if (mounted) context.go(destination);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final boot = ref.watch(bootControllerProvider);
     final l10n = AppLocalizations.of(context)!;
 
-    ref.listen(bootControllerProvider, (previous, next) => _tryNavigate(next));
-
-    if (_splashAnimationDone) {
-      _tryNavigate(boot);
-    }
-
     final isLoadingPhase = switch (boot.phase) {
       BootPhase.forceUpdate ||
       BootPhase.optionalUpdate ||
       BootPhase.maintenance ||
-      BootPhase.error =>
-        false,
+      BootPhase.error => false,
       BootPhase.ready => false,
       _ => true,
     };
@@ -60,7 +46,16 @@ class _BootPageState extends ConsumerState<BootPage> {
         onAnimationComplete: () {
           if (!mounted) return;
           setState(() => _splashAnimationDone = true);
-          _tryNavigate(boot);
+        },
+      );
+    }
+
+    if (!_splashAnimationDone) {
+      return SplashPage(
+        statusMessage: _statusMessage(l10n, boot.phase),
+        onAnimationComplete: () {
+          if (!mounted) return;
+          setState(() => _splashAnimationDone = true);
         },
       );
     }
@@ -128,13 +123,13 @@ class _BootOverlay extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        BrandImage.logo(
-          asset: BrandAssets.primaryLogo,
-          height: 72,
-        ),        const SizedBox(height: 16),
+        BrandImage.logo(asset: BrandAssets.primaryLogo, height: 72),
+        const SizedBox(height: 16),
         Text(
           BrandAssets.splashTitleBn,
-          style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 48),
@@ -142,26 +137,29 @@ class _BootOverlay extends StatelessWidget {
           child: Center(
             child: switch (boot.phase) {
               BootPhase.forceUpdate => _ForceUpdateView(
-                  boot: boot,
-                  l10n: l10n,
-                  onUpdate: onUpdate,
-                ),
+                boot: boot,
+                l10n: l10n,
+                onUpdate: onUpdate,
+              ),
               BootPhase.optionalUpdate => _OptionalUpdateView(
-                  boot: boot,
-                  l10n: l10n,
-                  onUpdate: onUpdate,
-                  onLater: onSkipOptionalUpdate,
-                ),
+                boot: boot,
+                l10n: l10n,
+                onUpdate: onUpdate,
+                onLater: onSkipOptionalUpdate,
+              ),
               BootPhase.maintenance => _MaintenanceView(
-                  boot: boot,
-                  l10n: l10n,
-                  onRetry: onRetry,
-                ),
+                boot: boot,
+                l10n: l10n,
+                onRetry: onRetry,
+              ),
               BootPhase.error => _ErrorView(
-                  message: boot.errorMessage ?? l10n.bootInitError,
-                  l10n: l10n,
-                  onRetry: onRetry,
-                ),
+                message: boot.errorMessage ?? l10n.bootInitError,
+                l10n: l10n,
+                onRetry: onRetry,
+              ),
+              BootPhase.ready => const Center(
+                child: CircularProgressIndicator(),
+              ),
               _ => const SizedBox.shrink(),
             },
           ),
@@ -196,7 +194,11 @@ class _ErrorView extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.cloud_off_outlined, size: 48, color: Theme.of(context).colorScheme.error),
+        Icon(
+          Icons.cloud_off_outlined,
+          size: 48,
+          color: Theme.of(context).colorScheme.error,
+        ),
         const SizedBox(height: 16),
         Text(message, textAlign: TextAlign.center),
         const SizedBox(height: 24),
@@ -227,20 +229,36 @@ class _MaintenanceView extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.engineering_outlined, size: 48, color: Theme.of(context).colorScheme.primary),
+        Icon(
+          Icons.engineering_outlined,
+          size: 48,
+          color: Theme.of(context).colorScheme.primary,
+        ),
         const SizedBox(height: 16),
-        Text(l10n.bootMaintenanceTitle, style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
+        Text(
+          l10n.bootMaintenanceTitle,
+          style: Theme.of(context).textTheme.titleLarge,
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 12),
         Text(message, textAlign: TextAlign.center),
         const SizedBox(height: 24),
-        FilledButton.icon(onPressed: onRetry, icon: const Icon(Icons.refresh), label: Text(l10n.bootRetry)),
+        FilledButton.icon(
+          onPressed: onRetry,
+          icon: const Icon(Icons.refresh),
+          label: Text(l10n.bootRetry),
+        ),
       ],
     );
   }
 }
 
 class _ForceUpdateView extends StatelessWidget {
-  const _ForceUpdateView({required this.boot, required this.l10n, required this.onUpdate});
+  const _ForceUpdateView({
+    required this.boot,
+    required this.l10n,
+    required this.onUpdate,
+  });
 
   final BootState boot;
   final AppLocalizations l10n;
@@ -253,17 +271,32 @@ class _ForceUpdateView extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.system_update_alt, size: 48, color: Theme.of(context).colorScheme.primary),
+        Icon(
+          Icons.system_update_alt,
+          size: 48,
+          color: Theme.of(context).colorScheme.primary,
+        ),
         const SizedBox(height: 16),
-        Text(l10n.bootForceUpdateTitle, style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
+        Text(
+          l10n.bootForceUpdateTitle,
+          style: Theme.of(context).textTheme.titleLarge,
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 12),
         Text(info.message, textAlign: TextAlign.center),
         const SizedBox(height: 8),
-        Text(l10n.bootForceUpdateVersion(info.currentVersion, info.minimumVersion),
-            style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
+        Text(
+          l10n.bootForceUpdateVersion(info.currentVersion, info.minimumVersion),
+          style: Theme.of(context).textTheme.bodySmall,
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 24),
         if (hasUrl)
-          FilledButton.icon(onPressed: onUpdate, icon: const Icon(Icons.open_in_new), label: Text(l10n.bootUpdateNow))
+          FilledButton.icon(
+            onPressed: onUpdate,
+            icon: const Icon(Icons.open_in_new),
+            label: Text(l10n.bootUpdateNow),
+          )
         else
           Text(l10n.bootUpdateUnavailable, textAlign: TextAlign.center),
       ],
@@ -291,17 +324,35 @@ class _OptionalUpdateView extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.new_releases_outlined, size: 48, color: Theme.of(context).colorScheme.primary),
+        Icon(
+          Icons.new_releases_outlined,
+          size: 48,
+          color: Theme.of(context).colorScheme.primary,
+        ),
         const SizedBox(height: 16),
-        Text(l10n.bootOptionalUpdateTitle, style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
+        Text(
+          l10n.bootOptionalUpdateTitle,
+          style: Theme.of(context).textTheme.titleLarge,
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 12),
         Text(info.message, textAlign: TextAlign.center),
         const SizedBox(height: 8),
-        Text(l10n.bootOptionalUpdateVersion(info.currentVersion, info.recommendedVersion),
-            style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
+        Text(
+          l10n.bootOptionalUpdateVersion(
+            info.currentVersion,
+            info.recommendedVersion,
+          ),
+          style: Theme.of(context).textTheme.bodySmall,
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 24),
         if (hasUrl)
-          FilledButton.icon(onPressed: onUpdate, icon: const Icon(Icons.open_in_new), label: Text(l10n.bootUpdateNow)),
+          FilledButton.icon(
+            onPressed: onUpdate,
+            icon: const Icon(Icons.open_in_new),
+            label: Text(l10n.bootUpdateNow),
+          ),
         const SizedBox(height: 12),
         TextButton(onPressed: onLater, child: Text(l10n.bootUpdateLater)),
       ],

@@ -76,7 +76,9 @@ class PlatformSpeechService implements SpeechService {
   Future<String?> stopListening() async {
     await _speech.stop();
     _listening.value = false;
-    final text = _buffer.trim().isNotEmpty ? _buffer.trim() : _partial.value.trim();
+    final text = _buffer.trim().isNotEmpty
+        ? _buffer.trim()
+        : _partial.value.trim();
     return text.isEmpty ? null : text;
   }
 

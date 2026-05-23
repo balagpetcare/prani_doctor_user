@@ -7,6 +7,7 @@ import '../../../core/offline/network_errors.dart';
 import '../../../routing/app_routes.dart';
 import '../data/batch_dto.dart';
 import '../data/batch_repository.dart';
+import 'batch_navigation.dart';
 import 'batch_providers.dart';
 import 'widgets/batch_feedback.dart';
 import 'widgets/batch_merge_dialog.dart';
@@ -30,16 +31,65 @@ class BatchDetailPage extends ConsumerWidget {
             onPressed: () => context.push(AppRoutes.batchEdit(batchId)),
             icon: const Icon(Icons.edit_outlined),
           ),
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'delete') {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: Text(l10n.batchDeleteAction),
+                    content: Text(l10n.batchDeleteConfirm),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: Text(l10n.cancel),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: Text(l10n.batchDeleteAction),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed != true || !context.mounted) return;
+                try {
+                  await ref
+                      .read(batchListProvider.notifier)
+                      .deleteBatch(batchId);
+                  if (!context.mounted) return;
+                  BatchNavigation.afterDelete(ref);
+                  context.go(AppRoutes.batches);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.batchDeleteSuccess)),
+                  );
+                } catch (e) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(e.toString())));
+                }
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'delete',
+                child: Text(l10n.batchDeleteAction),
+              ),
+            ],
+          ),
         ],
       ),
       body: detailAsync.when(
-        loading: () => BatchFeedback.loading(),
+        loading: BatchFeedback.loading,
         error: (e, _) => BatchFeedback.error(
           context,
           message: e.toString(),
-          onRetry: () => ref.invalidate(batchDetailProvider(batchId)),
+          onRetry: () => BatchNavigation.refreshDetail(ref, batchId),
         ),
-        data: (detail) => _BatchDetailBody(batchId: batchId, detail: detail),
+        data: (detail) => RefreshIndicator(
+          onRefresh: () => BatchNavigation.refreshDetail(ref, batchId),
+          child: _BatchDetailBody(batchId: batchId, detail: detail),
+        ),
       ),
     );
   }
@@ -57,6 +107,7 @@ class _BatchDetailBody extends ConsumerWidget {
     final batch = detail.batch;
 
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       children: [
         if (detail.fromCache) BatchFeedback.offlineHint(context),
@@ -66,13 +117,16 @@ class _BatchDetailBody extends ConsumerWidget {
             child: ListTile(
               leading: const Icon(Icons.sync_problem),
               title: Text(l10n.batchPendingSync),
-              subtitle: batch.lastSyncError != null ? Text(batch.lastSyncError!) : null,
+              subtitle: batch.lastSyncError != null
+                  ? Text(batch.lastSyncError!)
+                  : null,
             ),
           ),
         Text(batch.name, style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 8),
         Text(l10n.batchAnimalCount(batch.animalCount)),
-        if (batch.animalType != null) Text('${l10n.batchTypeLabel}: ${batch.animalType}'),
+        if (batch.animalType != null)
+          Text('${l10n.batchTypeLabel}: ${batch.animalType}'),
         if (batch.location != null && batch.location!.isNotEmpty)
           Text('${l10n.batchLocationLabel}: ${batch.location}'),
         if (batch.notes != null && batch.notes!.isNotEmpty) ...[
@@ -85,22 +139,30 @@ class _BatchDetailBody extends ConsumerWidget {
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: () async {
-                  final input = await showBatchMoveDialog(context, ref, fromBatchId: batchId);
+                  final input = await showBatchMoveDialog(
+                    context,
+                    ref,
+                    fromBatchId: batchId,
+                  );
                   if (input == null || !context.mounted) return;
-                  final result = await ref.read(batchRepositoryProvider).moveAnimals(input);
+                  final result = await ref
+                      .read(batchRepositoryProvider)
+                      .moveAnimals(input);
                   result.when(
                     success: (_) {
-                      ref.invalidate(batchDetailProvider(batchId));
-                      ref.invalidate(batchListProvider);
+                      BatchNavigation.afterSave(ref, batchId);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(l10n.batchMoveSuccess)),
                       );
                     },
                     failure: (e) {
-                      final msg = e.code == offlineQueuedCode ? l10n.batchOfflineSaved : e.message;
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-                      ref.invalidate(batchDetailProvider(batchId));
-                      ref.invalidate(batchListProvider);
+                      final msg = e.code == offlineQueuedCode
+                          ? l10n.batchOfflineSaved
+                          : e.message;
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(msg)));
+                      BatchNavigation.afterSave(ref, batchId);
                     },
                   );
                 },
@@ -112,22 +174,31 @@ class _BatchDetailBody extends ConsumerWidget {
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: () async {
-                  final input = await showBatchMergeDialog(context, ref, sourceBatchId: batchId);
+                  final input = await showBatchMergeDialog(
+                    context,
+                    ref,
+                    sourceBatchId: batchId,
+                  );
                   if (input == null || !context.mounted) return;
-                  final result = await ref.read(batchRepositoryProvider).mergeBatches(input);
+                  final result = await ref
+                      .read(batchRepositoryProvider)
+                      .mergeBatches(input);
                   result.when(
                     success: (merged) {
-                      ref.invalidate(batchListProvider);
+                      BatchNavigation.afterDelete(ref);
                       context.go(AppRoutes.batchDetail(merged.id));
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(l10n.batchMergeSuccess)),
                       );
                     },
                     failure: (e) {
-                      final msg = e.code == offlineQueuedCode ? l10n.batchOfflineSaved : e.message;
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-                      ref.invalidate(batchDetailProvider(batchId));
-                      ref.invalidate(batchListProvider);
+                      final msg = e.code == offlineQueuedCode
+                          ? l10n.batchOfflineSaved
+                          : e.message;
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(msg)));
+                      BatchNavigation.afterSave(ref, batchId);
                     },
                   );
                 },
@@ -138,7 +209,10 @@ class _BatchDetailBody extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 24),
-        Text(l10n.batchAnimalsTitle, style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          l10n.batchAnimalsTitle,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         if (detail.animals.isEmpty)
           Text(l10n.batchNoAnimals)
         else
@@ -151,15 +225,22 @@ class _BatchDetailBody extends ConsumerWidget {
             ),
           ),
         const SizedBox(height: 16),
-        Text(l10n.batchMovementsTitle, style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          l10n.batchMovementsTitle,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         if (batch.movements.isEmpty)
           Text(l10n.batchNoMovements)
         else
           ...batch.movements.reversed.map(
             (m) => ListTile(
-              leading: Icon(m.type == 'MERGE' ? Icons.merge_type : Icons.swap_horiz),
+              leading: Icon(
+                m.type == 'MERGE' ? Icons.merge_type : Icons.swap_horiz,
+              ),
               title: Text(m.type),
-              subtitle: Text('${m.animalIds.length} animals · ${m.at.toLocal()}'),
+              subtitle: Text(
+                '${m.animalIds.length} animals · ${m.at.toLocal()}',
+              ),
             ),
           ),
       ],

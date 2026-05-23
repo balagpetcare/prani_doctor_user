@@ -22,8 +22,9 @@ class AiRepository implements AiRepositoryContract {
   final LocalCacheService _cache;
   final OutboxService _outbox;
 
-  String _historyKey(String? sessionId) =>
-      sessionId == null ? LocalCacheContract.aiActiveSessionKey : LocalCacheContract.aiConversationKey(sessionId);
+  String _historyKey(String? sessionId) => sessionId == null
+      ? LocalCacheContract.aiActiveSessionKey
+      : LocalCacheContract.aiConversationKey(sessionId);
 
   Future<void> _writeHistoryCache(AiHistoryResult result) async {
     if (result.sessionId == null) return;
@@ -35,11 +36,9 @@ class AiRepository implements AiRepositoryContract {
       },
       LocalCacheContract.profileTtl,
     );
-    await _cache.write(
-      LocalCacheContract.aiActiveSessionKey,
-      {'sessionId': result.sessionId},
-      LocalCacheContract.profileTtl,
-    );
+    await _cache.write(LocalCacheContract.aiActiveSessionKey, {
+      'sessionId': result.sessionId,
+    }, LocalCacheContract.profileTtl);
   }
 
   AiHistoryResult _historyFromCache(Map<String, dynamic>? cached) {
@@ -63,11 +62,18 @@ class AiRepository implements AiRepositoryContract {
       resolvedSessionId = active?['sessionId'] as String?;
     }
     if (resolvedSessionId == null) return null;
-    return _historyFromCache(await _cache.read(LocalCacheContract.aiConversationKey(resolvedSessionId)));
+    return _historyFromCache(
+      await _cache.read(
+        LocalCacheContract.aiConversationKey(resolvedSessionId),
+      ),
+    );
   }
 
   @override
-  Future<ApiResult<AiHistoryResult>> getHistory({String? sessionId, bool forceRefresh = false}) async {
+  Future<ApiResult<AiHistoryResult>> getHistory({
+    String? sessionId,
+    bool forceRefresh = false,
+  }) async {
     try {
       final data = await getJson(
         _dio,
@@ -101,9 +107,10 @@ class AiRepository implements AiRepositoryContract {
     final updated = [
       ...existing,
       userMessage,
-      if (assistantMessage != null) assistantMessage,
+      ?assistantMessage,
     ];
-    final resolvedSessionId = sessionId ?? cached?.sessionId ?? 'local-ai-session';
+    final resolvedSessionId =
+        sessionId ?? cached?.sessionId ?? 'local-ai-session';
     await _writeHistoryCache(
       AiHistoryResult(sessionId: resolvedSessionId, messages: updated),
     );
@@ -124,7 +131,9 @@ class AiRepository implements AiRepositoryContract {
   }
 
   @override
-  Future<ApiResult<AiChatResponse>> sendMessage(AiSendMessageInput input) async {
+  Future<ApiResult<AiChatResponse>> sendMessage(
+    AiSendMessageInput input,
+  ) async {
     final localUserId = 'local-user-${DateTime.now().millisecondsSinceEpoch}';
     final userMessage = AiChatMessage(
       id: localUserId,
@@ -158,10 +167,15 @@ class AiRepository implements AiRepositoryContract {
         await _enqueueMessage(input, localUserId);
         await _appendLocalMessages(
           sessionId: input.sessionId,
-          userMessage: userMessage.copyWith(status: AiMessageStatus.pendingSync),
+          userMessage: userMessage.copyWith(
+            status: AiMessageStatus.pendingSync,
+          ),
         );
-        return ApiResult.failure(
-          const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Saved offline — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       await _appendLocalMessages(
@@ -177,7 +191,9 @@ class AiRepository implements AiRepositoryContract {
     try {
       final data = await postJson(_dio, AiApiPaths.triage, input.toJson());
       final symptomsSummary = input.symptoms.join(', ');
-      return ApiResult.success(TriageResultModel.fromJson(data, symptomsSummary: symptomsSummary));
+      return ApiResult.success(
+        TriageResultModel.fromJson(data, symptomsSummary: symptomsSummary),
+      );
     } on AppException catch (e) {
       return ApiResult.failure(e);
     }
@@ -202,12 +218,22 @@ class AiRepository implements AiRepositoryContract {
         // Local clear still succeeds offline.
       }
     }
-    await _cache.write(LocalCacheContract.aiActiveSessionKey, {}, LocalCacheContract.profileTtl);
-    await _cache.write(LocalCacheContract.aiDraftKey, {}, LocalCacheContract.voiceDraftTtl);
+    await _cache.write(
+      LocalCacheContract.aiActiveSessionKey,
+      {},
+      LocalCacheContract.profileTtl,
+    );
+    await _cache.write(
+      LocalCacheContract.aiDraftKey,
+      {},
+      LocalCacheContract.voiceDraftTtl,
+    );
     return const ApiResult.success(null);
   }
 
-  Future<ApiResult<AiChatResponse>> _postMessageOnline(AiSendMessageInput input) async {
+  Future<ApiResult<AiChatResponse>> _postMessageOnline(
+    AiSendMessageInput input,
+  ) async {
     final data = await postJson(_dio, AiApiPaths.chat, input.toJson());
     return ApiResult.success(AiChatResponse.fromJson(data));
   }
@@ -215,7 +241,9 @@ class AiRepository implements AiRepositoryContract {
   @override
   Future<ApiResult<int>> syncPending() async {
     final items = await _outbox.listReady();
-    final pending = items.where((i) => i.kind == OutboxKind.aiChatMessage).toList();
+    final pending = items
+        .where((i) => i.kind == OutboxKind.aiChatMessage)
+        .toList();
     var synced = 0;
     for (final item in pending) {
       try {
@@ -256,6 +284,62 @@ class AiRepository implements AiRepositoryContract {
   }
 
   @override
+  Future<ApiResult<void>> escalate({
+    String? sessionId,
+    String reason = 'DOCTOR_REQUEST',
+    String? handoffNote,
+  }) async {
+    try {
+      await postJson(_dio, AiApiPaths.escalate, {
+        'sessionId': ?sessionId,
+        'reason': reason,
+        'handoffNote': ?handoffNote,
+      });
+      return const ApiResult.success(null);
+    } on AppException catch (e) {
+      return ApiResult.failure(e);
+    }
+  }
+
+  @override
+  Future<String?> readDraft() async {
+    final cached = await _cache.read(LocalCacheContract.aiDraftKey);
+    return cached?['text'] as String?;
+  }
+
+  @override
+  Future<void> saveDraft(String text) async {
+    await _cache.write(LocalCacheContract.aiDraftKey, {
+      'text': text,
+    }, LocalCacheContract.voiceDraftTtl);
+  }
+
+  @override
+  Future<void> clearDraft() async {
+    await _cache.write(
+      LocalCacheContract.aiDraftKey,
+      {},
+      LocalCacheContract.voiceDraftTtl,
+    );
+  }
+
+  @override
+  Future<AiSettings> readSettings() async {
+    final cached = await _cache.read(LocalCacheContract.aiSettingsKey);
+    if (cached == null) return const AiSettings();
+    return AiSettings.fromJson(cached);
+  }
+
+  @override
+  Future<void> saveSettings(AiSettings settings) async {
+    await _cache.write(
+      LocalCacheContract.aiSettingsKey,
+      settings.toJson(),
+      LocalCacheContract.profileTtl,
+    );
+  }
+
+  @override
   Future<ApiResult<VoiceSttResult>> normalizeVoiceTranscript({
     required String transcript,
     String? sessionId,
@@ -266,7 +350,7 @@ class AiRepository implements AiRepositoryContract {
       final data = await postJson(_dio, VoiceApiPaths.stt, {
         'mode': 'UPLOAD',
         'transcript': transcript,
-        if (sessionId != null) 'sessionId': sessionId,
+        'sessionId': ?sessionId,
         'locale': locale.apiValue,
         'confidence': confidence,
       });

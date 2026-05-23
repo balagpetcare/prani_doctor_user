@@ -25,7 +25,9 @@ class FinanceRecordCard extends StatelessWidget {
 
     return Card(
       child: ListTile(
-        leading: Icon(isExpense ? Icons.receipt_long_outlined : Icons.payments_outlined),
+        leading: Icon(
+          isExpense ? Icons.receipt_long_outlined : Icons.payments_outlined,
+        ),
         title: Text('$label · ${l10n.financeAmountValue(record.amountBdt)}'),
         subtitle: Text(
           [
@@ -36,7 +38,9 @@ class FinanceRecordCard extends StatelessWidget {
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => context.push(
-          isExpense ? AppRoutes.financeExpenseEdit(record.id) : AppRoutes.financeIncomeEdit(record.id),
+          isExpense
+              ? AppRoutes.financeExpenseDetail(record.id)
+              : AppRoutes.financeIncomeDetail(record.id),
         ),
       ),
     );

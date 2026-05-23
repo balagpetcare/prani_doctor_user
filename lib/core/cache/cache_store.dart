@@ -1,4 +1,4 @@
-﻿import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 /// Typed facade over a Hive box for offline / session-adjacent cache.
 class CacheStore {

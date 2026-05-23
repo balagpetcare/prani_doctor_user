@@ -39,35 +39,33 @@ class FinanceRepository implements FinanceRepositoryContract {
       page: data['page'] as int? ?? 1,
       limit: data['limit'] as int? ?? 20,
       hasMore: data['hasMore'] as bool? ?? false,
+      pendingSyncCount: _pendingSyncCount(records),
     );
   }
 
+  int _pendingSyncCount(List<FinanceRecord> records) =>
+      records.where((r) => r.pendingSync).length;
+
   Future<void> _writeExpensesCache(FinancePageResult page) async {
-    await _cache.write(
-      LocalCacheContract.financeExpensesListKey,
-      {
-        'records': page.records.map((r) => r.toJson()).toList(),
-        'total': page.total,
-        'page': page.page,
-        'limit': page.limit,
-        'hasMore': page.hasMore,
-      },
-      LocalCacheContract.profileTtl,
-    );
+    await _cache.write(LocalCacheContract.financeExpensesListKey, {
+      'records': page.records.map((r) => r.toJson()).toList(),
+      'total': page.total,
+      'page': page.page,
+      'limit': page.limit,
+      'hasMore': page.hasMore,
+      'pendingSyncCount': page.pendingSyncCount,
+    }, LocalCacheContract.profileTtl);
   }
 
   Future<void> _writeIncomeCache(FinancePageResult page) async {
-    await _cache.write(
-      LocalCacheContract.financeIncomeListKey,
-      {
-        'records': page.records.map((r) => r.toJson()).toList(),
-        'total': page.total,
-        'page': page.page,
-        'limit': page.limit,
-        'hasMore': page.hasMore,
-      },
-      LocalCacheContract.profileTtl,
-    );
+    await _cache.write(LocalCacheContract.financeIncomeListKey, {
+      'records': page.records.map((r) => r.toJson()).toList(),
+      'total': page.total,
+      'page': page.page,
+      'limit': page.limit,
+      'hasMore': page.hasMore,
+      'pendingSyncCount': page.pendingSyncCount,
+    }, LocalCacheContract.profileTtl);
   }
 
   FinancePageResult? _pageFromCache(Map<String, dynamic>? cached) {
@@ -83,20 +81,51 @@ class FinanceRepository implements FinanceRepositoryContract {
       limit: cached['limit'] as int? ?? 20,
       hasMore: cached['hasMore'] as bool? ?? false,
       fromCache: true,
+      pendingSyncCount:
+          cached['pendingSyncCount'] as int? ?? _pendingSyncCount(records),
     );
   }
 
   @override
+  Future<FinanceProfitData?> readCachedProfit() async {
+    final cached = await _cache.read(LocalCacheContract.financeProfitKey);
+    if (cached == null) return null;
+    return FinanceProfitData.fromJson(cached, fromCache: true);
+  }
+
+  @override
+  Future<FinanceChartsData?> readCachedCharts() async {
+    final cached = await _cache.read(LocalCacheContract.financeChartsKey);
+    if (cached == null) return null;
+    return FinanceChartsData.fromJson(cached, fromCache: true);
+  }
+
+  @override
+  Future<FinanceReportsData?> readCachedReports() async {
+    final cached = await _cache.read(LocalCacheContract.financeReportsKey);
+    if (cached == null) return null;
+    return FinanceReportsData.fromJson(cached, fromCache: true);
+  }
+
+  @override
   Future<FinancePageResult?> readCachedExpenses() async {
-    return _pageFromCache(await _cache.read(LocalCacheContract.financeExpensesListKey));
+    return _pageFromCache(
+      await _cache.read(LocalCacheContract.financeExpensesListKey),
+    );
   }
 
   @override
   Future<FinancePageResult?> readCachedIncome() async {
-    return _pageFromCache(await _cache.read(LocalCacheContract.financeIncomeListKey));
+    return _pageFromCache(
+      await _cache.read(LocalCacheContract.financeIncomeListKey),
+    );
   }
 
-  Future<void> _enqueue(OutboxKind kind, Map<String, dynamic> payload, String keySuffix) async {
+  Future<void> _enqueue(
+    OutboxKind kind,
+    Map<String, dynamic> payload,
+    String keySuffix,
+  ) async {
     final sequence = (await _outbox.listAll()).length + 1;
     await _outbox.enqueue(
       OutboxItem(
@@ -225,7 +254,11 @@ class FinanceRepository implements FinanceRepositoryContract {
         if (category != null) 'category': category.apiValue,
         if (search.trim().isNotEmpty) 'search': search.trim(),
       };
-      final data = await getJson(_dio, FinanceApiPaths.expenses, queryParameters: query);
+      final data = await getJson(
+        _dio,
+        FinanceApiPaths.expenses,
+        queryParameters: query,
+      );
       final pageResult = _parseListPage(data);
       if (page == 1) await _writeExpensesCache(pageResult);
       return ApiResult.success(pageResult);
@@ -283,7 +316,11 @@ class FinanceRepository implements FinanceRepositoryContract {
         if (source != null) 'source': source.apiValue,
         if (search.trim().isNotEmpty) 'search': search.trim(),
       };
-      final data = await getJson(_dio, FinanceApiPaths.income, queryParameters: query);
+      final data = await getJson(
+        _dio,
+        FinanceApiPaths.income,
+        queryParameters: query,
+      );
       final pageResult = _parseListPage(data);
       if (page == 1) await _writeIncomeCache(pageResult);
       return ApiResult.success(pageResult);
@@ -302,7 +339,9 @@ class FinanceRepository implements FinanceRepositoryContract {
       final data = await getJson(_dio, FinanceApiPaths.expense(id));
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Expense not found'));
+        return const ApiResult.failure(
+          AppException(message: 'Expense not found'),
+        );
       }
       final record = FinanceRecord.fromJson(raw);
       await _cache.write(
@@ -312,10 +351,15 @@ class FinanceRepository implements FinanceRepositoryContract {
       );
       return ApiResult.success(record);
     } on AppException catch (e) {
-      final cached = await _cache.read(LocalCacheContract.financeExpenseDetailKey(id));
+      final cached = await _cache.read(
+        LocalCacheContract.financeExpenseDetailKey(id),
+      );
       if (cached != null) {
         return ApiResult.success(
-          FinanceRecord.fromJson(cached['record'] as Map<String, dynamic>, fromCache: true),
+          FinanceRecord.fromJson(
+            cached['record'] as Map<String, dynamic>,
+            fromCache: true,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -328,7 +372,9 @@ class FinanceRepository implements FinanceRepositoryContract {
       final data = await getJson(_dio, FinanceApiPaths.incomeRecord(id));
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Income not found'));
+        return const ApiResult.failure(
+          AppException(message: 'Income not found'),
+        );
       }
       final record = FinanceRecord.fromJson(raw);
       await _cache.write(
@@ -338,10 +384,15 @@ class FinanceRepository implements FinanceRepositoryContract {
       );
       return ApiResult.success(record);
     } on AppException catch (e) {
-      final cached = await _cache.read(LocalCacheContract.financeIncomeDetailKey(id));
+      final cached = await _cache.read(
+        LocalCacheContract.financeIncomeDetailKey(id),
+      );
       if (cached != null) {
         return ApiResult.success(
-          FinanceRecord.fromJson(cached['record'] as Map<String, dynamic>, fromCache: true),
+          FinanceRecord.fromJson(
+            cached['record'] as Map<String, dynamic>,
+            fromCache: true,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -372,7 +423,9 @@ class FinanceRepository implements FinanceRepositoryContract {
       final data = await postJson(_dio, FinanceApiPaths.expenses, body);
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid create response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid create response'),
+        );
       }
       final record = FinanceRecord.fromJson(raw);
       await _optimisticUpsertExpense(record);
@@ -381,8 +434,11 @@ class FinanceRepository implements FinanceRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.financeExpenseCreate, body, tempId);
-        return ApiResult.failure(
-          const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Saved offline — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -390,7 +446,10 @@ class FinanceRepository implements FinanceRepositoryContract {
   }
 
   @override
-  Future<ApiResult<FinanceRecord>> updateExpense(String id, ExpenseInput input) async {
+  Future<ApiResult<FinanceRecord>> updateExpense(
+    String id,
+    ExpenseInput input,
+  ) async {
     final body = input.toPatchJson();
     final existingResult = await getExpense(id);
     if (existingResult case ApiSuccess(data: final existing)) {
@@ -411,7 +470,9 @@ class FinanceRepository implements FinanceRepositoryContract {
       final data = await patchJson(_dio, FinanceApiPaths.expense(id), body);
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid update response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid update response'),
+        );
       }
       final record = FinanceRecord.fromJson(raw);
       await _optimisticUpsertExpense(record);
@@ -420,8 +481,11 @@ class FinanceRepository implements FinanceRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.financeExpensePatch, {...body, 'id': id}, id);
-        return ApiResult.failure(
-          const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Saved offline — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -437,8 +501,11 @@ class FinanceRepository implements FinanceRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.financeExpenseDelete, {'id': id}, id);
-        return ApiResult.failure(
-          const AppException(message: 'Queued delete — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Queued delete — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -469,7 +536,9 @@ class FinanceRepository implements FinanceRepositoryContract {
       final data = await postJson(_dio, FinanceApiPaths.income, body);
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid create response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid create response'),
+        );
       }
       final record = FinanceRecord.fromJson(raw);
       await _optimisticUpsertIncome(record);
@@ -478,8 +547,11 @@ class FinanceRepository implements FinanceRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.financeIncomeCreate, body, tempId);
-        return ApiResult.failure(
-          const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Saved offline — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -487,7 +559,10 @@ class FinanceRepository implements FinanceRepositoryContract {
   }
 
   @override
-  Future<ApiResult<FinanceRecord>> updateIncome(String id, IncomeInput input) async {
+  Future<ApiResult<FinanceRecord>> updateIncome(
+    String id,
+    IncomeInput input,
+  ) async {
     final body = input.toPatchJson();
     final existingResult = await getIncome(id);
     if (existingResult case ApiSuccess(data: final existing)) {
@@ -505,10 +580,16 @@ class FinanceRepository implements FinanceRepositoryContract {
     }
 
     try {
-      final data = await patchJson(_dio, FinanceApiPaths.incomeRecord(id), body);
+      final data = await patchJson(
+        _dio,
+        FinanceApiPaths.incomeRecord(id),
+        body,
+      );
       final raw = data['record'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid update response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid update response'),
+        );
       }
       final record = FinanceRecord.fromJson(raw);
       await _optimisticUpsertIncome(record);
@@ -517,8 +598,11 @@ class FinanceRepository implements FinanceRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.financeIncomePatch, {...body, 'id': id}, id);
-        return ApiResult.failure(
-          const AppException(message: 'Saved offline — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Saved offline — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -534,8 +618,11 @@ class FinanceRepository implements FinanceRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueue(OutboxKind.financeIncomeDelete, {'id': id}, id);
-        return ApiResult.failure(
-          const AppException(message: 'Queued delete — will sync when online', code: offlineQueuedCode),
+        return const ApiResult.failure(
+          AppException(
+            message: 'Queued delete — will sync when online',
+            code: offlineQueuedCode,
+          ),
         );
       }
       return ApiResult.failure(e);
@@ -543,75 +630,120 @@ class FinanceRepository implements FinanceRepositoryContract {
   }
 
   @override
-  Future<ApiResult<FinanceProfitData>> getProfit({DateTime? from, DateTime? to}) async {
+  Future<ApiResult<FinanceProfitData>> getProfit({
+    DateTime? from,
+    DateTime? to,
+  }) async {
     try {
       final now = DateTime.now();
       final query = <String, dynamic>{
         'from': _dateParam(from ?? now.subtract(const Duration(days: 30))),
         'to': _dateParam(to ?? now),
       };
-      final data = await getJson(_dio, FinanceApiPaths.profit, queryParameters: query);
+      final data = await getJson(
+        _dio,
+        FinanceApiPaths.profit,
+        queryParameters: query,
+      );
       final raw = data['profit'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid profit response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid profit response'),
+        );
       }
       final profit = FinanceProfitData.fromJson(raw);
-      await _cache.write(LocalCacheContract.financeProfitKey, raw, LocalCacheContract.profileTtl);
+      await _cache.write(
+        LocalCacheContract.financeProfitKey,
+        raw,
+        LocalCacheContract.profileTtl,
+      );
       return ApiResult.success(profit);
     } on AppException catch (e) {
       final cached = await _cache.read(LocalCacheContract.financeProfitKey);
       if (cached != null) {
-        return ApiResult.success(FinanceProfitData.fromJson(cached, fromCache: true));
+        return ApiResult.success(
+          FinanceProfitData.fromJson(cached, fromCache: true),
+        );
       }
       return ApiResult.failure(e);
     }
   }
 
   @override
-  Future<ApiResult<FinanceChartsData>> getCharts({DateTime? from, DateTime? to}) async {
+  Future<ApiResult<FinanceChartsData>> getCharts({
+    DateTime? from,
+    DateTime? to,
+  }) async {
     try {
       final now = DateTime.now();
       final query = <String, dynamic>{
         'from': _dateParam(from ?? now.subtract(const Duration(days: 30))),
         'to': _dateParam(to ?? now),
       };
-      final data = await getJson(_dio, FinanceApiPaths.charts, queryParameters: query);
+      final data = await getJson(
+        _dio,
+        FinanceApiPaths.charts,
+        queryParameters: query,
+      );
       final raw = data['charts'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid charts response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid charts response'),
+        );
       }
       final charts = FinanceChartsData.fromJson(raw);
-      await _cache.write(LocalCacheContract.financeChartsKey, raw, LocalCacheContract.profileTtl);
+      await _cache.write(
+        LocalCacheContract.financeChartsKey,
+        raw,
+        LocalCacheContract.profileTtl,
+      );
       return ApiResult.success(charts);
     } on AppException catch (e) {
       final cached = await _cache.read(LocalCacheContract.financeChartsKey);
       if (cached != null) {
-        return ApiResult.success(FinanceChartsData.fromJson(cached, fromCache: true));
+        return ApiResult.success(
+          FinanceChartsData.fromJson(cached, fromCache: true),
+        );
       }
       return ApiResult.failure(e);
     }
   }
 
   @override
-  Future<ApiResult<FinanceReportsData>> getReports({DateTime? from, DateTime? to}) async {
+  Future<ApiResult<FinanceReportsData>> getReports({
+    DateTime? from,
+    DateTime? to,
+  }) async {
     try {
       final now = DateTime.now();
       final query = <String, dynamic>{
         'from': _dateParam(from ?? now.subtract(const Duration(days: 30))),
         'to': _dateParam(to ?? now),
       };
-      final data = await getJson(_dio, FinanceApiPaths.reports, queryParameters: query);
+      final data = await getJson(
+        _dio,
+        FinanceApiPaths.reports,
+        queryParameters: query,
+      );
       final raw = data['reports'];
       if (raw is! Map<String, dynamic>) {
-        return ApiResult.failure(const AppException(message: 'Invalid reports response'));
+        return const ApiResult.failure(
+          AppException(message: 'Invalid reports response'),
+        );
       }
       final reports = FinanceReportsData.fromJson(raw);
-      await _cache.write(LocalCacheContract.financeReportsKey, raw, LocalCacheContract.profileTtl);
+      await _cache.write(
+        LocalCacheContract.financeReportsKey,
+        raw,
+        LocalCacheContract.profileTtl,
+      );
       return ApiResult.success(reports);
     } on AppException catch (e) {
       final cached = await _cache.read(LocalCacheContract.financeReportsKey);
       if (cached != null) {
-        return ApiResult.success(FinanceReportsData.fromJson(cached, fromCache: true));
+        return ApiResult.success(
+          FinanceReportsData.fromJson(cached, fromCache: true),
+        );
       }
       return ApiResult.failure(e);
     }

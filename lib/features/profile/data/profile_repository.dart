@@ -1,31 +1,50 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/api_result.dart';
 import '../../../core/error/app_exception.dart';
-import '../../../core/network/api_envelope.dart';
-import '../../../core/network/dio_helpers.dart';
+import '../../../core/network/flexible_http.dart';
 import '../../../core/network/dio_provider.dart';
 import '../../../core/offline/local_cache_contract.dart';
 import '../../../core/offline/network_errors.dart';
+import '../../shared/upload/services/upload_service.dart';
 import '../../offline/data/local_cache_service.dart';
 import '../../offline/data/outbox_item.dart';
 import '../../offline/data/outbox_service.dart';
 import '../../offline/offline_providers.dart';
 import 'mobile_me_dto.dart';
 import 'profile_api_paths.dart';
+import 'profile_fetch_policy.dart';
+import 'profile_media_models.dart';
 import 'profile_repository_contract.dart';
+import '../services/profile_media_service.dart';
 
 /// Production profile repository with cache, offline queue, and upload support.
 class ProfileRepository implements ProfileRepositoryContract {
-  ProfileRepository(this._dio, this._cache, this._outbox);
+  ProfileRepository(
+    this._dio,
+    this._cache,
+    this._outbox,
+    this._uploads,
+    this._media,
+  );
 
   final Dio _dio;
   final LocalCacheService _cache;
   final OutboxService _outbox;
+  final UploadService _uploads;
+  final ProfileMediaService _media;
 
   Future<ApiResult<MobileMeDto>>? _getMeInFlight;
   Future<ApiResult<MobileMeDto>>? _patchInFlight;
+
+  @override
+  Future<MobileMeDto?> readCachedProfile() async {
+    final cached = await _cache.read(LocalCacheContract.profileKey);
+    if (cached == null) return null;
+    return _mergeCachedAddress(MobileMeDto.fromJson(cached));
+  }
 
   @override
   Future<MobileMeAddressDto?> readCachedAddress() async {
@@ -44,6 +63,10 @@ class ProfileRepository implements ProfileRepositoryContract {
   }
 
   Future<MobileMeDto> _mergeCachedAddress(MobileMeDto profile) async {
+    if (profile.address != null) {
+      await _writeAddressCache(profile.address);
+      return profile;
+    }
     final cachedAddress = await readCachedAddress();
     return profile.mergeAddress(cachedAddress);
   }
@@ -62,7 +85,7 @@ class ProfileRepository implements ProfileRepositoryContract {
       return _getMeInFlight!;
     }
 
-    final future = _fetchMe();
+    final future = _fetchMeWithRetry();
     _getMeInFlight = future;
     try {
       return await future;
@@ -71,25 +94,54 @@ class ProfileRepository implements ProfileRepositoryContract {
     }
   }
 
-  Future<ApiResult<MobileMeDto>> _fetchMe() async {
-    try {
-      final data = await getJson(_dio, ProfileApiPaths.me);
-      await _writeProfileCache(data);
-      final profile = await _mergeCachedAddress(MobileMeDto.fromJson(data));
-      return ApiResult.success(profile);
-    } on AppException catch (e) {
-      final cached = await _cache.read(LocalCacheContract.profileKey);
-      if (cached != null) {
-        final profile =
-            await _mergeCachedAddress(MobileMeDto.fromJson(cached));
+  Future<ApiResult<MobileMeDto>> _fetchMeWithRetry() async {
+    AppException? lastError;
+
+    for (
+      var attempt = 1;
+      attempt <= ProfileFetchPolicy.maxAttempts;
+      attempt++
+    ) {
+      try {
+        final data = await getJsonFlexible(
+          _dio,
+          ProfileApiPaths.me,
+          logTag: 'PROFILE',
+        ).timeout(ProfileFetchPolicy.requestTimeout);
+        await _writeProfileCache(data);
+        final profile = await _mergeCachedAddress(MobileMeDto.fromJson(data));
+        if (kDebugMode) {
+          debugPrint(
+            '[PROFILE_FETCH] ok union=${profile.address?.unionId} village=${profile.address?.villageId}',
+          );
+        }
         return ApiResult.success(profile);
+      } on AppException catch (e) {
+        lastError = e;
+        if (!ProfileFetchPolicy.isRetryable(e) ||
+            attempt >= ProfileFetchPolicy.maxAttempts) {
+          break;
+        }
+        if (kDebugMode) {
+          debugPrint(
+            '[PROFILE] retry $attempt/${ProfileFetchPolicy.maxAttempts} (${e.code})',
+          );
+        }
+      } on Object catch (e) {
+        lastError = AppException(message: 'Failed to load profile', cause: e);
+        if (attempt >= ProfileFetchPolicy.maxAttempts) break;
       }
-      return ApiResult.failure(e);
-    } catch (e) {
-      return ApiResult.failure(
-        AppException(message: 'Failed to load profile', cause: e),
-      );
     }
+
+    final cached = await _cache.read(LocalCacheContract.profileKey);
+    if (cached != null) {
+      final profile = await _mergeCachedAddress(MobileMeDto.fromJson(cached));
+      return ApiResult.success(profile);
+    }
+
+    return ApiResult.failure(
+      lastError ?? const AppException(message: 'Failed to load profile'),
+    );
   }
 
   @override
@@ -98,12 +150,13 @@ class ProfileRepository implements ProfileRepositoryContract {
       return _patchInFlight!;
     }
 
-    final body = input.toJson();
-    if (body.isEmpty) {
-      return ApiResult.failure(const AppException(message: 'No changes to save'));
+    if (!input.hasPayload) {
+      return const ApiResult.failure(
+        AppException(message: 'No changes to save'),
+      );
     }
 
-    final future = _patchMe(body, input);
+    final future = _patchMe(input);
     _patchInFlight = future;
     try {
       return await future;
@@ -112,14 +165,23 @@ class ProfileRepository implements ProfileRepositoryContract {
     }
   }
 
-  Future<ApiResult<MobileMeDto>> _patchMe(
-    Map<String, dynamic> body,
-    PatchMobileMeInput input,
-  ) async {
+  Future<ApiResult<MobileMeDto>> _patchMe(PatchMobileMeInput input) async {
+    final body = input.toJson();
+
     try {
-      final data = await patchJson(_dio, ProfileApiPaths.me, body);
+      final data = await patchJsonFlexible(
+        _dio,
+        ProfileApiPaths.me,
+        body,
+        logTag: 'PROFILE',
+      ).timeout(ProfileFetchPolicy.requestTimeout);
       if (input.address != null) {
         await _writeAddressCache(input.address);
+        if (kDebugMode) {
+          debugPrint(
+            '[LOCATION_SAVE] union=${input.address!.unionId} village=${input.address!.villageId}',
+          );
+        }
       }
       await _writeProfileCache(data);
       final profile = await _mergeCachedAddress(MobileMeDto.fromJson(data));
@@ -137,8 +199,9 @@ class ProfileRepository implements ProfileRepositoryContract {
             merged['address'] = input.address!.toJson();
           }
           await _writeProfileCache(merged);
-          final profile =
-              await _mergeCachedAddress(MobileMeDto.fromJson(merged));
+          final profile = await _mergeCachedAddress(
+            MobileMeDto.fromJson(merged),
+          );
           return ApiResult.failure(
             AppException(
               message: 'Saved offline — will sync when online',
@@ -147,8 +210,8 @@ class ProfileRepository implements ProfileRepositoryContract {
             ),
           );
         }
-        return ApiResult.failure(
-          const AppException(
+        return const ApiResult.failure(
+          AppException(
             message: 'Saved offline — will sync when online',
             code: offlineQueuedCode,
           ),
@@ -162,40 +225,104 @@ class ProfileRepository implements ProfileRepositoryContract {
     }
   }
 
+  Future<ApiResult<ProfileMediaUploadResult>> uploadProfileMedia(
+    String filePath, {
+    required ProfileMediaKind kind,
+    void Function(int sent, int total)? onProgress,
+  }) async {
+    final result = kind == ProfileMediaKind.avatar
+        ? await _media.uploadAvatar(filePath, onProgress: onProgress)
+        : await _media.uploadCover(filePath, onProgress: onProgress);
+
+    return result.when(
+      success: (upload) async {
+        final cached = await _cache.read(LocalCacheContract.profileKey);
+        if (cached != null) {
+          final avatarMain = upload.avatarUrl ?? upload.url;
+          final avatarThumb = upload.avatarThumbUrl ?? upload.thumbUrl;
+          final coverMain = upload.coverUrl ?? upload.url;
+          final coverThumb = upload.coverThumbUrl ?? upload.thumbUrl;
+
+          if (kind == ProfileMediaKind.avatar) {
+            if (avatarMain != null) {
+              cached['profilePhotoUrl'] = avatarMain;
+              cached['profileImageUrl'] = avatarMain;
+              cached['avatarUrl'] = avatarMain;
+            }
+            if (avatarThumb != null) {
+              cached['profilePhotoThumbUrl'] = avatarThumb;
+              cached['profileImageThumbUrl'] = avatarThumb;
+              cached['avatarThumbUrl'] = avatarThumb;
+            }
+          } else {
+            if (coverMain != null) {
+              cached['coverPhotoUrl'] = coverMain;
+              cached['coverImageUrl'] = coverMain;
+              cached['coverUrl'] = coverMain;
+            }
+            if (coverThumb != null) {
+              cached['coverPhotoThumbUrl'] = coverThumb;
+              cached['coverImageThumbUrl'] = coverThumb;
+              cached['coverThumbUrl'] = coverThumb;
+            }
+          }
+          await _writeProfileCache(cached);
+        }
+        return ApiResult.success(upload);
+      },
+      failure: ApiResult.failure,
+    );
+  }
+
+  Future<ApiResult<void>> removeProfileMedia(ProfileMediaKind kind) async {
+    final result = kind == ProfileMediaKind.avatar
+        ? await _media.removeAvatar()
+        : await _media.removeCover();
+    return result.when(
+      success: (_) async {
+        final cached = await _cache.read(LocalCacheContract.profileKey);
+        if (cached != null) {
+          if (kind == ProfileMediaKind.avatar) {
+            cached.remove('profilePhotoUrl');
+            cached.remove('profilePhotoThumbUrl');
+            cached.remove('profileImageUrl');
+            cached.remove('profileImageThumbUrl');
+          } else {
+            cached.remove('coverPhotoUrl');
+            cached.remove('coverPhotoThumbUrl');
+            cached.remove('coverImageUrl');
+            cached.remove('coverImageThumbUrl');
+          }
+          await _writeProfileCache(cached);
+        }
+        return const ApiResult.success(null);
+      },
+      failure: ApiResult.failure,
+    );
+  }
+
   @override
   Future<ApiResult<String>> uploadProfilePhoto(String filePath) async {
-    try {
-      final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(filePath),
-      });
-      final response = await _dio.post<dynamic>(
-        ProfileApiPaths.uploadProfileImage,
-        data: formData,
-      );
-      final data = ApiEnvelope.unwrapData(response);
-      final url = data['profilePhotoUrl'] as String?;
-      if (url == null || url.isEmpty) {
-        return ApiResult.failure(
-          const AppException(message: 'Upload succeeded but no photo URL returned'),
-        );
-      }
-
-      final cached = await _cache.read(LocalCacheContract.profileKey);
-      if (cached != null) {
-        cached['profilePhotoUrl'] = url;
-        await _writeProfileCache(cached);
-      }
-
-      return ApiResult.success(url);
-    } on AppException catch (e) {
-      return ApiResult.failure(e);
-    } on DioException catch (e) {
-      return ApiResult.failure(ApiEnvelope.fromDioException(e));
-    } catch (e) {
-      return ApiResult.failure(
-        AppException(message: 'Failed to upload photo', cause: e),
-      );
-    }
+    final result = await _uploads.uploadProfileImage(filePath);
+    return result.when(
+      success: (upload) async {
+        final url = upload.profilePhotoUrl ?? upload.url;
+        if (url.isEmpty) {
+          return const ApiResult.failure(
+            AppException(
+              message: 'Upload succeeded but no photo URL returned',
+            ),
+          );
+        }
+        final cached = await _cache.read(LocalCacheContract.profileKey);
+        if (cached != null) {
+          cached['profilePhotoUrl'] = url;
+          await _writeProfileCache(cached);
+        }
+        return ApiResult.success(url);
+      },
+      failure: ApiResult.failure,
+    );
   }
 
   Future<void> _enqueuePatch({required Map<String, dynamic> body}) async {
@@ -203,7 +330,8 @@ class ProfileRepository implements ProfileRepositoryContract {
     final sequence = (await _outbox.listAll()).length + 1;
     await _outbox.enqueue(
       OutboxItem(
-        idempotencyKey: 'profile-$sequence-${DateTime.now().millisecondsSinceEpoch}',
+        idempotencyKey:
+            'profile-$sequence-${DateTime.now().millisecondsSinceEpoch}',
         kind: OutboxKind.profilePatch,
         payload: body,
         clientSequence: sequence,
@@ -219,5 +347,7 @@ final profileRepositoryProvider = Provider<ProfileRepositoryContract>((ref) {
     ref.watch(dioProvider),
     ref.watch(localCacheServiceProvider),
     ref.watch(outboxServiceProvider),
+    ref.watch(uploadServiceProvider),
+    ref.watch(profileMediaServiceProvider),
   );
 });

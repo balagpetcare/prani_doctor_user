@@ -22,7 +22,8 @@ class TreatmentRecordCard extends StatelessWidget {
           [
             treatmentStatusLabel(l10n, record.status),
             record.startDate.toLocal().toString().split(' ').first,
-            if (record.medicines.isNotEmpty) l10n.treatmentMedicineCount(record.medicines.length),
+            if (record.medicines.isNotEmpty)
+              l10n.treatmentMedicineCount(record.medicines.length),
             if (record.pendingSync) l10n.treatmentPendingSync,
           ].join(' · '),
         ),

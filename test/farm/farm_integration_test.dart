@@ -6,7 +6,7 @@ import 'package:pranidoctor_user/features/profile/data/mobile_me_dto.dart';
 
 void main() {
   group('FarmDto', () {
-    test('fromProfile returns null without village', () {
+    test('fromProfile returns null without location hierarchy', () {
       const profile = MobileMeDto(
         id: '1',
         name: 'Karim',
@@ -18,7 +18,7 @@ void main() {
       expect(Farm.fromProfile(profile: profile), isNull);
     });
 
-    test('fromProfile builds farm with summary counts', () {
+    test('fromProfile builds farm with village id', () {
       const profile = MobileMeDto(
         id: '1',
         name: 'Karim',
@@ -27,7 +27,13 @@ void main() {
         locale: 'bn-BD',
         role: 'customer',
         area: 'My Farm',
-        address: MobileMeAddressDto(villageId: 'v1'),
+        address: MobileMeAddressDto(
+          divisionId: 'd1',
+          districtId: 'dist1',
+          upazilaId: 'u1',
+          unionId: 'un1',
+          villageId: 'v1',
+        ),
       );
       final farm = Farm.fromProfile(
         profile: profile,
@@ -53,6 +59,19 @@ void main() {
       expect(restored.id, 'farm-v1');
       expect(restored.animalCount, 2);
     });
+
+    test('FarmInput draft round-trip', () {
+      const input = FarmInput(
+        name: 'Draft Farm',
+        areaLabel: 'Area',
+        coverPhotoUrl: 'https://example.com/c.jpg',
+        address: MobileMeAddressDto(villageId: 'v1'),
+      );
+      final restored = FarmInput.fromDraftJson(input.toDraftJson());
+      expect(restored.name, 'Draft Farm');
+      expect(restored.coverPhotoUrl, 'https://example.com/c.jpg');
+      expect(restored.address.villageId, 'v1');
+    });
   });
 
   group('FarmValidation', () {
@@ -63,10 +82,26 @@ void main() {
       );
     });
 
-    test('requires village id', () {
+    test('requires location hierarchy for save', () {
       expect(
-        FarmValidation.validateVillage(null, requiredMessage: 'Required'),
+        FarmValidation.validateLocation(
+          const MobileMeAddressDto(villageId: 'v1'),
+          hierarchyMessage: 'Required',
+        ),
         'Required',
+      );
+      expect(
+        FarmValidation.validateLocation(
+          const MobileMeAddressDto(
+            divisionId: 'd1',
+            districtId: 'dist1',
+            upazilaId: 'u1',
+            unionId: 'un1',
+            villageId: 'v1',
+          ),
+          hierarchyMessage: 'Required',
+        ),
+        isNull,
       );
     });
   });
@@ -81,6 +116,12 @@ void main() {
       });
       expect(animal.name, 'Bella');
       expect(animal.animalType, 'CATTLE');
+    });
+  });
+
+  group('FarmSort', () {
+    test('sort enum values exist', () {
+      expect(FarmSort.values.length, 3);
     });
   });
 }

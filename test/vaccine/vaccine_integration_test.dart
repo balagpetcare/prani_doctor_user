@@ -45,10 +45,77 @@ void main() {
     });
   });
 
+  group('VaccinePageResult', () {
+    test('copyWith preserves pending sync count', () {
+      const page = VaccinePageResult(
+        records: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+        hasMore: false,
+        pendingSyncCount: 2,
+      );
+      expect(page.copyWith(total: 5).pendingSyncCount, 2);
+    });
+  });
+
+  group('VaccineSummaryData', () {
+    test('computes summary from records and reminders', () {
+      final records = [
+        VaccineRecord(
+          id: '1',
+          customerId: 'c1',
+          vaccineName: 'FMD',
+          scheduledDate: DateTime.utc(2026, 5, 1),
+          status: VaccineStatus.completed,
+          createdAt: DateTime.utc(2026, 5, 1),
+          updatedAt: DateTime.utc(2026, 5, 1),
+        ),
+      ];
+      final reminders = VaccineRemindersData(
+        overdue: [
+          VaccineRecord(
+            id: '2',
+            customerId: 'c1',
+            vaccineName: 'HS',
+            scheduledDate: DateTime.utc(2026, 5, 10),
+            status: VaccineStatus.overdue,
+            createdAt: DateTime.utc(2026, 5, 1),
+            updatedAt: DateTime.utc(2026, 5, 1),
+          ),
+        ],
+        upcoming: [
+          VaccineRecord(
+            id: '3',
+            customerId: 'c1',
+            vaccineName: 'BQ',
+            scheduledDate: DateTime.utc(2026, 6, 1),
+            status: VaccineStatus.due,
+            createdAt: DateTime.utc(2026, 5, 1),
+            updatedAt: DateTime.utc(2026, 5, 1),
+          ),
+        ],
+      );
+      final summary = VaccineSummaryData.fromSources(
+        allRecords: records,
+        reminders: reminders,
+      );
+      expect(summary.completed, 1);
+      expect(summary.overdue, 1);
+      expect(summary.upcoming, 1);
+    });
+  });
+
   group('VaccineValidation', () {
     test('validates name and animal', () {
-      expect(VaccineValidation.validateName('', message: 'Required'), 'Required');
-      expect(VaccineValidation.validateAnimal(null, message: 'Required'), 'Required');
+      expect(
+        VaccineValidation.validateName('', message: 'Required'),
+        'Required',
+      );
+      expect(
+        VaccineValidation.validateAnimal(null, message: 'Required'),
+        'Required',
+      );
     });
   });
 }

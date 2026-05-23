@@ -16,6 +16,22 @@ class VaccineReminderPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final remindersAsync = ref.watch(vaccineReminderProvider);
 
+    ref.listen(vaccineReminderProvider, (previous, next) {
+      next.whenData((reminders) {
+        ref
+            .read(vaccineReminderServiceProvider)
+            .scheduleFallbackNotifications(
+              reminders,
+              overdueTitle: l10n.vaccineOverdueTitle,
+              dueTitle: l10n.vaccineStatusDue,
+              bodyFor: (record) => l10n.vaccineReminderBody(
+                record.targetLabel,
+                record.vaccineName,
+              ),
+            );
+      });
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.vaccineRemindersTitle),
@@ -27,7 +43,7 @@ class VaccineReminderPage extends ConsumerWidget {
         ],
       ),
       body: remindersAsync.when(
-        loading: () => VaccineFeedback.loading(),
+        loading: VaccineFeedback.loading,
         error: (e, _) => VaccineFeedback.error(
           context,
           message: e.toString(),
@@ -40,32 +56,53 @@ class VaccineReminderPage extends ConsumerWidget {
               onCreate: () => context.push(AppRoutes.vaccineCreate),
             );
           }
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              if (reminders.fromCache) VaccineFeedback.offlineHint(context),
-              if (reminders.overdue.isNotEmpty) ...[
-                Text(l10n.vaccineOverdueTitle, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                ...reminders.overdue.map(
-                  (r) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: VaccineRecordCard(record: r),
+          return RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(vaccineReminderProvider);
+              await ref.read(vaccineReminderProvider.future);
+            },
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                if (reminders.fromCache) VaccineFeedback.offlineHint(context),
+                if (reminders.nextDue != null) ...[
+                  Text(
+                    l10n.vaccineNextDueTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
-                ),
-                const SizedBox(height: 16),
-              ],
-              if (reminders.upcoming.isNotEmpty) ...[
-                Text(l10n.vaccineUpcomingTitle, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                ...reminders.upcoming.map(
-                  (r) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: VaccineRecordCard(record: r),
+                  VaccineRecordCard(record: reminders.nextDue!),
+                  const SizedBox(height: 16),
+                ],
+                if (reminders.overdue.isNotEmpty) ...[
+                  Text(
+                    l10n.vaccineOverdueTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  ...reminders.overdue.map(
+                    (r) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: VaccineRecordCard(record: r),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                if (reminders.upcoming.isNotEmpty) ...[
+                  Text(
+                    l10n.vaccineUpcomingTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  ...reminders.upcoming.map(
+                    (r) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: VaccineRecordCard(record: r),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           );
         },
       ),

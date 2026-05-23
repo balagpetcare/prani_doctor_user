@@ -6,6 +6,7 @@ import 'package:pranidoctor_user/l10n/app_localizations.dart';
 import '../../../routing/app_routes.dart';
 import '../../notifications/push_registration.dart';
 import '../data/auth_repository.dart';
+import '../data/auth_validators.dart';
 import 'auth_navigation.dart';
 import 'widgets/auth_feedback.dart';
 import 'widgets/social_login_buttons.dart';
@@ -43,8 +44,24 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     final password = _passwordController.text;
     final email = _emailController.text.trim();
 
-    if (name.isEmpty || mobile.isEmpty || password.isEmpty) {
-      setState(() => _error = l10n.fieldRequired);
+    final validationError =
+        AuthValidators.validateRequired(name, l10n.fieldRequired) ??
+        AuthValidators.validatePhone(
+          mobile,
+          requiredMessage: l10n.fieldRequired,
+          invalidMessage: l10n.authInvalidPhone,
+        ) ??
+        AuthValidators.validateEmailOptional(
+          email,
+          invalidMessage: l10n.authInvalidEmail,
+        ) ??
+        AuthValidators.validatePassword(
+          password,
+          requiredMessage: l10n.fieldRequired,
+          weakMessage: l10n.authPasswordTooShort,
+        );
+    if (validationError != null) {
+      setState(() => _error = validationError);
       return;
     }
 
@@ -54,8 +71,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     });
 
     try {
-      final pushToken = await ref.read(pushRegistrationProvider).fetchPushToken();
-      final result = await ref.read(authRepositoryProvider).register(
+      final pushToken = await ref
+          .read(pushRegistrationProvider)
+          .fetchPushToken();
+      final result = await ref
+          .read(authRepositoryProvider)
+          .register(
             name: name,
             mobile: mobile,
             password: password,
@@ -117,8 +138,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               contentPadding: EdgeInsets.zero,
               title: Text(l10n.rememberSession),
               value: _rememberSession,
-              onChanged:
-                  _loading ? null : (v) => setState(() => _rememberSession = v ?? true),
+              onChanged: _loading
+                  ? null
+                  : (v) => setState(() => _rememberSession = v ?? true),
             ),
             const SizedBox(height: 8),
             AuthLoadingButton(
@@ -134,7 +156,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               children: [
                 Text(l10n.hasAccountPrompt),
                 TextButton(
-                  onPressed: _loading ? null : () => context.go(AppRoutes.login),
+                  onPressed: _loading
+                      ? null
+                      : () => context.go(AppRoutes.login),
                   child: Text(l10n.loginLink),
                 ),
               ],

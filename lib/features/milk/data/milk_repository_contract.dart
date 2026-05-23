@@ -4,6 +4,10 @@ import 'milk_dto.dart';
 abstract class MilkRepositoryContract {
   Future<MilkPageResult?> readCachedList();
 
+  Future<MilkSummary?> readCachedSummary(DateTime date);
+
+  Future<MilkChartsData?> readCachedCharts();
+
   Future<ApiResult<MilkPageResult>> listRecords({
     DateTime? from,
     DateTime? to,
@@ -21,7 +25,11 @@ abstract class MilkRepositoryContract {
 
   Future<ApiResult<void>> deleteRecord(String id);
 
-  Future<ApiResult<MilkSummary>> getSummary({DateTime? date, DateTime? from, DateTime? to});
+  Future<ApiResult<MilkSummary>> getSummary({
+    DateTime? date,
+    DateTime? from,
+    DateTime? to,
+  });
 
   Future<ApiResult<MilkChartsData>> getCharts({DateTime? from, DateTime? to});
 

@@ -34,16 +34,13 @@ void main() {
 
   group('TriageResultModel', () {
     test('maps triage without diagnosis wording', () {
-      final triage = TriageResultModel.fromJson(
-        {
-          'triageId': 't1',
-          'riskBucket': 'HIGH',
-          'recommendation': 'Contact a veterinarian as soon as possible.',
-          'escalationRequired': true,
-          'disclaimer': 'Educational only',
-        },
-        symptomsSummary: 'fever, not eating',
-      );
+      final triage = TriageResultModel.fromJson({
+        'triageId': 't1',
+        'riskBucket': 'HIGH',
+        'recommendation': 'Contact a veterinarian as soon as possible.',
+        'escalationRequired': true,
+        'disclaimer': 'Educational only',
+      }, symptomsSummary: 'fever, not eating');
       expect(triage.urgency, AiRiskLevel.high);
       expect(triage.possibleConcern, 'fever, not eating');
     });
@@ -52,7 +49,11 @@ void main() {
   group('AiValidation', () {
     test('rejects empty message', () {
       expect(
-        AiValidation.validateMessage('', emptyMessage: 'empty', tooLong: 'long'),
+        AiValidation.validateMessage(
+          '',
+          emptyMessage: 'empty',
+          tooLong: 'long',
+        ),
         'empty',
       );
     });
@@ -67,8 +68,17 @@ void main() {
 
   group('AiSendMessageInput', () {
     test('serializes locale', () {
-      final input = AiSendMessageInput(message: 'Hello', locale: AiLocale.bn);
+      const input = AiSendMessageInput(message: 'Hello', locale: AiLocale.bn);
       expect(input.toJson()['locale'], 'bn');
+    });
+  });
+
+  group('AiSettings', () {
+    test('round trips json', () {
+      const settings = AiSettings(locale: AiLocale.en, showSuggestions: false);
+      final restored = AiSettings.fromJson(settings.toJson());
+      expect(restored.locale, AiLocale.en);
+      expect(restored.showSuggestions, isFalse);
     });
   });
 

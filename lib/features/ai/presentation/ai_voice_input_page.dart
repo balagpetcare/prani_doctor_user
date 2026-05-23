@@ -65,7 +65,9 @@ class _AiVoiceInputPageState extends ConsumerState<AiVoiceInputPage> {
       _transcript = raw;
     });
     final chatState = ref.read(aiChatProvider).value;
-    final result = await ref.read(aiRepositoryProvider).normalizeVoiceTranscript(
+    final result = await ref
+        .read(aiRepositoryProvider)
+        .normalizeVoiceTranscript(
           transcript: raw,
           sessionId: chatState?.sessionId,
           locale: ref.read(aiLocaleProvider),
@@ -75,7 +77,9 @@ class _AiVoiceInputPageState extends ConsumerState<AiVoiceInputPage> {
       success: (stt) {
         setState(() {
           _normalizing = false;
-          _transcript = stt.normalizedText.isNotEmpty ? stt.normalizedText : raw;
+          _transcript = stt.normalizedText.isNotEmpty
+              ? stt.normalizedText
+              : raw;
         });
         ref.read(aiDraftInputProvider.notifier).state = _transcript!;
       },
@@ -125,9 +129,13 @@ class _AiVoiceInputPageState extends ConsumerState<AiVoiceInputPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(l10n.aiVoiceInstructions, style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              l10n.aiVoiceInstructions,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 16),
-            if (isListening) LinearProgressIndicator(value: partial.isEmpty ? null : 1),
+            if (isListening)
+              LinearProgressIndicator(value: partial.isEmpty ? null : 1),
             const SizedBox(height: 16),
             Expanded(
               child: Center(
@@ -139,7 +147,10 @@ class _AiVoiceInputPageState extends ConsumerState<AiVoiceInputPage> {
               ),
             ),
             if (_error != null) ...[
-              Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
               const SizedBox(height: 8),
             ],
             if (_normalizing) const Center(child: CircularProgressIndicator()),
@@ -148,15 +159,16 @@ class _AiVoiceInputPageState extends ConsumerState<AiVoiceInputPage> {
               onPressed: _normalizing
                   ? null
                   : isListening
-                      ? _stopListening
-                      : _startListening,
+                  ? _stopListening
+                  : _startListening,
               icon: Icon(isListening ? Icons.stop : Icons.mic),
               label: Text(isListening ? l10n.aiVoiceStop : l10n.aiVoiceStart),
             ),
             const SizedBox(height: 8),
             if (_transcript != null && !_normalizing)
               FilledButton.tonal(
-                onPressed: () => context.go(AppRoutes.aiChat, extra: _transcript),
+                onPressed: () =>
+                    context.go(AppRoutes.aiChat, extra: _transcript),
                 child: Text(l10n.aiVoiceUseText),
               ),
           ],

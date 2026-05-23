@@ -65,7 +65,8 @@ class FeedRecord {
   final bool pendingSync;
   final bool fromCache;
 
-  String get targetLabel => animalName ?? batchName ?? animalId ?? batchId ?? '—';
+  String get targetLabel =>
+      animalName ?? batchName ?? animalId ?? batchId ?? '—';
 
   FeedRecord copyWith({
     String? farmRef,
@@ -104,7 +105,11 @@ class FeedRecord {
     );
   }
 
-  factory FeedRecord.fromJson(Map<String, dynamic> json, {bool fromCache = false, bool pendingSync = false}) {
+  factory FeedRecord.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+    bool pendingSync = false,
+  }) {
     return FeedRecord(
       id: json['id'] as String,
       customerId: json['customerId'] as String? ?? '',
@@ -116,34 +121,42 @@ class FeedRecord {
       feedType: FeedTypeApi.fromApi(json['feedType'] as String? ?? 'OTHER'),
       amount: double.tryParse(json['amount']?.toString() ?? '') ?? 0,
       unit: FeedUnitApi.fromApi(json['unit'] as String? ?? 'KG'),
-      costBdt: json['costBdt'] == null ? null : double.tryParse(json['costBdt'].toString()),
-      recordedDate: DateTime.tryParse(json['recordedDate'] as String? ?? '') ?? DateTime.now(),
+      costBdt: json['costBdt'] == null
+          ? null
+          : double.tryParse(json['costBdt'].toString()),
+      recordedDate:
+          DateTime.tryParse(json['recordedDate'] as String? ?? '') ??
+          DateTime.now(),
       notes: json['notes'] as String?,
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+          DateTime.now(),
       pendingSync: pendingSync,
       fromCache: fromCache,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'customerId': customerId,
-        if (farmRef != null) 'farmRef': farmRef,
-        if (animalId != null) 'animalId': animalId,
-        if (animalName != null) 'animalName': animalName,
-        if (batchId != null) 'batchId': batchId,
-        if (batchName != null) 'batchName': batchName,
-        'feedType': feedType.apiValue,
-        'amount': amount.toStringAsFixed(3),
-        'unit': unit.apiValue,
-        if (costBdt != null) 'costBdt': costBdt!.toStringAsFixed(2),
-        'recordedDate': _dateOnly(recordedDate),
-        if (notes != null) 'notes': notes,
-        'createdAt': createdAt.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
-        'pendingSync': pendingSync,
-      };
+    'id': id,
+    'customerId': customerId,
+    if (farmRef != null) 'farmRef': farmRef,
+    if (animalId != null) 'animalId': animalId,
+    if (animalName != null) 'animalName': animalName,
+    if (batchId != null) 'batchId': batchId,
+    if (batchName != null) 'batchName': batchName,
+    'feedType': feedType.apiValue,
+    'amount': amount.toStringAsFixed(3),
+    'unit': unit.apiValue,
+    if (costBdt != null) 'costBdt': costBdt!.toStringAsFixed(2),
+    'recordedDate': _dateOnly(recordedDate),
+    if (notes != null) 'notes': notes,
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+    'pendingSync': pendingSync,
+  };
 }
 
 String _dateOnly(DateTime d) =>
@@ -177,33 +190,33 @@ class FeedInput {
   final FeedTarget target;
 
   Map<String, dynamic> toCreateJson() => {
-        if (farmRef != null && farmRef!.isNotEmpty) 'farmRef': farmRef,
-        if (target == FeedTarget.animal && animalId != null) 'animalId': animalId,
-        if (target == FeedTarget.group && batchId != null) 'batchId': batchId,
-        if (target == FeedTarget.group && batchName != null) 'batchName': batchName,
-        'feedType': feedType.apiValue,
-        'amount': amount,
-        'unit': unit.apiValue,
-        if (costBdt != null) 'costBdt': costBdt,
-        'recordedDate': _dateOnly(recordedDate),
-        if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
-      };
+    if (farmRef != null && farmRef!.isNotEmpty) 'farmRef': farmRef,
+    if (target == FeedTarget.animal && animalId != null) 'animalId': animalId,
+    if (target == FeedTarget.group && batchId != null) 'batchId': batchId,
+    if (target == FeedTarget.group && batchName != null) 'batchName': batchName,
+    'feedType': feedType.apiValue,
+    'amount': amount,
+    'unit': unit.apiValue,
+    if (costBdt != null) 'costBdt': costBdt,
+    'recordedDate': _dateOnly(recordedDate),
+    if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
+  };
 
   Map<String, dynamic> toPatchJson() => toCreateJson();
 
   Map<String, dynamic> toDraftJson() => {
-        'farmRef': farmRef,
-        'animalId': animalId,
-        'batchId': batchId,
-        'batchName': batchName,
-        'feedType': feedType.apiValue,
-        'amount': amount,
-        'unit': unit.apiValue,
-        'costBdt': costBdt,
-        'recordedDate': _dateOnly(recordedDate),
-        'notes': notes,
-        'target': target.name,
-      };
+    'farmRef': farmRef,
+    'animalId': animalId,
+    'batchId': batchId,
+    'batchName': batchName,
+    'feedType': feedType.apiValue,
+    'amount': amount,
+    'unit': unit.apiValue,
+    'costBdt': costBdt,
+    'recordedDate': _dateOnly(recordedDate),
+    'notes': notes,
+    'target': target.name,
+  };
 
   factory FeedInput.fromDraftJson(Map<String, dynamic> json) {
     return FeedInput(
@@ -215,7 +228,9 @@ class FeedInput {
       amount: (json['amount'] as num?)?.toDouble() ?? 0,
       unit: FeedUnitApi.fromApi(json['unit'] as String? ?? 'KG'),
       costBdt: (json['costBdt'] as num?)?.toDouble(),
-      recordedDate: DateTime.tryParse(json['recordedDate'] as String? ?? '') ?? DateTime.now(),
+      recordedDate:
+          DateTime.tryParse(json['recordedDate'] as String? ?? '') ??
+          DateTime.now(),
       notes: json['notes'] as String?,
       target: json['target'] == 'group' ? FeedTarget.group : FeedTarget.animal,
     );
@@ -230,6 +245,7 @@ class FeedPageResult {
     required this.limit,
     required this.hasMore,
     this.fromCache = false,
+    this.pendingSyncCount = 0,
   });
 
   final List<FeedRecord> records;
@@ -238,16 +254,42 @@ class FeedPageResult {
   final int limit;
   final bool hasMore;
   final bool fromCache;
+  final int pendingSyncCount;
+
+  FeedPageResult copyWith({
+    List<FeedRecord>? records,
+    bool? fromCache,
+    int? pendingSyncCount,
+  }) {
+    return FeedPageResult(
+      records: records ?? this.records,
+      total: total,
+      page: page,
+      limit: limit,
+      hasMore: hasMore,
+      fromCache: fromCache ?? this.fromCache,
+      pendingSyncCount: pendingSyncCount ?? this.pendingSyncCount,
+    );
+  }
 }
 
+enum FeedTargetFilter { all, animal, group }
+
 class FeedCostBucket {
-  const FeedCostBucket({required this.label, required this.costBdt, required this.amount});
+  const FeedCostBucket({
+    required this.label,
+    required this.costBdt,
+    required this.amount,
+  });
 
   final String label;
   final double costBdt;
   final double amount;
 
-  factory FeedCostBucket.fromJson(Map<String, dynamic> json, {required String labelKey}) {
+  factory FeedCostBucket.fromJson(
+    Map<String, dynamic> json, {
+    required String labelKey,
+  }) {
     return FeedCostBucket(
       label: json[labelKey] as String? ?? '',
       costBdt: (json['costBdt'] as num?)?.toDouble() ?? 0,
@@ -302,7 +344,10 @@ class FeedCostData {
   final List<FeedAnimalCost> byAnimal;
   final bool fromCache;
 
-  factory FeedCostData.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory FeedCostData.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     List<FeedCostBucket> mapBuckets(String key, String labelKey) {
       return (json[key] as List<dynamic>? ?? [])
           .whereType<Map<String, dynamic>>()
@@ -351,7 +396,11 @@ class FeedTypeBreakdown {
 }
 
 class FeedTrendPoint {
-  const FeedTrendPoint({required this.date, required this.amount, required this.costBdt});
+  const FeedTrendPoint({
+    required this.date,
+    required this.amount,
+    required this.costBdt,
+  });
 
   final String date;
   final double amount;
@@ -412,7 +461,10 @@ class FeedAnalyticsData {
   final FeedEfficiency efficiency;
   final bool fromCache;
 
-  factory FeedAnalyticsData.fromJson(Map<String, dynamic> json, {bool fromCache = false}) {
+  factory FeedAnalyticsData.fromJson(
+    Map<String, dynamic> json, {
+    bool fromCache = false,
+  }) {
     return FeedAnalyticsData(
       from: json['from'] as String? ?? '',
       to: json['to'] as String? ?? '',
@@ -424,7 +476,9 @@ class FeedAnalyticsData {
           .whereType<Map<String, dynamic>>()
           .map(FeedTrendPoint.fromJson)
           .toList(),
-      efficiency: FeedEfficiency.fromJson(json['efficiency'] as Map<String, dynamic>? ?? {}),
+      efficiency: FeedEfficiency.fromJson(
+        json['efficiency'] as Map<String, dynamic>? ?? {},
+      ),
       fromCache: fromCache,
     );
   }

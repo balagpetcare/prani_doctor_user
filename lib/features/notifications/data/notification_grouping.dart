@@ -3,7 +3,9 @@ import 'notification_dto.dart';
 abstract final class NotificationGrouping {
   NotificationGrouping._();
 
-  static List<NotificationGroupedSection> groupByDate(List<MobileNotificationDto> items) {
+  static List<NotificationGroupedSection> groupByDate(
+    List<MobileNotificationDto> items,
+  ) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));

@@ -4,6 +4,10 @@ import 'feed_dto.dart';
 abstract class FeedRepositoryContract {
   Future<FeedPageResult?> readCachedList();
 
+  Future<FeedCostData?> readCachedCost();
+
+  Future<FeedAnalyticsData?> readCachedAnalytics();
+
   Future<ApiResult<FeedPageResult>> listRecords({
     DateTime? from,
     DateTime? to,
@@ -26,7 +30,10 @@ abstract class FeedRepositoryContract {
 
   Future<ApiResult<FeedCostData>> getCost({DateTime? from, DateTime? to});
 
-  Future<ApiResult<FeedAnalyticsData>> getAnalytics({DateTime? from, DateTime? to});
+  Future<ApiResult<FeedAnalyticsData>> getAnalytics({
+    DateTime? from,
+    DateTime? to,
+  });
 
   Future<void> saveDraft(FeedInput input, {String? recordId});
 

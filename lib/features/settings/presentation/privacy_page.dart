@@ -1,28 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
+
+import '../../../core/navigation/navigation_guard.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 import '../data/settings_dto.dart';
 import '../data/settings_repository.dart';
 import 'settings_providers.dart';
+import 'settings_navigation.dart';
 import 'widgets/settings_feedback.dart';
 
 class PrivacyPage extends ConsumerWidget {
   const PrivacyPage({super.key});
 
-  Future<void> _accept(BuildContext context, WidgetRef ref, LegalDocumentDto doc) async {
+  Future<void> _accept(
+    BuildContext context,
+    WidgetRef ref,
+    LegalDocumentDto doc,
+  ) async {
     final l10n = AppLocalizations.of(context)!;
-    final result = await ref.read(settingsRepositoryProvider).sync(
-          SettingsSyncInput(acceptPrivacyVersion: doc.version),
-        );
+    final result = await ref
+        .read(settingsRepositoryProvider)
+        .sync(SettingsSyncInput(acceptPrivacyVersion: doc.version));
     result.when(
       success: (_) {
         ref.invalidate(privacyDocumentProvider);
         ref.invalidate(settingsProvider);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.settingsPrivacyAccepted)));
+        SettingsNavigation.afterLegalAccept(ref);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.settingsPrivacyAccepted)));
       },
       failure: (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
       },
     );
   }
@@ -33,12 +46,12 @@ class PrivacyPage extends ConsumerWidget {
     final docAsync = ref.watch(privacyDocumentProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.privacyPolicy)),
+      appBar: safeAppBar(context, title: Text(l10n.privacyPolicy)),
       body: docAsync.when(
-        loading: () => SettingsFeedback.loading(),
+        loading: SettingsFeedback.loading,
         error: (e, _) => SettingsFeedback.error(
           context,
-          message: e.toString(),
+          error: e,
           onRetry: () => ref.invalidate(privacyDocumentProvider),
         ),
         data: (doc) {
@@ -62,7 +75,10 @@ class PrivacyPage extends ConsumerWidget {
                 OutlinedButton.icon(
                   onPressed: doc.url.isEmpty
                       ? null
-                      : () => launchUrl(Uri.parse(doc.url), mode: LaunchMode.externalApplication),
+                      : () => launchUrl(
+                          Uri.parse(doc.url),
+                          mode: LaunchMode.externalApplication,
+                        ),
                   icon: const Icon(Icons.open_in_new),
                   label: Text(l10n.settingsOpenExternal),
                 ),

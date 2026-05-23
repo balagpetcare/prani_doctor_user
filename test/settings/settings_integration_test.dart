@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -32,20 +33,18 @@ class _MemoryCacheStore implements CacheStore {
   Iterable<dynamic> get values => _data.values;
 }
 
-SettingsBundle _sampleBundle({bool fromCache = false}) => SettingsBundle.fromJson(
-      {
-        'settings': {'theme': 'LIGHT', 'updatedAt': '2026-05-22T08:00:00.000Z'},
-        'legal': {
-          'privacyPolicyUrl': 'https://example.com/privacy',
-          'termsOfServiceUrl': 'https://example.com/terms',
-          'privacyVersion': '2026-05-01',
-          'termsVersion': '2026-05-01',
-          'privacyAccepted': false,
-          'termsAccepted': false,
-        },
+SettingsBundle _sampleBundle({bool fromCache = false}) =>
+    SettingsBundle.fromJson({
+      'settings': {'theme': 'LIGHT', 'updatedAt': '2026-05-22T08:00:00.000Z'},
+      'legal': {
+        'privacyPolicyUrl': 'https://example.com/privacy',
+        'termsOfServiceUrl': 'https://example.com/terms',
+        'privacyVersion': '2026-05-01',
+        'termsVersion': '2026-05-01',
+        'privacyAccepted': false,
+        'termsAccepted': false,
       },
-      fromCache: fromCache,
-    );
+    }, fromCache: fromCache);
 
 void main() {
   group('SettingsBundle', () {
@@ -104,7 +103,7 @@ void main() {
 
   group('SettingsSyncInput', () {
     test('serializes acceptance fields', () {
-      final input = SettingsSyncInput(
+      const input = SettingsSyncInput(
         theme: SettingsTheme.dark,
         acceptTermsVersion: '2026-05-01',
       );
@@ -124,7 +123,10 @@ void main() {
   group('LocalCacheContract settings keys', () {
     test('defines settings cache keys', () {
       expect(LocalCacheContract.userSettingsKey, 'user_settings_snapshot');
-      expect(LocalCacheContract.privacyDocumentKey, 'privacy_document_snapshot');
+      expect(
+        LocalCacheContract.privacyDocumentKey,
+        'privacy_document_snapshot',
+      );
       expect(LocalCacheContract.termsDocumentKey, 'terms_document_snapshot');
     });
   });
@@ -175,6 +177,13 @@ void main() {
     });
   });
 
+  group('Settings theme mapping', () {
+    test('maps theme modes', () {
+      expect(themeModeToSettings(ThemeMode.dark), SettingsTheme.dark);
+      expect(settingsThemeToMode(SettingsTheme.light), ThemeMode.light);
+    });
+  });
+
   group('SettingsNotifier provider', () {
     test('loads cached settings on first read', () async {
       final store = _MemoryCacheStore();
@@ -188,9 +197,7 @@ void main() {
       );
 
       final container = ProviderContainer(
-        overrides: [
-          settingsRepositoryProvider.overrideWithValue(repository),
-        ],
+        overrides: [settingsRepositoryProvider.overrideWithValue(repository)],
       );
       addTearDown(container.dispose);
 

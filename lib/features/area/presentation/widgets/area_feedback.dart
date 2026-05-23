@@ -22,7 +22,10 @@ class AreaFeedback {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(message, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        Text(
+          message,
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
         TextButton(onPressed: onRetry, child: Text(l10n.areaRetry)),
       ],
     );

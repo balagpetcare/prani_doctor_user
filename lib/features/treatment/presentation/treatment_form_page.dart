@@ -9,6 +9,7 @@ import '../../farm/presentation/farm_providers.dart';
 import '../data/treatment_dto.dart';
 import '../data/treatment_repository.dart';
 import '../data/treatment_validation.dart';
+import 'treatment_navigation.dart';
 import 'treatment_providers.dart';
 
 class TreatmentFormPage extends ConsumerStatefulWidget {
@@ -37,6 +38,7 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
   TreatmentStatus _status = TreatmentStatus.active;
   final List<MedicineItem> _medicines = [];
   bool _loading = false;
+  bool _submitting = false;
   String? _error;
 
   @override
@@ -67,7 +69,9 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
       return;
     }
     if (widget.recordId != null) {
-      final record = await ref.read(treatmentRecordProvider(widget.recordId!).future);
+      final record = await ref.read(
+        treatmentRecordProvider(widget.recordId!).future,
+      );
       _applyInput(
         TreatmentInput(
           farmRef: record.farmRef,
@@ -131,7 +135,10 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
           : _medicineFrequencyController.text.trim(),
       durationDays: int.tryParse(_medicineDurationController.text.trim()),
     );
-    final error = TreatmentValidation.validateMedicine(item, message: l10n.treatmentMedicineRequired);
+    final error = TreatmentValidation.validateMedicine(
+      item,
+      message: l10n.treatmentMedicineRequired,
+    );
     if (error != null) {
       setState(() => _error = error);
       return;
@@ -147,19 +154,33 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
   }
 
   Future<void> _saveDraft() async {
-    await ref.read(treatmentRepositoryProvider).saveDraft(_currentInput(), recordId: widget.recordId);
+    await ref
+        .read(treatmentRepositoryProvider)
+        .saveDraft(_currentInput(), recordId: widget.recordId);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.treatmentDraftSaved)),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.treatmentDraftSaved),
+        ),
       );
     }
   }
 
   Future<void> _submit() async {
+    if (_submitting) return;
     final l10n = AppLocalizations.of(context)!;
-    final titleError = TreatmentValidation.validateTitle(_titleController.text, message: l10n.treatmentTitleRequired);
-    final animalError = TreatmentValidation.validateAnimal(_animalId, message: l10n.treatmentAnimalRequired);
-    final dateError = TreatmentValidation.validateStartDate(_startDate, message: l10n.treatmentDateInvalid);
+    final titleError = TreatmentValidation.validateTitle(
+      _titleController.text,
+      message: l10n.treatmentTitleRequired,
+    );
+    final animalError = TreatmentValidation.validateAnimal(
+      _animalId,
+      message: l10n.treatmentAnimalRequired,
+    );
+    final dateError = TreatmentValidation.validateStartDate(
+      _startDate,
+      message: l10n.treatmentDateInvalid,
+    );
     final error = titleError ?? animalError ?? dateError;
     if (error != null) {
       setState(() => _error = error);
@@ -168,6 +189,7 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
 
     setState(() {
       _loading = true;
+      _submitting = true;
       _error = null;
     });
 
@@ -178,18 +200,23 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
         : await repo.updateRecord(widget.recordId!, input);
 
     if (!mounted) return;
-    setState(() => _loading = false);
+    setState(() {
+      _loading = false;
+      _submitting = false;
+    });
 
     result.when(
       success: (_) {
-        ref.invalidate(treatmentProvider);
+        TreatmentNavigation.afterSave(ref, recordId: widget.recordId);
         context.pop();
       },
       failure: (e) {
         if (e.code == offlineQueuedCode) {
-          ref.invalidate(treatmentProvider);
+          TreatmentNavigation.afterSave(ref, recordId: widget.recordId);
           context.pop();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.treatmentOfflineSaved)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.treatmentOfflineSaved)));
           return;
         }
         setState(() => _error = e.message);
@@ -207,8 +234,14 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
         title: Text(l10n.treatmentDeleteTitle),
         content: Text(l10n.treatmentDeleteConfirm),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.treatmentDeleteAction)),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.treatmentDeleteAction),
+          ),
         ],
       ),
     );
@@ -220,14 +253,16 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
     setState(() => _loading = false);
     result.when(
       success: (_) {
-        ref.invalidate(treatmentProvider);
+        TreatmentNavigation.afterDelete(ref);
         context.pop();
       },
       failure: (e) {
         if (e.code == offlineQueuedCode) {
-          ref.invalidate(treatmentProvider);
+          TreatmentNavigation.afterDelete(ref);
           context.pop();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.treatmentOfflineSaved)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.treatmentOfflineSaved)));
           return;
         }
         setState(() => _error = e.message);
@@ -259,15 +294,22 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
     final animalsAsync = ref.watch(animalListProvider);
     final farmsAsync = ref.watch(farmListProvider);
     final isEdit = widget.recordId != null;
-    final livestock = animalsAsync.value?.animals.where((a) => a.active).toList() ?? [];
+    final livestock =
+        animalsAsync.value?.animals.where((a) => a.active).toList() ?? [];
 
     return Scaffold(
       appBar: AppBar(
         title: Text(isEdit ? l10n.treatmentEditTitle : l10n.treatmentAddTitle),
         actions: [
           if (isEdit)
-            IconButton(onPressed: _loading ? null : _delete, icon: const Icon(Icons.delete_outline)),
-          TextButton(onPressed: _loading ? null : _saveDraft, child: Text(l10n.treatmentSaveDraft)),
+            IconButton(
+              onPressed: _loading ? null : _delete,
+              icon: const Icon(Icons.delete_outline),
+            ),
+          TextButton(
+            onPressed: _loading ? null : _saveDraft,
+            child: Text(l10n.treatmentSaveDraft),
+          ),
         ],
       ),
       body: ListView(
@@ -276,32 +318,49 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ),
           farmsAsync.when(
             loading: () => const LinearProgressIndicator(),
-            error: (_, __) => Text(l10n.treatmentFarmLoadError),
+            error: (_, _) => Text(l10n.treatmentFarmLoadError),
             data: (farms) {
               if (farms.farms.isEmpty) return Text(l10n.treatmentNoFarm);
               return DropdownButtonFormField<String>(
-                value: _farmRef ?? farms.farms.first.id,
+                initialValue: _farmRef ?? farms.farms.first.id,
                 decoration: InputDecoration(labelText: l10n.treatmentFarmLabel),
-                items: farms.farms.map((f) => DropdownMenuItem(value: f.id, child: Text(f.name))).toList(),
-                onChanged: _loading ? null : (v) => setState(() => _farmRef = v),
+                items: farms.farms
+                    .map(
+                      (f) => DropdownMenuItem(value: f.id, child: Text(f.name)),
+                    )
+                    .toList(),
+                onChanged: _loading
+                    ? null
+                    : (v) => setState(() => _farmRef = v),
               );
             },
           ),
           const SizedBox(height: 12),
           animalsAsync.when(
             loading: () => const LinearProgressIndicator(),
-            error: (_, __) => Text(l10n.treatmentAnimalLoadError),
+            error: (_, _) => Text(l10n.treatmentAnimalLoadError),
             data: (_) {
               if (livestock.isEmpty) return Text(l10n.treatmentNoAnimals);
               return DropdownButtonFormField<String>(
-                value: _animalId,
-                decoration: InputDecoration(labelText: l10n.treatmentAnimalLabel),
-                items: livestock.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
-                onChanged: _loading ? null : (v) => setState(() => _animalId = v),
+                initialValue: _animalId,
+                decoration: InputDecoration(
+                  labelText: l10n.treatmentAnimalLabel,
+                ),
+                items: livestock
+                    .map(
+                      (a) => DropdownMenuItem(value: a.id, child: Text(a.name)),
+                    )
+                    .toList(),
+                onChanged: _loading
+                    ? null
+                    : (v) => setState(() => _animalId = v),
               );
             },
           ),
@@ -313,21 +372,30 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
           const SizedBox(height: 12),
           TextField(
             controller: _diagnosisController,
-            decoration: InputDecoration(labelText: l10n.treatmentDiagnosisLabel),
+            decoration: InputDecoration(
+              labelText: l10n.treatmentDiagnosisLabel,
+            ),
             maxLines: 2,
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _prescriptionController,
-            decoration: InputDecoration(labelText: l10n.treatmentPrescriptionLabel),
+            decoration: InputDecoration(
+              labelText: l10n.treatmentPrescriptionLabel,
+            ),
             maxLines: 4,
           ),
           const SizedBox(height: 16),
-          Text(l10n.treatmentMedicinesTitle, style: Theme.of(context).textTheme.titleSmall),
+          Text(
+            l10n.treatmentMedicinesTitle,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
           const SizedBox(height: 8),
           TextField(
             controller: _medicineNameController,
-            decoration: InputDecoration(labelText: l10n.treatmentMedicineNameLabel),
+            decoration: InputDecoration(
+              labelText: l10n.treatmentMedicineNameLabel,
+            ),
           ),
           const SizedBox(height: 8),
           TextField(
@@ -337,7 +405,9 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
           const SizedBox(height: 8),
           TextField(
             controller: _medicineFrequencyController,
-            decoration: InputDecoration(labelText: l10n.treatmentFrequencyLabel),
+            decoration: InputDecoration(
+              labelText: l10n.treatmentFrequencyLabel,
+            ),
           ),
           const SizedBox(height: 8),
           TextField(
@@ -346,7 +416,10 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
             keyboardType: TextInputType.number,
           ),
           const SizedBox(height: 8),
-          OutlinedButton(onPressed: _addMedicine, child: Text(l10n.treatmentAddMedicine)),
+          OutlinedButton(
+            onPressed: _addMedicine,
+            child: Text(l10n.treatmentAddMedicine),
+          ),
           if (_medicines.isNotEmpty) ...[
             const SizedBox(height: 12),
             ..._medicines.map(
@@ -373,7 +446,10 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(l10n.treatmentEndDateLabel),
-            subtitle: Text(_endDate?.toLocal().toString().split(' ').first ?? l10n.treatmentNoEndDate),
+            subtitle: Text(
+              _endDate?.toLocal().toString().split(' ').first ??
+                  l10n.treatmentNoEndDate,
+            ),
             trailing: IconButton(
               onPressed: () => _pickDate(start: false),
               icon: const Icon(Icons.event_outlined),
@@ -389,8 +465,16 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
           FilledButton(
             onPressed: _loading ? null : _submit,
             child: _loading
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : Text(isEdit ? l10n.treatmentSaveChanges : l10n.treatmentCreateAction),
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(
+                    isEdit
+                        ? l10n.treatmentSaveChanges
+                        : l10n.treatmentCreateAction,
+                  ),
           ),
         ],
       ),

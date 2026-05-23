@@ -53,6 +53,11 @@ class ForgotPasswordPage extends ConsumerWidget {
               onPressed: () => context.go(AppRoutes.login),
               child: Text(l10n.loginLink),
             ),
+            const SizedBox(height: 12),
+            OutlinedButton(
+              onPressed: () => context.go(AppRoutes.otp),
+              child: Text(l10n.forgotPasswordUseOtp),
+            ),
           ],
         ),
       ),

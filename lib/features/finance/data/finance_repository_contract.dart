@@ -6,6 +6,12 @@ abstract class FinanceRepositoryContract {
 
   Future<FinancePageResult?> readCachedIncome();
 
+  Future<FinanceProfitData?> readCachedProfit();
+
+  Future<FinanceChartsData?> readCachedCharts();
+
+  Future<FinanceReportsData?> readCachedReports();
+
   Future<ApiResult<FinancePageResult>> listExpenses({
     DateTime? from,
     DateTime? to,
@@ -42,11 +48,20 @@ abstract class FinanceRepositoryContract {
 
   Future<ApiResult<void>> deleteIncome(String id);
 
-  Future<ApiResult<FinanceProfitData>> getProfit({DateTime? from, DateTime? to});
+  Future<ApiResult<FinanceProfitData>> getProfit({
+    DateTime? from,
+    DateTime? to,
+  });
 
-  Future<ApiResult<FinanceChartsData>> getCharts({DateTime? from, DateTime? to});
+  Future<ApiResult<FinanceChartsData>> getCharts({
+    DateTime? from,
+    DateTime? to,
+  });
 
-  Future<ApiResult<FinanceReportsData>> getReports({DateTime? from, DateTime? to});
+  Future<ApiResult<FinanceReportsData>> getReports({
+    DateTime? from,
+    DateTime? to,
+  });
 
   Future<void> saveExpenseDraft(ExpenseInput input, {String? recordId});
 
