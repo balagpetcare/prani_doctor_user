@@ -167,7 +167,9 @@ abstract final class AppRoutes {
   static const settingsProfileChangePassword =
       '/settings/profile/change-password';
   static const settingsNotifications = '/settings/notifications';
+  static const reconsent = '/reconsent';
   static const settingsPrivacy = '/settings/privacy';
+  static const settingsAiConsent = '/settings/ai-consent';
   static const settingsTerms = '/settings/terms';
   static const settingsAccount = '/settings/account';
   static const settingsPreferences = '/settings/preferences';

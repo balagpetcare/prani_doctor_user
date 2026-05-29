@@ -23,7 +23,8 @@ abstract final class ApiErrorMapper {
     return switch (code) {
       '401' || 'UNAUTHORIZED' || 'UNAUTHORIZED_BEARER_REQUIRED' || 'TOKEN_INVALID' =>
         l10n.errorSessionExpiredTitle,
-      '403' || 'FORBIDDEN' || 'FORBIDDEN_CUSTOMER_REQUIRED' => l10n.errorPermissionDeniedTitle,
+      '403' || 'FORBIDDEN' || 'FORBIDDEN_CUSTOMER_REQUIRED' || 'LEGAL_CONSENT_REQUIRED' =>
+        l10n.errorPermissionDeniedTitle,
       '404' || 'NOT_FOUND' => settings
           ? l10n.errorSettingsUnavailableTitle
           : l10n.errorNotFoundTitle,

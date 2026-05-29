@@ -4,8 +4,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import 'crash_reporter.dart';
+import 'crash_reporting_context.dart';
+import 'log_redactor.dart';
 
-/// Posts crash payloads to ERROR_TRACKING_WEBHOOK_URL (Sentry-compatible generic hook).
+/// Posts crash payloads to CRASH_REPORTING_WEBHOOK_URL (generic ingest hook).
 final class WebhookCrashReporter implements CrashReporter {
   WebhookCrashReporter({
     required String webhookUrl,
@@ -32,16 +34,23 @@ final class WebhookCrashReporter implements CrashReporter {
     Map<String, Object?>? context,
   }) async {
     try {
+      final mergedContext = {
+        ...CrashReportingContext.snapshot(),
+        ...?context,
+      };
       await _dio.post<Map<String, dynamic>>(
         _webhookUrl,
         data: jsonEncode({
           'service': 'pranidoctor-user',
           'fatal': fatal,
-          'reason': reason,
-          'message': error.toString(),
+          'reason': reason != null ? LogRedactor.redact(reason) : null,
+          'message': LogRedactor.redact(error.toString()),
           'stack': stack?.toString(),
-          'context': context,
+          'context': mergedContext,
           'env': kReleaseMode ? 'release' : 'debug',
+          'app_env': CrashReportingContext.appEnvironment.name,
+          if (CrashReportingContext.releaseName != null)
+            'release': CrashReportingContext.releaseName,
         }),
         options: Options(
           headers: {'Content-Type': 'application/json'},
@@ -61,13 +70,4 @@ final class WebhookCrashReporter implements CrashReporter {
 
   @override
   void setUserId(String? userId) {}
-}
-
-/// Selects webhook reporter when configured, otherwise no-op.
-CrashReporter resolveCrashReporter({String? webhookUrl}) {
-  final url = webhookUrl?.trim() ?? '';
-  if (url.isNotEmpty && url.startsWith('https://')) {
-    return WebhookCrashReporter(webhookUrl: url);
-  }
-  return const NoOpCrashReporter();
 }

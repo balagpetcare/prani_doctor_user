@@ -5,6 +5,11 @@ import 'package:pranidoctor_user/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../routing/app_routes.dart';
+import '../../../emergency_limitation/data/emergency_limitation_dto.dart';
+import '../../../emergency_limitation/presentation/emergency_limitation_providers.dart';
+import '../../../emergency_limitation/presentation/widgets/emergency_limitation_banner.dart';
+import '../../../vet_disclaimer/data/vet_disclaimer_dto.dart';
+import '../../../vet_disclaimer/presentation/widgets/vet_disclaimer_banner.dart';
 import '../../../app_config/presentation/app_config_provider.dart';
 import '../../../doctors/data/doctor_repository.dart';
 import '../theme/home_tokens.dart';
@@ -19,6 +24,7 @@ enum InstantCareAction {
 }
 
 Future<void> showInstantCareSheet(BuildContext context, WidgetRef ref) {
+  ref.read(emergencyLimitationProvider.future);
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -92,6 +98,16 @@ class _InstantCareSheet extends ConsumerWidget {
           const SizedBox(height: HomeTokens.space4),
           Text(l10n.homeInstantCareSubtitle, style: theme.textTheme.bodySmall),
           const SizedBox(height: HomeTokens.space12),
+          const VetDisclaimerBanner(
+            context: VetDisclaimerContext.instantCare,
+            emergency: true,
+          ),
+          const SizedBox(height: HomeTokens.space8),
+          const EmergencyLimitationBanner(urgent: true),
+          const EmergencyLimitationBanner(
+            context: EmergencyLimitationContext.instantCare,
+          ),
+          const SizedBox(height: HomeTokens.space12),
           ...items.map(
             (item) => Padding(
               padding: const EdgeInsets.only(bottom: HomeTokens.space8),
@@ -134,6 +150,33 @@ class _InstantCareSheet extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) async {
+    await ref.read(emergencyLimitationProvider.future);
+    if (!context.mounted) return;
+
+    final dialNotice = ref.read(
+      emergencyLimitationContextualProvider(EmergencyLimitationContext.phoneDial),
+    );
+    if (dialNotice != null && dialNotice.isNotEmpty) {
+      final proceed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Before you call'),
+          content: Text(dialNotice),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Call'),
+            ),
+          ],
+        ),
+      );
+      if (proceed != true || !context.mounted) return;
+    }
+
     final config = ref.read(appConfigProvider);
     final phone = config?.emergencyPhone;
     if (phone != null && phone.isNotEmpty) {

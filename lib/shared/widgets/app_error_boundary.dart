@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/logging/app_logger.dart';
+import '../../core/logging/crash_reporting_context.dart';
 import 'app_graceful_error.dart';
 
 /// Catches synchronous errors thrown while building [child] and shows a
@@ -49,6 +50,8 @@ class _AppErrorBoundaryState extends State<AppErrorBoundary> {
           tag: 'UI',
           error: details.exception,
           stackTrace: details.stack,
+          fatal: false,
+          data: {'category': CrashErrorCategory.errorBoundary},
         );
         widget.onError?.call(details);
         setState(() => _details = details);

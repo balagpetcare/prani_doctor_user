@@ -31,6 +31,9 @@ class AppEnv {
     required this.privacyPolicyUrl,
     required this.termsOfServiceUrl,
     required this.crashReportingWebhookUrl,
+    required this.sentryDsn,
+    required this.sentryReleaseFromEnv,
+    required this.sentryTracesSampleRate,
     required this.minimumAppVersion,
     required this.updateUrl,
     required this.uploadBaseUrl,
@@ -60,6 +63,12 @@ class AppEnv {
     const privacyFromEnv = String.fromEnvironment('PRIVACY_POLICY_URL');
     const termsFromEnv = String.fromEnvironment('TERMS_OF_SERVICE_URL');
     const crashWebhookFromEnv = String.fromEnvironment('CRASH_REPORTING_WEBHOOK_URL');
+    const sentryDsnFromEnv = String.fromEnvironment('SENTRY_DSN');
+    const appVersionFromEnv = String.fromEnvironment('APP_VERSION');
+    const sentrySampleRateRaw = String.fromEnvironment(
+      'SENTRY_TRACES_SAMPLE_RATE',
+      defaultValue: '0.1',
+    );
     const minimumVersionFromEnv = String.fromEnvironment('MINIMUM_APP_VERSION');
     const updateUrlFromEnv = String.fromEnvironment('UPDATE_URL');
     const uploadUrlFromEnv = String.fromEnvironment('UPLOAD_URL');
@@ -111,6 +120,11 @@ class AppEnv {
           ? termsFromEnv
           : 'https://pranidoctor.com/terms',
       crashReportingWebhookUrl: crashWebhookFromEnv,
+      sentryDsn: sentryDsnFromEnv,
+      sentryReleaseFromEnv: appVersionFromEnv.isNotEmpty
+          ? 'pranidoctor-mobile@$appVersionFromEnv'
+          : '',
+      sentryTracesSampleRate: _parseSampleRate(sentrySampleRateRaw),
       minimumAppVersion: minimumVersionFromEnv,
       updateUrl: updateUrlFromEnv,
       uploadBaseUrl: uploadBaseUrl,
@@ -130,6 +144,9 @@ class AppEnv {
   final String privacyPolicyUrl;
   final String termsOfServiceUrl;
   final String crashReportingWebhookUrl;
+  final String sentryDsn;
+  final String sentryReleaseFromEnv;
+  final double sentryTracesSampleRate;
   final String minimumAppVersion;
   final String updateUrl;
   final String uploadBaseUrl;
@@ -137,6 +154,23 @@ class AppEnv {
   final Duration receiveTimeout;
 
   bool get isDev => environment == AppEnvironment.dev;
+
+  /// Sentry release tag — CI [APP_VERSION] or runtime package info suffix.
+  String? get sentryRelease =>
+      sentryReleaseFromEnv.trim().isNotEmpty ? sentryReleaseFromEnv.trim() : null;
+
+  /// True when Sentry DSN is set, enabled, and crash reporting is active for build.
+  bool get isSentryActive {
+    if (sentryDsn.trim().isEmpty) return false;
+    const enabled = bool.fromEnvironment('SENTRY_ENABLED', defaultValue: true);
+    if (!enabled) return false;
+    const forced = bool.fromEnvironment(
+      'ENABLE_CRASH_REPORTING',
+      defaultValue: false,
+    );
+    if (forced) return true;
+    return kReleaseMode;
+  }
 
   bool get isConfigured =>
       apiBaseUrl.isNotEmpty && !apiBaseUrl.contains('example.com');
@@ -207,6 +241,14 @@ class AppEnv {
         }
       } catch (_) {}
     }
+  }
+
+  static double _parseSampleRate(String raw) {
+    final parsed = double.tryParse(raw.trim());
+    if (parsed == null || parsed.isNaN) return 0.1;
+    if (parsed < 0) return 0;
+    if (parsed > 1) return 1;
+    return parsed;
   }
 
   static AppEnvironment _parseEnvironment(String raw) {

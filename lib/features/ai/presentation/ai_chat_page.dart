@@ -5,6 +5,7 @@ import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
 import '../../../routing/app_routes.dart';
 import '../data/ai_dto.dart';
+import '../data/ai_disclaimer_dto.dart';
 import '../data/ai_validation.dart';
 import 'ai_navigation.dart';
 import 'ai_providers.dart';
@@ -175,7 +176,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         data: (state) {
           return Column(
             children: [
-              const AiDisclaimerBanner(),
+              const AiDisclaimerBanner(feature: AiDisclaimerFeature.chat),
               if (state.fromCache || state.kind == AiChatStateKind.offline)
                 AiFeedback.offlineHint(context),
               Expanded(

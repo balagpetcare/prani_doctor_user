@@ -38,6 +38,7 @@ final dioProvider = Provider<Dio>((ref) {
     RefreshInterceptor(ref, dio),
     LoggingInterceptor(enabled: env.logNetwork),
     ErrorInterceptor(ref),
+    CrashReportingNetworkInterceptor.shared(),
   ]);
 
   return dio;

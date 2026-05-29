@@ -67,6 +67,7 @@ Future<void> navigateAfterAuth(BuildContext context, WidgetRef ref) async {
   );
 
   ref.invalidate(mobileMeProvider);
+  ref.invalidate(settingsProvider);
 
   if (needsProfile) {
     final profile = meResult.when(

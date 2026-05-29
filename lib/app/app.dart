@@ -8,6 +8,7 @@ import '../theme/theme_controller.dart';
 import '../core/network/app_lifecycle_coordinator.dart';
 import '../features/notifications/notification_coordinator.dart';
 import '../features/offline/offline_coordinator.dart';
+import '../features/settings/presentation/legal_consent_coordinator.dart';
 import 'app_startup.dart';
 
 class PraniDoctorApp extends ConsumerWidget {
@@ -25,25 +26,27 @@ class PraniDoctorApp extends ConsumerWidget {
       child: AppLifecycleCoordinator(
         child: OfflineCoordinator(
           child: NotificationCoordinator(
-            child: MaterialApp.router(
-            debugShowCheckedModeBanner: false,
-            onGenerateTitle: (context) =>
-                AppLocalizations.of(context)!.appTitle,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            locale: locale,
-            localeListResolutionCallback: (deviceLocales, supported) {
-              for (final supportedLocale in supported) {
-                if (supportedLocale.languageCode == locale.languageCode) {
-                  return supportedLocale;
-                }
-              }
-              return const Locale('bn');
-            },
-            theme: light,
-            darkTheme: dark,
-            themeMode: themeMode,
-            routerConfig: router,
+            child: LegalConsentCoordinator(
+              child: MaterialApp.router(
+                debugShowCheckedModeBanner: false,
+                onGenerateTitle: (context) =>
+                    AppLocalizations.of(context)!.appTitle,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                locale: locale,
+                localeListResolutionCallback: (deviceLocales, supported) {
+                  for (final supportedLocale in supported) {
+                    if (supportedLocale.languageCode == locale.languageCode) {
+                      return supportedLocale;
+                    }
+                  }
+                  return const Locale('bn');
+                },
+                theme: light,
+                darkTheme: dark,
+                themeMode: themeMode,
+                routerConfig: router,
+              ),
             ),
           ),
         ),

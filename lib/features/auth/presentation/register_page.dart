@@ -21,6 +21,7 @@ class RegisterPage extends ConsumerStatefulWidget {
 class _RegisterPageState extends ConsumerState<RegisterPage> {
   bool _loading = false;
   bool _rememberSession = true;
+  bool _agreedToTerms = false;
   String? _error;
 
   final _nameController = TextEditingController();
@@ -62,6 +63,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         );
     if (validationError != null) {
       setState(() => _error = validationError);
+      return;
+    }
+    if (!_agreedToTerms) {
+      setState(() => _error = l10n.registerTermsRequired);
       return;
     }
 
@@ -133,6 +138,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               obscureText: true,
               decoration: InputDecoration(labelText: l10n.passwordLabel),
               enabled: !_loading,
+            ),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.registerTermsCheckbox),
+              value: _agreedToTerms,
+              onChanged: _loading
+                  ? null
+                  : (v) => setState(() => _agreedToTerms = v ?? false),
             ),
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../logging/app_logger.dart';
+import '../logging/crash_reporting_context.dart';
 import 'navigation_guard.dart' show SafePop;
 
 /// Crash-safe navigation helpers that log failures instead of taking down the app.
@@ -18,7 +19,7 @@ abstract final class SafeNavigation {
         tag: 'Nav',
         error: e,
         stackTrace: st,
-        data: {'location': location},
+        data: {'location': location, 'category': CrashErrorCategory.navigation},
       );
     }
   }
@@ -33,7 +34,7 @@ abstract final class SafeNavigation {
         tag: 'Nav',
         error: e,
         stackTrace: st,
-        data: {'location': location},
+        data: {'location': location, 'category': CrashErrorCategory.navigation},
       );
     }
   }
@@ -48,7 +49,7 @@ abstract final class SafeNavigation {
         tag: 'Nav',
         error: e,
         stackTrace: st,
-        data: {'location': location},
+        data: {'location': location, 'category': CrashErrorCategory.navigation},
       );
     }
   }

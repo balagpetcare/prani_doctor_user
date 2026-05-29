@@ -8,11 +8,15 @@ abstract class SettingsRepositoryContract {
 
   Future<LegalDocumentDto?> readCachedTerms();
 
+  Future<LegalDocumentDto?> readCachedAiConsent();
+
   Future<ApiResult<SettingsBundle>> getSettings({bool forceRefresh = false});
 
   Future<ApiResult<LegalDocumentDto>> getPrivacy({bool forceRefresh = false});
 
   Future<ApiResult<LegalDocumentDto>> getTerms({bool forceRefresh = false});
+
+  Future<ApiResult<LegalDocumentDto>> getAiConsent({bool forceRefresh = false});
 
   Future<ApiResult<SettingsBundle>> sync(SettingsSyncInput input);
 

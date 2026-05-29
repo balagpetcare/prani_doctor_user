@@ -6654,6 +6654,9 @@ abstract class AppLocalizations {
   /// **'Contact support'**
   String get aiEscalateSupport;
 
+  /// No description provided for @aiRequestHumanReview.
+  String get aiRequestHumanReview;
+
   /// No description provided for @aiViewResult.
   ///
   /// In en, this message translates to:
@@ -6725,6 +6728,22 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Terms accepted'**
   String get settingsTermsAccepted;
+
+  String get reconsentTitle;
+
+  String get reconsentBody;
+
+  String get reconsentAcceptContinue;
+
+  String get reconsentReadPrivacy;
+
+  String get reconsentAccepted;
+
+  String get consentWithdrawPrivacy;
+
+  String get consentWithdrawConfirm;
+
+  String get consentWithdrawn;
 
   /// No description provided for @settingsAccountTitle.
   ///

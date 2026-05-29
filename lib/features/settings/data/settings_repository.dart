@@ -46,6 +46,13 @@ class SettingsRepository implements SettingsRepositoryContract {
     return LegalDocumentDto.fromJson(cached, fromCache: true);
   }
 
+  @override
+  Future<LegalDocumentDto?> readCachedAiConsent() async {
+    final cached = await _cache.read(LocalCacheContract.aiConsentDocumentKey);
+    if (cached == null) return null;
+    return LegalDocumentDto.fromJson(cached, fromCache: true);
+  }
+
   Future<void> _writeSettingsCache(SettingsBundle bundle) async {
     await _cache.write(
       LocalCacheContract.userSettingsKey,
@@ -120,6 +127,26 @@ class SettingsRepository implements SettingsRepositoryContract {
       return ApiResult.success(doc);
     } on AppException catch (e) {
       final cached = await readCachedTerms();
+      if (cached != null) return ApiResult.success(cached);
+      return ApiResult.failure(e);
+    }
+  }
+
+  @override
+  Future<ApiResult<LegalDocumentDto>> getAiConsent({
+    bool forceRefresh = false,
+  }) async {
+    try {
+      final data = await getJson(_dio, SettingsApiPaths.aiConsent);
+      final doc = LegalDocumentDto.fromJson(data);
+      await _cache.write(
+        LocalCacheContract.aiConsentDocumentKey,
+        doc.toJson(),
+        LocalCacheContract.appConfigTtl,
+      );
+      return ApiResult.success(doc);
+    } on AppException catch (e) {
+      final cached = await readCachedAiConsent();
       if (cached != null) return ApiResult.success(cached);
       return ApiResult.failure(e);
     }

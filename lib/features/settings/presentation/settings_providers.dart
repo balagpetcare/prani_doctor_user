@@ -171,6 +171,11 @@ final termsDocumentProvider = FutureProvider<LegalDocumentDto>((ref) async {
   return result.when(success: (doc) => doc, failure: (e) => throw e);
 });
 
+final aiConsentDocumentProvider = FutureProvider<LegalDocumentDto>((ref) async {
+  final result = await ref.read(settingsRepositoryProvider).getAiConsent();
+  return result.when(success: (doc) => doc, failure: (e) => throw e);
+});
+
 final settingsPendingSyncCountProvider = FutureProvider<int>((ref) async {
   final items = await ref.read(outboxServiceProvider).listAll();
   return items.where((i) => i.kind == OutboxKind.settingsSync).length;

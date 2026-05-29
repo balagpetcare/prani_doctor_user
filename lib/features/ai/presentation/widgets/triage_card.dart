@@ -1,18 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
 import '../../../../routing/app_routes.dart';
 import '../../data/ai_dto.dart';
+import '../widgets/ai_disclaimer_banner.dart';
+import '../../data/ai_disclaimer_dto.dart';
+import 'ai_escalation_disclosure_strip.dart';
 
-class TriageCard extends StatelessWidget {
+class TriageCard extends ConsumerWidget {
   const TriageCard({super.key, required this.result});
 
   final TriageResultModel result;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final trigger = result.escalationFields?.trigger ??
+        escalationTriggerFromTriage(
+          escalationRequired: result.escalationRequired,
+          emergency: result.emergency,
+        );
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -43,21 +53,21 @@ class TriageCard extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 8),
-            Text(
-              l10n.aiDisclaimer,
-              style: Theme.of(context).textTheme.labelSmall,
-            ),
-            if (result.escalationRequired) ...[
+            const AiDisclaimerBanner(feature: AiDisclaimerFeature.advisory),
+            if (trigger != null)
+              AiEscalationDisclosureStrip(
+                trigger: trigger,
+                apiDisclosure: result.escalationFields?.disclosure,
+                showKeywordLimitation: true,
+                showSupportAction: true,
+                showFindVetAction: true,
+              )
+            else if (result.escalationRequired) ...[
               const SizedBox(height: 12),
               FilledButton.tonal(
                 onPressed: () =>
                     context.push(AppRoutes.aiResult, extra: result),
                 child: Text(l10n.aiViewResult),
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton(
-                onPressed: () => context.push(AppRoutes.supportTicketCreate),
-                child: Text(l10n.aiEscalateSupport),
               ),
             ],
           ],

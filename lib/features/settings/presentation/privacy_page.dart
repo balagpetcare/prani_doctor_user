@@ -5,6 +5,7 @@ import 'package:pranidoctor_user/l10n/app_localizations.dart';
 import '../../../core/navigation/navigation_guard.dart';
 
 import 'package:url_launcher/url_launcher.dart';
+import '../../consent/data/consent_repository.dart';
 import '../data/settings_dto.dart';
 import '../data/settings_repository.dart';
 import 'settings_providers.dart';
@@ -36,6 +37,47 @@ class PrivacyPage extends ConsumerWidget {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
+      },
+    );
+  }
+
+  Future<void> _withdraw(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.consentWithdrawPrivacy),
+        content: Text(l10n.consentWithdrawConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.consentWithdrawPrivacy),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    final result = await ref
+        .read(consentRepositoryProvider)
+        .withdraw(consentType: 'PRIVACY');
+    if (!context.mounted) return;
+    result.when(
+      success: (_) {
+        ref.invalidate(privacyDocumentProvider);
+        ref.invalidate(settingsProvider);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.consentWithdrawn)),
+        );
+      },
+      failure: (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
       },
     );
   }
@@ -88,6 +130,13 @@ class PrivacyPage extends ConsumerWidget {
                     onPressed: () => _accept(context, ref, doc),
                     child: Text(l10n.settingsAcceptPrivacy),
                   ),
+                if (doc.accepted) ...[
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    onPressed: () => _withdraw(context, ref),
+                    child: Text(l10n.consentWithdrawPrivacy),
+                  ),
+                ],
               ],
             ),
           );

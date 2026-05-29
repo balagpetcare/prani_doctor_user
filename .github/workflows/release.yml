@@ -71,6 +71,9 @@ jobs:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           ENABLE_PUSH: ${{ vars.ENABLE_PUSH || 'true' }}
           PRIVACY_POLICY_URL: ${{ vars.PRIVACY_POLICY_URL || 'https://pranidoctor.com/privacy' }}
+          CRASH_REPORTING_WEBHOOK_URL: ${{ secrets.CRASH_REPORTING_WEBHOOK_URL }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          APP_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || vars.APP_VERSION }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ] || [ -z "$API_BASE_URL" ]; then
             if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
@@ -86,7 +89,10 @@ jobs:
             --dart-define=API_BASE_URL="${API_BASE_URL}" \
             --dart-define=ENABLE_PUSH="${ENABLE_PUSH}" \
             --dart-define=LOG_NETWORK=false \
-            --dart-define=PRIVACY_POLICY_URL="${PRIVACY_POLICY_URL}"
+            --dart-define=PRIVACY_POLICY_URL="${PRIVACY_POLICY_URL}" \
+            $(if [ -n "${CRASH_REPORTING_WEBHOOK_URL}" ]; then echo "--dart-define=CRASH_REPORTING_WEBHOOK_URL=${CRASH_REPORTING_WEBHOOK_URL}"; fi) \
+            $(if [ -n "${SENTRY_DSN}" ]; then echo "--dart-define=SENTRY_DSN=${SENTRY_DSN}"; fi) \
+            $(if [ -n "${APP_VERSION}" ]; then echo "--dart-define=APP_VERSION=${APP_VERSION}"; fi)
 
       - name: Upload App Bundle
         if: github.event_name != 'pull_request'

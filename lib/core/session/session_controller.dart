@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../auth/jwt_utils.dart';
+import '../logging/app_logger.dart';
 import '../storage/token_storage.dart';
 import '../../features/auth/data/auth_dto.dart';
 import 'session_state.dart';
@@ -102,6 +103,7 @@ class SessionController extends StateNotifier<SessionState> {
       displayName: displayName,
       phone: phone,
     );
+    _syncCrashUserId(userId);
   }
 
   Future<void> applyAuthTokens(AuthTokensDto tokens, {String? phone}) async {
@@ -141,6 +143,7 @@ class SessionController extends StateNotifier<SessionState> {
       displayName: displayName,
       phone: resolvedPhone,
     );
+    _syncCrashUserId(userId);
   }
 
   Future<void> signInDevPlaceholder() async {
@@ -154,6 +157,7 @@ class SessionController extends StateNotifier<SessionState> {
     await _clearStoredTokens();
     _memoryAccessToken = null;
     state = const SessionState(sessionReady: true);
+    _syncCrashUserId(null);
   }
 
   Future<void> setSession({
@@ -179,6 +183,10 @@ class SessionController extends StateNotifier<SessionState> {
   }
 
   Future<void> _clearStoredTokens() => _storage.clearTokens();
+
+  void _syncCrashUserId(String? userId) {
+    AppLog.crashReporter.setUserId(userId);
+  }
 
   String _generateDeviceKey() {
     final random = Random.secure();

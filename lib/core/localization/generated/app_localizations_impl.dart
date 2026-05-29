@@ -387,6 +387,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registerTitle => tr('registerTitle');
 
   @override
+  String get registerTermsCheckbox => tr('registerTermsCheckbox');
+
+  @override
+  String get registerTermsRequired => tr('registerTermsRequired');
+
+  @override
   String get authTabOtp => tr('authTabOtp');
 
   @override
@@ -3267,6 +3273,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiEscalateSupport => tr('aiEscalateSupport');
 
   @override
+  String get aiRequestHumanReview => tr('aiRequestHumanReview');
+
+  @override
   String get aiViewResult => tr('aiViewResult');
 
   @override
@@ -3301,6 +3310,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTermsAccepted => tr('settingsTermsAccepted');
+
+  @override
+  String get reconsentTitle => tr('reconsentTitle');
+
+  @override
+  String get reconsentBody => tr('reconsentBody');
+
+  @override
+  String get reconsentAcceptContinue => tr('reconsentAcceptContinue');
+
+  @override
+  String get reconsentAccepted => tr('reconsentAccepted');
+
+  @override
+  String get reconsentReadPrivacy => tr('reconsentReadPrivacy');
 
   @override
   String get settingsAccountTitle => tr('settingsAccountTitle');
@@ -3682,6 +3706,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get offlineModeBanner => tr('offlineModeBanner');
+
+  @override
+  String get retryLabel => tr('retryLabel');
+
+  @override
+  String inventoryDaysRemaining(int days) => tr("inventoryDaysRemaining", {'days': days});
+
+  @override
+  String get inventoryOutOfStock => tr('inventoryOutOfStock');
+
+  @override
+  String get inventoryFeedLogHint => tr('inventoryFeedLogHint');
+
+  @override
+  String get inventoryMedicineStockNote => tr('inventoryMedicineStockNote');
+
+  @override
+  String feedCatalogSelectedCount(int count) => tr("feedCatalogSelectedCount", {'count': count});
+
+  @override
+  String get feedCatalogSearchLabel => tr('feedCatalogSearchLabel');
 
 }
 
@@ -4070,6 +4115,12 @@ class AppLocalizationsBn extends AppLocalizations {
   String get registerTitle => tr('registerTitle');
 
   @override
+  String get registerTermsCheckbox => tr('registerTermsCheckbox');
+
+  @override
+  String get registerTermsRequired => tr('registerTermsRequired');
+
+  @override
   String get authTabOtp => tr('authTabOtp');
 
   @override
@@ -6950,6 +7001,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get aiEscalateSupport => tr('aiEscalateSupport');
 
   @override
+  String get aiRequestHumanReview => tr('aiRequestHumanReview');
+
+  @override
   String get aiViewResult => tr('aiViewResult');
 
   @override
@@ -6984,6 +7038,21 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get settingsTermsAccepted => tr('settingsTermsAccepted');
+
+  @override
+  String get reconsentTitle => tr('reconsentTitle');
+
+  @override
+  String get reconsentBody => tr('reconsentBody');
+
+  @override
+  String get reconsentAcceptContinue => tr('reconsentAcceptContinue');
+
+  @override
+  String get reconsentAccepted => tr('reconsentAccepted');
+
+  @override
+  String get reconsentReadPrivacy => tr('reconsentReadPrivacy');
 
   @override
   String get settingsAccountTitle => tr('settingsAccountTitle');
@@ -7365,6 +7434,27 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get offlineModeBanner => tr('offlineModeBanner');
+
+  @override
+  String get retryLabel => tr('retryLabel');
+
+  @override
+  String inventoryDaysRemaining(int days) => tr("inventoryDaysRemaining", {'days': days});
+
+  @override
+  String get inventoryOutOfStock => tr('inventoryOutOfStock');
+
+  @override
+  String get inventoryFeedLogHint => tr('inventoryFeedLogHint');
+
+  @override
+  String get inventoryMedicineStockNote => tr('inventoryMedicineStockNote');
+
+  @override
+  String feedCatalogSelectedCount(int count) => tr("feedCatalogSelectedCount", {'count': count});
+
+  @override
+  String get feedCatalogSearchLabel => tr('feedCatalogSearchLabel');
 
 }
 

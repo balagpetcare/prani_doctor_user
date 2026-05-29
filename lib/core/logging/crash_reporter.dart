@@ -1,9 +1,9 @@
-/// Contract for fatal/non-fatal error reporting (Firebase Crashlytics, Sentry, etc.).
+/// Contract for fatal/non-fatal error reporting (Firebase Crashlytics, webhook, etc.).
 ///
 /// Wire a real implementation in [bootstrap] before `runApp`:
 /// ```dart
 /// GlobalErrorHandler.install(
-///   crashReporter: FirebaseCrashlyticsReporter(),
+///   crashReporter: resolveCrashReporter(env: env),
 /// );
 /// ```
 abstract interface class CrashReporter {
@@ -26,7 +26,7 @@ abstract interface class CrashReporter {
   void setCustomKey(String key, Object value);
 }
 
-/// No-op used until Crashlytics/Sentry is configured.
+/// No-op used when crash reporting is disabled or unconfigured.
 final class NoOpCrashReporter implements CrashReporter {
   const NoOpCrashReporter();
 
@@ -47,44 +47,4 @@ final class NoOpCrashReporter implements CrashReporter {
 
   @override
   void setUserId(String? userId) {}
-}
-
-/// Placeholder for `firebase_crashlytics` integration.
-///
-/// Add `firebase_crashlytics` to `pubspec.yaml`, then implement:
-/// ```dart
-/// final class FirebaseCrashlyticsReporter implements CrashReporter {
-///   FirebaseCrashlyticsReporter(this._crashlytics);
-///   final FirebaseCrashlytics _crashlytics;
-///   // recordError → _crashlytics.recordError(...)
-/// }
-/// ```
-final class FirebaseCrashlyticsReporter implements CrashReporter {
-  const FirebaseCrashlyticsReporter();
-
-  @override
-  void log(String message) {
-    // FirebaseCrashlytics.instance.log(message);
-  }
-
-  @override
-  Future<void> recordError(
-    Object error,
-    StackTrace? stack, {
-    bool fatal = false,
-    String? reason,
-    Map<String, Object?>? context,
-  }) async {
-    // await FirebaseCrashlytics.instance.recordError(error, stack, fatal: fatal, reason: reason);
-  }
-
-  @override
-  void setCustomKey(String key, Object value) {
-    // FirebaseCrashlytics.instance.setCustomKey(key, value);
-  }
-
-  @override
-  void setUserId(String? userId) {
-    // FirebaseCrashlytics.instance.setUserIdentifier(userId ?? '');
-  }
 }

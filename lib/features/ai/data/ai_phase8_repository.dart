@@ -61,6 +61,16 @@ class AiPhase8Repository {
         AiPhase8ApiPaths.smartRecommendations,
         queryParameters: farmRef == null ? null : {'farmRef': farmRef},
       );
+      final envelope = ApiEnvelope.unwrapData(response);
+      final itemsRaw = envelope['items'];
+      if (itemsRaw is List) {
+        return ApiResult.success(
+          itemsRaw
+              .whereType<Map<String, dynamic>>()
+              .map(SmartRecommendationModel.fromJson)
+              .toList(),
+        );
+      }
       final list = ApiEnvelope.unwrapListData(response);
       return ApiResult.success(
         list.whereType<Map<String, dynamic>>().map(SmartRecommendationModel.fromJson).toList(),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/ai_disclaimer_dto.dart';
+import '../widgets/ai_disclaimer_banner.dart';
 import 'phase8_providers.dart';
 
 class FarmHealthDashboardPage extends ConsumerWidget {
@@ -20,6 +22,8 @@ class FarmHealthDashboardPage extends ConsumerWidget {
         data: (dash) => ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            const AiDisclaimerBanner(feature: AiDisclaimerFeature.advisory),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(

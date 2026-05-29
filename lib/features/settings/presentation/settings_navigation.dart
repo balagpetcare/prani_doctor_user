@@ -13,6 +13,7 @@ abstract final class SettingsNavigation {
   static void afterLegalAccept(WidgetRef ref) {
     ref.invalidate(privacyDocumentProvider);
     ref.invalidate(termsDocumentProvider);
+    ref.invalidate(aiConsentDocumentProvider);
     ref.invalidate(settingsProvider);
   }
 
@@ -20,6 +21,7 @@ abstract final class SettingsNavigation {
     ref.invalidate(settingsProvider);
     ref.invalidate(privacyDocumentProvider);
     ref.invalidate(termsDocumentProvider);
+    ref.invalidate(aiConsentDocumentProvider);
     ref.invalidate(settingsPendingSyncCountProvider);
   }
 }

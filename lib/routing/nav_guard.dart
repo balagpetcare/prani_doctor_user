@@ -8,6 +8,7 @@ import '../features/onboarding/presentation/onboarding_providers.dart';
 import '../features/profile/presentation/profile_navigation.dart';
 import '../features/profile/presentation/profile_providers.dart';
 import 'app_routes.dart';
+import 'legal_consent_gate.dart';
 
 /// High-level navigation auth phase (loading / guest / authenticated).
 enum NavPhase { loading, guest, authenticated }
@@ -71,7 +72,22 @@ String? authenticatedBootExit(Ref ref) {
   if (profile?.needsProfileSetup == true) {
     return profileSetupRoute(profile);
   }
+  final gate = ref.read(legalConsentGateProvider);
+  if (gate?.needsReconsent == true) {
+    return AppRoutes.reconsent;
+  }
   return AppRoutes.home;
+}
+
+String? authenticatedConsentRedirect(Ref ref, String location) {
+  if (isLegalConsentExemptRoute(location)) return null;
+  final gate = ref.read(legalConsentGateProvider);
+  if (gate == null) return null;
+  if (gate.needsReconsent) return AppRoutes.reconsent;
+  if (isAiConsentGatedRoute(location) && gate.needsAiConsent) {
+    return AppRoutes.settingsAiConsent;
+  }
+  return null;
 }
 
 /// Single redirect evaluator — sync only; no [context.go] from widgets during boot.
@@ -126,6 +142,10 @@ String? resolveRedirect({required Ref ref, required GoRouterState state}) {
       }
       if (isOnboarding) {
         return decide(AppRoutes.home, 'authenticated-skip-onboarding');
+      }
+      final consentTarget = authenticatedConsentRedirect(ref, location);
+      if (consentTarget != null) {
+        return decide(consentTarget, 'legal-consent-gate');
       }
       return decide(null, 'authenticated-allowed');
   }

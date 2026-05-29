@@ -10,6 +10,9 @@ import '../area/presentation/area_picker.dart';
 import '../doctors/data/doctor_repository.dart';
 import '../doctors/data/provider_dto.dart';
 import '../../../routing/app_routes.dart';
+import '../emergency_limitation/data/emergency_limitation_dto.dart';
+import '../emergency_limitation/presentation/emergency_limitation_providers.dart';
+import '../emergency_limitation/presentation/widgets/emergency_limitation_banner.dart';
 
 class ServicesPage extends ConsumerStatefulWidget {
   const ServicesPage({super.key});
@@ -32,6 +35,8 @@ class _ServicesPageState extends ConsumerState<ServicesPage> {
     final filters = ref.watch(doctorDiscoveryFiltersProvider);
     final doctorsAsync = ref.watch(doctorListProvider);
 
+    ref.watch(emergencyLimitationProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -42,6 +47,14 @@ class _ServicesPageState extends ConsumerState<ServicesPage> {
             style: Theme.of(context).textTheme.headlineSmall,
           ),
         ),
+        if (filters.emergencyOnly) ...[
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: EmergencyLimitationBanner(
+              context: EmergencyLimitationContext.discoveryEmergency,
+            ),
+          ),
+        ],
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Wrap(

@@ -1,3 +1,5 @@
+import 'ai_escalation_disclosure_dto.dart';
+
 enum AiMessageRole { user, assistant, system }
 
 extension AiMessageRoleApi on AiMessageRole {
@@ -64,6 +66,8 @@ class AiChatMessage {
     this.humanRedirect = false,
     this.escalationRecommended = false,
     this.disclaimer,
+    this.escalationDisclosure,
+    this.escalationTrigger,
     this.status = AiMessageStatus.sent,
     this.fromCache = false,
   });
@@ -76,6 +80,8 @@ class AiChatMessage {
   final bool humanRedirect;
   final bool escalationRecommended;
   final String? disclaimer;
+  final String? escalationDisclosure;
+  final AiEscalationDisclosureTrigger? escalationTrigger;
   final AiMessageStatus status;
   final bool fromCache;
 
@@ -93,6 +99,8 @@ class AiChatMessage {
     bool? humanRedirect,
     bool? escalationRecommended,
     String? disclaimer,
+    String? escalationDisclosure,
+    AiEscalationDisclosureTrigger? escalationTrigger,
     AiMessageStatus? status,
     bool? fromCache,
   }) {
@@ -106,6 +114,8 @@ class AiChatMessage {
       escalationRecommended:
           escalationRecommended ?? this.escalationRecommended,
       disclaimer: disclaimer ?? this.disclaimer,
+      escalationDisclosure: escalationDisclosure ?? this.escalationDisclosure,
+      escalationTrigger: escalationTrigger ?? this.escalationTrigger,
       status: status ?? this.status,
       fromCache: fromCache ?? this.fromCache,
     );
@@ -126,6 +136,10 @@ class AiChatMessage {
       humanRedirect: json['humanRedirect'] as bool? ?? false,
       escalationRecommended: json['escalationRecommended'] as bool? ?? false,
       disclaimer: json['disclaimer'] as String?,
+      escalationDisclosure: json['escalationDisclosure'] as String?,
+      escalationTrigger: AiEscalationDisclosureTriggerApi.fromApi(
+        json['escalationTrigger'] as String?,
+      ),
       status: _statusFromJson(json['status'] as String?),
       fromCache: fromCache,
     );
@@ -153,6 +167,8 @@ class AiChatMessage {
     'humanRedirect': humanRedirect,
     'escalationRecommended': escalationRecommended,
     if (disclaimer != null) 'disclaimer': disclaimer,
+    if (escalationDisclosure != null) 'escalationDisclosure': escalationDisclosure,
+    if (escalationTrigger != null) 'escalationTrigger': escalationTrigger!.name,
     'status': status.name,
   };
 }
@@ -166,6 +182,7 @@ class AiChatResponse {
     required this.humanRedirect,
     required this.escalationRecommended,
     required this.disclaimer,
+    this.escalationFields,
   });
 
   final String sessionId;
@@ -175,6 +192,7 @@ class AiChatResponse {
   final bool humanRedirect;
   final bool escalationRecommended;
   final String disclaimer;
+  final AiEscalationDisclosureFields? escalationFields;
 
   factory AiChatResponse.fromJson(Map<String, dynamic> json) {
     return AiChatResponse(
@@ -185,6 +203,7 @@ class AiChatResponse {
       humanRedirect: json['humanRedirect'] as bool? ?? false,
       escalationRecommended: json['escalationRecommended'] as bool? ?? false,
       disclaimer: json['disclaimer'] as String? ?? '',
+      escalationFields: AiEscalationDisclosureFields.fromJson(json),
     );
   }
 }
@@ -210,6 +229,9 @@ class TriageResultModel {
     required this.doctorSuggestion,
     required this.escalationRequired,
     required this.disclaimer,
+    this.urgencyLevel = 0,
+    this.emergency = false,
+    this.escalationFields,
   });
 
   final String triageId;
@@ -219,6 +241,9 @@ class TriageResultModel {
   final String doctorSuggestion;
   final bool escalationRequired;
   final String disclaimer;
+  final int urgencyLevel;
+  final bool emergency;
+  final AiEscalationDisclosureFields? escalationFields;
 
   factory TriageResultModel.fromJson(
     Map<String, dynamic> json, {
@@ -227,6 +252,8 @@ class TriageResultModel {
     final urgency = AiRiskLevelApi.fromApi(
       json['riskBucket'] as String? ?? 'LOW',
     );
+    final urgencyLevel = json['urgencyLevel'] as int? ?? 0;
+    final emergency = urgencyLevel >= 10;
     return TriageResultModel(
       triageId: json['triageId'] as String? ?? '',
       possibleConcern: symptomsSummary,
@@ -237,6 +264,9 @@ class TriageResultModel {
           : 'Monitor and consult a vet if symptoms worsen.',
       escalationRequired: json['escalationRequired'] as bool? ?? false,
       disclaimer: json['disclaimer'] as String? ?? '',
+      urgencyLevel: urgencyLevel,
+      emergency: emergency,
+      escalationFields: AiEscalationDisclosureFields.fromJson(json),
     );
   }
 }

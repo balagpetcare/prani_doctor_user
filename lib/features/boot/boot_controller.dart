@@ -8,6 +8,8 @@ import '../../app/app_env.dart';
 import '../../core/branding/brand_assets.dart';
 import '../../core/error/api_result.dart';
 import '../../core/error/app_exception.dart';
+import '../../core/logging/app_logger.dart';
+import '../../core/logging/crash_reporting_context.dart';
 import '../../core/utils/version_utils.dart';
 import '../app_config/data/app_config_dto.dart';
 import '../app_config/data/app_config_repository.dart';
@@ -90,6 +92,16 @@ class BootController extends StateNotifier<BootState> {
             _applyMaintenanceFromError(error);
             return false;
           }
+          AppLog.error(
+            'Boot config failed',
+            tag: 'Boot',
+            error: error,
+            fatal: false,
+            data: {
+              'category': CrashErrorCategory.bootRecoverable,
+              'code': error.code,
+            },
+          );
           state = state.copyWith(
             phase: BootPhase.error,
             errorMessage: error.message,

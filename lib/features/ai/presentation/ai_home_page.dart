@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
 import '../../../routing/app_routes.dart';
+import '../../settings/presentation/settings_providers.dart';
 import 'ai_providers.dart';
 import 'widgets/ai_disclaimer_banner.dart';
 
@@ -14,6 +15,16 @@ class AiHomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final chatAsync = ref.watch(aiChatProvider);
+    final aiConsentOk =
+        ref.watch(settingsProvider).valueOrNull?.legal.aiConsentAccepted ?? true;
+
+    void openChat() {
+      if (!aiConsentOk) {
+        context.push(AppRoutes.settingsAiConsent);
+        return;
+      }
+      context.push(AppRoutes.aiChat);
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -28,6 +39,18 @@ class AiHomePage extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (!aiConsentOk) ...[
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.psychology_outlined),
+                title: Text(l10n.settingsAcceptPrivacy),
+                subtitle: const Text('AI features require separate consent.'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRoutes.settingsAiConsent),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           const AiDisclaimerBanner(),
           const SizedBox(height: 16),
           chatAsync.when(
@@ -42,7 +65,7 @@ class AiHomePage extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
           FilledButton.icon(
-            onPressed: () => context.push(AppRoutes.aiChat),
+            onPressed: openChat,
             icon: const Icon(Icons.chat_outlined),
             label: Text(l10n.aiAskTitle),
           ),

@@ -8,6 +8,11 @@ import '../../../core/navigation/navigation_guard.dart';
 import '../../../routing/app_routes.dart';
 import '../data/service_request_dto.dart';
 import '../data/service_request_repository.dart';
+import '../../doctors/data/provider_api_paths.dart';
+import '../../emergency_limitation/data/emergency_limitation_dto.dart';
+import '../../emergency_limitation/presentation/widgets/emergency_limitation_banner.dart';
+import '../../vet_disclaimer/data/vet_disclaimer_dto.dart';
+import '../../vet_disclaimer/presentation/widgets/vet_disclaimer_banner.dart';
 import 'service_request_status_chip.dart';
 
 class ServiceRequestDetailPage extends ConsumerStatefulWidget {
@@ -97,6 +102,20 @@ class _ServiceRequestDetailPageState
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              if (_consultDisclaimerContext(request.serviceType) != null) ...[
+                VetDisclaimerBanner(
+                  context: _consultDisclaimerContext(request.serviceType)!,
+                  emergency: request.serviceType == DoctorServiceTypes.emergency,
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (request.serviceType == DoctorServiceTypes.emergency &&
+                  request.status == ServiceRequestStatus.pending) ...[
+                const EmergencyLimitationBanner(
+                  context: EmergencyLimitationContext.requestPending,
+                ),
+                const SizedBox(height: 12),
+              ],
               ServiceRequestStatusChip(status: request.status),
               const SizedBox(height: 16),
               _Section(
@@ -201,6 +220,15 @@ class _ServiceRequestDetailPageState
         },
       ),
     );
+  }
+
+  VetDisclaimerContext? _consultDisclaimerContext(String serviceType) {
+    return switch (serviceType) {
+      DoctorServiceTypes.homeVisit => VetDisclaimerContext.bookingHome,
+      DoctorServiceTypes.emergency => VetDisclaimerContext.bookingEmergency,
+      DoctorServiceTypes.onlineConsultation => VetDisclaimerContext.bookingOnline,
+      _ => null,
+    };
   }
 }
 

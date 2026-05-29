@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
 
 import 'crash_reporter.dart';
+import 'crash_reporting_context.dart';
 import 'log_level.dart';
 import 'log_redactor.dart';
 import 'remote_log_sink.dart';
@@ -74,12 +76,17 @@ abstract final class AppLog {
       data: data,
     );
     if (reportToCrashReporter && error != null) {
-      crashReporter.recordError(
-        error,
-        stackTrace,
-        fatal: fatal,
-        reason: message,
-        context: data,
+      unawaited(
+        crashReporter.recordError(
+          error,
+          stackTrace,
+          fatal: fatal,
+          reason: message,
+          context: {
+            ...CrashReportingContext.snapshot(),
+            ...?data,
+          },
+        ),
       );
     }
   }

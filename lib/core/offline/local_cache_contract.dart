@@ -97,6 +97,11 @@ abstract class LocalCacheContract {
   static const userSettingsKey = 'user_settings_snapshot';
   static const privacyDocumentKey = 'privacy_document_snapshot';
   static const termsDocumentKey = 'terms_document_snapshot';
+  static const aiConsentDocumentKey = 'ai_consent_document_snapshot';
+  static const aiDisclaimerKey = 'ai_disclaimer_snapshot';
+  static const aiEscalationDisclosureKey = 'ai_escalation_disclosure_snapshot';
+  static const vetDisclaimerKey = 'vet_disclaimer_snapshot';
+  static const emergencyLimitationKey = 'emergency_limitation_snapshot';
   static const serviceRequestsListKey = 'service_requests:list';
   static const notificationsListKey = 'notifications_list_snapshot';
   static const notificationsUnreadCountKey =

@@ -14,6 +14,7 @@ param(
   [string]$AppEnv = "production",
   [string]$PrivacyPolicyUrl = "https://pranidoctor.com/privacy",
   [string]$CrashWebhookUrl = "",
+  [switch]$EnableCrashReporting,
   [switch]$SkipObfuscate,
   [switch]$AppBundle,
   [switch]$AllowDebugSigning
@@ -52,6 +53,10 @@ $args += @(
 
 if ($CrashWebhookUrl) {
   $args += @("--dart-define=CRASH_REPORTING_WEBHOOK_URL=$CrashWebhookUrl")
+}
+
+if ($EnableCrashReporting) {
+  $args += @("--dart-define=ENABLE_CRASH_REPORTING=true")
 }
 
 if (-not $SkipObfuscate) {

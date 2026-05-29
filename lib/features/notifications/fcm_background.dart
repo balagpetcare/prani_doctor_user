@@ -1,11 +1,22 @@
 import 'dart:convert';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../../core/logging/crash_reporting_context.dart';
+
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  try {
+    await _handleBackgroundMessage(message);
+  } catch (error, stack) {
+    await _reportBackgroundFailure(error, stack);
+  }
+}
+
+Future<void> _handleBackgroundMessage(RemoteMessage message) async {
   await Firebase.initializeApp();
 
   final notification = message.notification;
@@ -45,4 +56,26 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     ),
     payload: payload,
   );
+}
+
+Future<void> _reportBackgroundFailure(Object error, StackTrace stack) async {
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp();
+    }
+    await FirebaseCrashlytics.instance.recordError(
+      error,
+      stack,
+      fatal: false,
+      reason: 'FCM background handler',
+      information: [
+        'category=${CrashErrorCategory.backgroundIsolate}',
+        'app_env=${CrashReportingContext.appEnvironment.name}',
+        if (CrashReportingContext.releaseName != null)
+          'release=${CrashReportingContext.releaseName}',
+      ],
+    );
+  } catch (_) {
+    // Cannot report from background isolate — swallow to avoid crash loop.
+  }
 }

@@ -1,3 +1,5 @@
+import 'ai_escalation_disclosure_dto.dart';
+
 class SymptomTaxonomyModel {
   const SymptomTaxonomyModel({
     required this.species,
@@ -85,6 +87,7 @@ class SymptomCheckInput {
   final String? severity;
 }
 
+
 class SymptomCheckResultModel {
   const SymptomCheckResultModel({
     required this.sessionId,
@@ -96,6 +99,7 @@ class SymptomCheckResultModel {
     required this.emergency,
     required this.redFlags,
     required this.differentials,
+    this.escalationFields,
   });
 
   factory SymptomCheckResultModel.fromJson(Map<String, dynamic> json) {
@@ -113,6 +117,7 @@ class SymptomCheckResultModel {
       differentials: (json['differentials'] as List<dynamic>? ?? [])
           .whereType<Map<String, dynamic>>()
           .toList(),
+      escalationFields: AiEscalationDisclosureFields.fromJson(json),
     );
   }
 
@@ -125,6 +130,7 @@ class SymptomCheckResultModel {
   final bool emergency;
   final List<Map<String, dynamic>> redFlags;
   final List<Map<String, dynamic>> differentials;
+  final AiEscalationDisclosureFields? escalationFields;
 }
 
 class KnowledgeHitModel {

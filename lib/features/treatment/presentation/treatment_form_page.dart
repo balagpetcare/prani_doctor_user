@@ -12,6 +12,8 @@ import '../../offline/offline_providers.dart';
 import '../data/treatment_dto.dart';
 import '../data/treatment_repository.dart';
 import '../data/treatment_validation.dart';
+import '../../vet_disclaimer/data/vet_disclaimer_dto.dart';
+import '../../vet_disclaimer/presentation/widgets/vet_disclaimer_banner.dart';
 import 'treatment_navigation.dart';
 import 'treatment_providers.dart';
 
@@ -348,6 +350,8 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),
+          const VetDisclaimerBanner(context: VetDisclaimerContext.treatmentJournal),
+          const SizedBox(height: 12),
           farmsAsync.when(
             loading: () => const LinearProgressIndicator(),
             error: (_, _) => Text(l10n.treatmentFarmLoadError),

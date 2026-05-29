@@ -15,6 +15,12 @@ import '../../../core/offline/network_errors.dart';
 import '../../../routing/app_routes.dart';
 import '../../offline/data/sync_coordinator.dart';
 import '../../offline/offline_providers.dart';
+import '../../emergency_limitation/data/emergency_limitation_dto.dart';
+import '../../emergency_limitation/presentation/emergency_limitation_providers.dart';
+import '../../emergency_limitation/presentation/widgets/emergency_limitation_banner.dart';
+import '../../vet_disclaimer/data/vet_disclaimer_dto.dart';
+import '../../vet_disclaimer/presentation/vet_disclaimer_providers.dart';
+import '../../vet_disclaimer/presentation/widgets/vet_disclaimer_banner.dart';
 
 enum ConsultationType { homeVisit, emergency, online }
 
@@ -78,6 +84,31 @@ class _BookConsultationPageState extends ConsumerState<BookConsultationPage> {
         _preferredTimeController.text.trim().isEmpty) {
       _showError(l10n.preferredTimeRequired);
       return;
+    }
+
+    await ref.read(vetDisclaimerProvider.future);
+    await ref.read(emergencyLimitationProvider.future);
+    if (!mounted) return;
+    if (ref.read(vetDisclaimerAcceptanceRequiredProvider)) {
+      final ok = await showVetDisclaimerAcceptSheet(
+        context,
+        ref,
+        surface: _acceptSurface(_type),
+        contextualHint: _disclaimerContext(_type),
+        emergencyHighlight: _type == ConsultationType.emergency,
+      );
+      if (!ok || !mounted) return;
+    }
+    if (_type == ConsultationType.emergency &&
+        ref.read(emergencyLimitationAcceptanceRequiredProvider)) {
+      final ok = await showEmergencyLimitationAcceptSheet(
+        context,
+        ref,
+        surface: EmergencyLimitationAcceptSurface.bookingEmergency,
+        contextualHint: EmergencyLimitationContext.bookingEmergency,
+        urgentHighlight: true,
+      );
+      if (!ok || !mounted) return;
     }
 
     setState(() => _loading = true);
@@ -145,6 +176,22 @@ class _BookConsultationPageState extends ConsumerState<BookConsultationPage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  VetDisclaimerContext _disclaimerContext(ConsultationType type) {
+    return switch (type) {
+      ConsultationType.homeVisit => VetDisclaimerContext.bookingHome,
+      ConsultationType.emergency => VetDisclaimerContext.bookingEmergency,
+      ConsultationType.online => VetDisclaimerContext.bookingOnline,
+    };
+  }
+
+  VetDisclaimerAcceptSurface _acceptSurface(ConsultationType type) {
+    return switch (type) {
+      ConsultationType.homeVisit => VetDisclaimerAcceptSurface.bookingHome,
+      ConsultationType.emergency => VetDisclaimerAcceptSurface.bookingEmergency,
+      ConsultationType.online => VetDisclaimerAcceptSurface.bookingOnline,
+    };
   }
 
   ConsultationType _resolveType(ProviderDoctorDetailDto doctor) {
@@ -284,6 +331,18 @@ class _BookConsultationPageState extends ConsumerState<BookConsultationPage> {
                         });
                       },
                 ),
+                const SizedBox(height: 16),
+                VetDisclaimerBanner(
+                  context: _disclaimerContext(selectedType),
+                  emergency: selectedType == ConsultationType.emergency,
+                ),
+                if (selectedType == ConsultationType.emergency) ...[
+                  const SizedBox(height: 12),
+                  const EmergencyLimitationBanner(urgent: true),
+                  const EmergencyLimitationBanner(
+                    context: EmergencyLimitationContext.bookingEmergency,
+                  ),
+                ],
                 const SizedBox(height: 24),
                 FilledButton(
                   onPressed: _loading ? null : _submit,

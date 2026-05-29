@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../logging/app_logger.dart';
 import '../logging/crash_reporter.dart';
+import '../logging/crash_reporting_context.dart';
 import '../../shared/widgets/app_graceful_error.dart';
 
 /// Installs framework-wide error handlers before [runApp].
@@ -40,6 +41,7 @@ abstract final class GlobalErrorHandler {
         stackTrace: details.stack,
         reportToCrashReporter: true,
         fatal: false,
+        data: {'category': CrashErrorCategory.widgetBuildFallback},
       );
       return AppGracefulErrorWidget(details: details);
     };
@@ -55,6 +57,7 @@ abstract final class GlobalErrorHandler {
       error: exception,
       stackTrace: stack,
       fatal: true,
+      data: {'category': CrashErrorCategory.frameworkFatal},
     );
 
     if (kDebugMode) {
@@ -69,6 +72,7 @@ abstract final class GlobalErrorHandler {
       error: error,
       stackTrace: stack,
       fatal: true,
+      data: {'category': CrashErrorCategory.uncaughtAsync},
     );
     return true;
   }
@@ -81,6 +85,7 @@ abstract final class GlobalErrorHandler {
       error: error,
       stackTrace: stack,
       fatal: true,
+      data: {'category': CrashErrorCategory.uncaughtAsync},
     );
   }
 

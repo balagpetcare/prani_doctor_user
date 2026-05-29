@@ -67,6 +67,8 @@ import '../features/support/presentation/support_ticket_create_page.dart';
 import '../features/support/presentation/support_ticket_detail_page.dart';
 import '../features/support/presentation/support_ticket_list_page.dart';
 import '../features/ai/presentation/ai_chat_page.dart';
+import '../features/ai/presentation/widgets/ai_disclaimer_gate.dart';
+import '../features/ai/data/ai_disclaimer_dto.dart';
 import '../features/ai/presentation/phase8/phase8_farm_scope.dart';
 import '../features/ai/presentation/phase8/smart_alerts_page.dart';
 import '../features/ai/presentation/phase8/symptom_checker_page.dart';
@@ -137,6 +139,8 @@ import '../features/notifications/presentation/notification_detail_page.dart';
 import '../features/notifications/presentation/notification_permission_page.dart';
 import '../features/notifications/presentation/notification_settings_page.dart';
 import '../features/settings/presentation/privacy_page.dart';
+import '../features/settings/presentation/ai_consent_page.dart';
+import '../features/settings/presentation/re_consent_page.dart';
 import '../features/settings/presentation/terms_page.dart';
 import '../features/settings/presentation/settings_account_page.dart';
 import '../features/settings/presentation/settings_personal_info_page.dart';
@@ -187,6 +191,7 @@ class RouterNotifier extends ChangeNotifier {
       }
     });
     _ref.listen(onboardingCompletedProvider, (_, _) => scheduleNotify());
+    _ref.listen(settingsProvider, (_, _) => scheduleNotify());
   }
 
   final Ref _ref;
@@ -247,6 +252,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: 'forgotPassword',
         builder: (context, state) => const ForgotPasswordPage(),
       ),
+      GoRoute(
+        path: AppRoutes.reconsent,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'reconsent',
+        builder: (context, state) => const ReConsentPage(),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return AppShellScaffold(navigationShell: navigationShell);
@@ -268,8 +279,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     path: 'ai-chat',
                     name: 'aiChat',
                     parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) =>
-                        AiChatPage(initialPrompt: state.extra as String?),
+                    builder: (context, state) => AiDisclaimerGate(
+                      surface: AiDisclaimerAcceptSurface.aiChat,
+                      child: AiChatPage(initialPrompt: state.extra as String?),
+                    ),
                     routes: [
                       GoRoute(
                         path: 'voice',
@@ -409,6 +422,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     name: 'settingsTerms',
                     parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) => const TermsPage(),
+                  ),
+                  GoRoute(
+                    path: 'ai-consent',
+                    name: 'settingsAiConsent',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const AiConsentPage(),
                   ),
                   GoRoute(
                     path: 'account',
@@ -1274,8 +1293,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.ai,
         parentNavigatorKey: _rootNavigatorKey,
         name: 'aiHome',
-        builder: (context, state) => const AiHomePage(),
+        builder: (context, state) => AiDisclaimerGate(
+          surface: AiDisclaimerAcceptSurface.aiHome,
+          child: const AiHomePage(),
+        ),
       ),
+
       GoRoute(
         path: AppRoutes.aiHistory,
         parentNavigatorKey: _rootNavigatorKey,
@@ -1299,24 +1322,33 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.aiSymptomChecker,
         parentNavigatorKey: _rootNavigatorKey,
         name: 'aiSymptomChecker',
-        builder: (context, state) => SymptomCheckerPage(
-          species: state.uri.queryParameters['species'] ?? 'CATTLE',
+        builder: (context, state) => AiDisclaimerGate(
+          surface: AiDisclaimerAcceptSurface.aiAdvisory,
+          child: SymptomCheckerPage(
+            species: state.uri.queryParameters['species'] ?? 'CATTLE',
+          ),
         ),
       ),
       GoRoute(
         path: AppRoutes.aiSmartRecommendations,
         parentNavigatorKey: _rootNavigatorKey,
         name: 'aiSmartRecommendations',
-        builder: (context, state) => SmartRecommendationsScope(
-          farmRef: state.uri.queryParameters['farmRef'],
+        builder: (context, state) => AiDisclaimerGate(
+          surface: AiDisclaimerAcceptSurface.aiRecommendations,
+          child: SmartRecommendationsScope(
+            farmRef: state.uri.queryParameters['farmRef'],
+          ),
         ),
       ),
       GoRoute(
         path: AppRoutes.aiFarmHealth,
         parentNavigatorKey: _rootNavigatorKey,
         name: 'aiFarmHealth',
-        builder: (context, state) => FarmHealthDashboardScope(
-          farmRef: state.uri.queryParameters['farmRef'],
+        builder: (context, state) => AiDisclaimerGate(
+          surface: AiDisclaimerAcceptSurface.aiAdvisory,
+          child: FarmHealthDashboardScope(
+            farmRef: state.uri.queryParameters['farmRef'],
+          ),
         ),
       ),
       GoRoute(

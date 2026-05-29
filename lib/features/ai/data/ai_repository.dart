@@ -155,6 +155,8 @@ class AiRepository implements AiRepositoryContract {
         humanRedirect: response.humanRedirect,
         escalationRecommended: response.escalationRecommended,
         disclaimer: response.disclaimer,
+        escalationDisclosure: response.escalationFields?.disclosure,
+        escalationTrigger: response.escalationFields?.trigger,
       );
       await _appendLocalMessages(
         sessionId: response.sessionId,
@@ -271,6 +273,8 @@ class AiRepository implements AiRepositoryContract {
               humanRedirect: response.humanRedirect,
               escalationRecommended: response.escalationRecommended,
               disclaimer: response.disclaimer,
+              escalationDisclosure: response.escalationFields?.disclosure,
+              escalationTrigger: response.escalationFields?.trigger,
             ),
           );
           await _outbox.remove(item.idempotencyKey);
