@@ -8,6 +8,164 @@
   "drawerTitle": "Menu",
   "drawerFarmSection": "Farm",
   "drawerFatteningSection": "Fattening",
+  "fatteningListTitle": "Fattening batches",
+  "fatteningCreateBatch": "Create fattening batch",
+  "fatteningBatchDetail": "Batch details",
+  "fatteningBatchName": "Batch name",
+  "fatteningBatchGoal": "Goal (optional)",
+  "fatteningTargetDate": "Target date",
+  "fatteningTargetDateOptional": "Not set",
+  "fatteningStartDate": "Start date",
+  "fatteningSaveAndAddAnimals": "Save and add animals",
+  "fatteningAddAnimals": "Add animals",
+  "fatteningStartBatch": "Start fattening",
+  "fatteningFilterAll": "All",
+  "fatteningFilterDraft": "Draft",
+  "fatteningFilterActive": "Active",
+  "fatteningNoAnimalsYet": "No animals in this batch yet.",
+  "fatteningNoCattleAvailable": "No active cattle found. Add cattle animals first.",
+  "fatteningAddSelectedAnimals": "Add {count} animals",
+  "@fatteningAddSelectedAnimals": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "fatteningAnimalsInBatch": "{count} animals in batch",
+  "@fatteningAnimalsInBatch": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "fatteningStartRequiresOnline": "Connect to the internet to start a batch.",
+  "fatteningStartConfirmTitle": "Start fattening?",
+  "fatteningStartConfirmMessage": "Animals will move to active fattening. Each animal can only be in one active batch.",
+  "fatteningStartedSuccess": "Fattening batch started",
+  "fatteningWeightEntryTitle": "Record weight",
+  "fatteningProgressTitle": "Batch progress",
+  "fatteningRecordWeight": "Record weight",
+  "fatteningWeightKgLabel": "Weight",
+  "fatteningWeightInvalid": "Enter a valid weight in kg",
+  "fatteningRecordedDate": "Recorded date",
+  "fatteningWeightNote": "Note (optional)",
+  "fatteningSaveWeight": "Save weight",
+  "fatteningProgressSummary": "Growth summary",
+  "fatteningNoProgressYet": "No weight data yet. Record the first weigh-in.",
+  "fatteningWeightHistory": "Weight history",
+  "fatteningWeightMethod": "Weighing method",
+  "fatteningWeightMethodScale": "Scale",
+  "fatteningWeightMethodTape": "Tape",
+  "fatteningWeightMethodEstimate": "Estimate",
+  "fatteningWeightMethodOther": "Other",
+  "fatteningWeightSaved": "Weight recorded",
+  "fatteningWeightSavedOffline": "Weight saved offline — will sync when online",
+  "fatteningWeightDuplicateDay": "This animal was already weighed today for this batch",
+  "fatteningAvgCurrentWeight": "Avg current",
+  "fatteningTotalGain": "Total gain",
+  "fatteningGrowthChart": "Growth trend",
+  "fatteningNoWeightHistory": "No weight records yet.",
+  "fatteningInitialWeight": "Initial",
+  "fatteningCurrentWeight": "Current",
+  "fatteningGain": "Gain",
+  "fatteningFeedDashboardTitle": "Feed",
+  "fatteningFeedCostSection": "Feed cost",
+  "fatteningDailyFeedSection": "Daily feed",
+  "fatteningTotalFeedCost": "Total cost",
+  "fatteningTodayFeedCost": "Today",
+  "fatteningTodayFeedAmount": "Today fed",
+  "fatteningAvgDailyFeed": "Avg daily",
+  "fatteningPlannedAmount": "Plan: {amount} kg/day",
+  "@fatteningPlannedAmount": {
+    "placeholders": {
+      "amount": { "type": "double" }
+    }
+  },
+  "fatteningDailyCostChart": "Daily feed cost",
+  "fatteningNoFeedData": "No feed records for this batch yet.",
+  "fatteningLogFeed": "Log feed",
+  "fatteningSaveFeed": "Save feed entry",
+  "fatteningEditFeedPlan": "Edit feed plan",
+  "fatteningPlanModeNormal": "Normal",
+  "fatteningPlanModeFattening": "Fattening",
+  "fatteningPlanDailyAmount": "Daily amount",
+  "fatteningPlanDailyCost": "Daily cost (BDT)",
+  "fatteningSavePlan": "Save plan",
+  "fatteningPlanSaved": "Feed plan saved",
+  "fatteningRoiTitle": "ROI",
+  "fatteningRoiCostSection": "Cost breakdown",
+  "fatteningRoiPurchase": "Purchase",
+  "fatteningRoiFeed": "Feed",
+  "fatteningRoiTreatment": "Treatment",
+  "fatteningRoiTreatmentHint": "Log medicine expenses in Finance linked to this batch",
+  "fatteningRoiTotalCost": "Total cost",
+  "fatteningRoiProjectedSale": "Projected sale",
+  "fatteningRoiProfit": "Estimated profit",
+  "fatteningRoiMargin": "{pct}% margin",
+  "@fatteningRoiMargin": {
+    "placeholders": {
+      "pct": { "type": "double" }
+    }
+  },
+  "fatteningRoiRecordCount": "{count} records",
+  "@fatteningRoiRecordCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "fatteningEditRoi": "Edit ROI",
+  "fatteningSaveRoi": "Save ROI",
+  "fatteningRoiSaved": "ROI updated",
+  "fatteningBatchGoalType": "Batch goal",
+  "fatteningGoalTypeNormal": "Normal",
+  "fatteningGoalTypeQurbani": "Qurbani",
+  "fatteningQurbaniTargetRequired": "Set a target date for Qurbani batches",
+  "fatteningQurbaniTitle": "Qurbani",
+  "fatteningQurbaniCountdown": "Countdown",
+  "fatteningQurbaniDaysLabel": "{days} days",
+  "@fatteningQurbaniDaysLabel": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "fatteningQurbaniTargetOn": "Target: {date}",
+  "@fatteningQurbaniTargetOn": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "fatteningQurbaniSetTargetDate": "Set a target date on the batch to see the countdown.",
+  "fatteningQurbaniReadiness": "Readiness",
+  "fatteningQurbaniStatusReady": "Ready",
+  "fatteningQurbaniStatusAtRisk": "At risk",
+  "fatteningQurbaniStatusOverdue": "Overdue",
+  "fatteningQurbaniStatusNotStarted": "Not started",
+  "fatteningQurbaniStatusOnTrack": "On track",
+  "fatteningQurbaniWeightProgress": "Weight: {pct}% of target",
+  "@fatteningQurbaniWeightProgress": {
+    "placeholders": {
+      "pct": { "type": "double" }
+    }
+  },
+  "fatteningQurbaniTimeProgress": "Timeline: {pct}%",
+  "@fatteningQurbaniTimeProgress": {
+    "placeholders": {
+      "pct": { "type": "double" }
+    }
+  },
+  "fatteningQurbaniAnimals": "Cattle readiness",
+  "fatteningQurbaniAnimalProgress": "{current} kg / {target} kg ({pct}%)",
+  "@fatteningQurbaniAnimalProgress": {
+    "placeholders": {
+      "current": { "type": "String" },
+      "target": { "type": "int" },
+      "pct": { "type": "double" }
+    }
+  },
+  "fatteningWeightRecordCount": "{count} weigh-ins",
+  "@fatteningWeightRecordCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "drawerMilkSection": "Milk production",
   "drawerAnimalsSection": "Animals",
   "drawerRecordsSection": "Records",
@@ -1232,5 +1390,23 @@
   "homeCareChat": "Chat support",
   "homeCareChatEta": "Typical response: under 5 min",
   "profileMemberSince": "PraniDoctor member",
-  "offlineModeBanner": "অফলাইন মোড — সর্বশেষ সংরক্ষিত তথ্য দেখানো হচ্ছে"
+  "offlineModeBanner": "অফলাইন মোড — সর্বশেষ সংরক্ষিত তথ্য দেখানো হচ্ছে",
+
+  "retryLabel": "Retry",
+  "inventoryDaysRemaining": "~{days} days remaining",
+  "@inventoryDaysRemaining": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "inventoryOutOfStock": "Out of stock",
+  "inventoryFeedLogHint": "Log more feedings to estimate days left",
+  "inventoryMedicineStockNote": "Stock quantities only. Link medicine usage when recording a treatment.",
+  "feedCatalogSelectedCount": "Selected ({count})",
+  "@feedCatalogSelectedCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "feedCatalogSearchLabel": "Search (Bengali / English / alias)"
 }

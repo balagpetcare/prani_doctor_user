@@ -1,0 +1,782 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "bd-straw-generic",
+      "code": "bd-straw-generic",
+      "nameBn": "খড়",
+      "nameEn": "Straw (general)",
+      "category": "ROUGHAGE",
+      "defaultUnit": "BUNDLE",
+      "legacyFeedType": "STRAW",
+      "approxPriceBdt": 9,
+      "availabilityScore": 5,
+      "sortOrder": 10,
+      "aliases": [
+        "খড়",
+        "dry straw"
+      ],
+      "nutrientTags": [
+        "roughage",
+        "fiber"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-rice-straw",
+      "code": "bd-rice-straw",
+      "nameBn": "ধানের খড়",
+      "nameEn": "Rice straw",
+      "category": "ROUGHAGE",
+      "defaultUnit": "BUNDLE",
+      "legacyFeedType": "STRAW",
+      "approxPriceBdt": 10,
+      "availabilityScore": 5,
+      "sortOrder": 20,
+      "aliases": [
+        "ধানের খড়",
+        "rice straw"
+      ],
+      "nutrientTags": [
+        "roughage",
+        "fiber"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-wheat-straw",
+      "code": "bd-wheat-straw",
+      "nameBn": "গমের খড়",
+      "nameEn": "Wheat straw",
+      "category": "ROUGHAGE",
+      "defaultUnit": "BUNDLE",
+      "legacyFeedType": "STRAW",
+      "approxPriceBdt": 12,
+      "availabilityScore": 4,
+      "sortOrder": 30,
+      "aliases": [
+        "গমের খড়",
+        "wheat straw"
+      ],
+      "nutrientTags": [
+        "roughage",
+        "fiber"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-green-grass",
+      "code": "bd-green-grass",
+      "nameBn": "সবুজ ঘাস",
+      "nameEn": "Green grass",
+      "category": "GREEN",
+      "defaultUnit": "KG",
+      "legacyFeedType": "GRASS",
+      "approxPriceBdt": 2,
+      "availabilityScore": 5,
+      "sortOrder": 40,
+      "aliases": [
+        "green fodder",
+        "fresh grass"
+      ],
+      "nutrientTags": [
+        "roughage",
+        "green"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-napier-grass",
+      "code": "bd-napier-grass",
+      "nameBn": "নেপিয়ার",
+      "nameEn": "Napier grass",
+      "category": "GREEN",
+      "defaultUnit": "KG",
+      "legacyFeedType": "GRASS",
+      "approxPriceBdt": 3,
+      "availabilityScore": 4,
+      "sortOrder": 50,
+      "aliases": [
+        "নেপিয়ার",
+        "napier"
+      ],
+      "nutrientTags": [
+        "roughage",
+        "green"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-german-grass",
+      "code": "bd-german-grass",
+      "nameBn": "জার্মান ঘাস",
+      "nameEn": "German grass",
+      "category": "GREEN",
+      "defaultUnit": "KG",
+      "legacyFeedType": "GRASS",
+      "approxPriceBdt": 4,
+      "availabilityScore": 3,
+      "sortOrder": 60,
+      "aliases": [
+        "german fodder"
+      ],
+      "nutrientTags": [
+        "roughage",
+        "green"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-maize-silage",
+      "code": "bd-maize-silage",
+      "nameBn": "ভুট্টা সাইলেজ",
+      "nameEn": "Maize silage",
+      "category": "SILAGE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "SILAGE",
+      "approxPriceBdt": 15,
+      "availabilityScore": 3,
+      "sortOrder": 70,
+      "aliases": [
+        "corn silage",
+        "maize silage"
+      ],
+      "nutrientTags": [
+        "roughage",
+        "energy"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-hay",
+      "code": "bd-hay",
+      "nameBn": "হে",
+      "nameEn": "Hay",
+      "category": "ROUGHAGE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "STRAW",
+      "approxPriceBdt": 14,
+      "availabilityScore": 3,
+      "sortOrder": 80,
+      "aliases": [
+        "dried hay",
+        "hay bale"
+      ],
+      "nutrientTags": [
+        "roughage",
+        "fiber"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-wheat-bran",
+      "code": "bd-wheat-bran",
+      "nameBn": "গমের ভুষি",
+      "nameEn": "Wheat bran",
+      "category": "CONCENTRATE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "CONCENTRATE",
+      "approxPriceBdt": 32,
+      "availabilityScore": 4,
+      "sortOrder": 100,
+      "aliases": [
+        "গম ভুসি",
+        "wheat pollard",
+        "ভুষি"
+      ],
+      "nutrientTags": [
+        "energy",
+        "bran"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-rice-bran",
+      "code": "bd-rice-bran",
+      "nameBn": "চালের কুঁড়া",
+      "nameEn": "Rice bran",
+      "category": "CONCENTRATE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "CONCENTRATE",
+      "approxPriceBdt": 25,
+      "availabilityScore": 5,
+      "sortOrder": 110,
+      "aliases": [
+        "rice pollard",
+        "কুঁড়া"
+      ],
+      "nutrientTags": [
+        "energy",
+        "bran"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-parboiled-rice-bran",
+      "code": "bd-parboiled-rice-bran",
+      "nameBn": "আতপ কুঁড়া",
+      "nameEn": "Parboiled rice bran",
+      "category": "CONCENTRATE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "CONCENTRATE",
+      "approxPriceBdt": 28,
+      "availabilityScore": 4,
+      "sortOrder": 120,
+      "aliases": [
+        "atap kurra",
+        "parboiled bran"
+      ],
+      "nutrientTags": [
+        "energy",
+        "bran"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-maize-broken",
+      "code": "bd-maize-broken",
+      "nameBn": "ভুট্টা ভাঙ্গা",
+      "nameEn": "Cracked maize",
+      "category": "CONCENTRATE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "CONCENTRATE",
+      "approxPriceBdt": 30,
+      "availabilityScore": 4,
+      "sortOrder": 130,
+      "aliases": [
+        "broken corn",
+        "cracked corn"
+      ],
+      "nutrientTags": [
+        "energy",
+        "starch"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-maize-meal",
+      "code": "bd-maize-meal",
+      "nameBn": "ভুট্টা গুঁড়া",
+      "nameEn": "Maize meal",
+      "category": "CONCENTRATE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "CONCENTRATE",
+      "approxPriceBdt": 34,
+      "availabilityScore": 4,
+      "sortOrder": 140,
+      "aliases": [
+        "corn meal",
+        "maize grind"
+      ],
+      "nutrientTags": [
+        "energy",
+        "starch"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-chitagur",
+      "code": "bd-chitagur",
+      "nameBn": "চিটাগুড়",
+      "nameEn": "Date palm jaggery (Chitagur)",
+      "category": "SUPPLEMENT",
+      "defaultUnit": "KG",
+      "legacyFeedType": "OTHER",
+      "approxPriceBdt": 55,
+      "availabilityScore": 3,
+      "sortOrder": 150,
+      "aliases": [
+        "date jaggery",
+        "palm gur"
+      ],
+      "nutrientTags": [
+        "energy",
+        "supplement"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-molasses",
+      "code": "bd-molasses",
+      "nameBn": "মোলাসেস",
+      "nameEn": "Molasses",
+      "category": "SUPPLEMENT",
+      "defaultUnit": "LITER",
+      "legacyFeedType": "OTHER",
+      "approxPriceBdt": 40,
+      "availabilityScore": 4,
+      "sortOrder": 160,
+      "aliases": [
+        "gur molasses",
+        "treacle"
+      ],
+      "nutrientTags": [
+        "energy",
+        "supplement"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-mustard-cake",
+      "code": "bd-mustard-cake",
+      "nameBn": "সরিষার খৈল",
+      "nameEn": "Mustard oilcake",
+      "category": "CONCENTRATE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "CONCENTRATE",
+      "approxPriceBdt": 50,
+      "availabilityScore": 4,
+      "sortOrder": 200,
+      "aliases": [
+        "খৈল",
+        "mustard cake",
+        "sarisha khail"
+      ],
+      "nutrientTags": [
+        "protein",
+        "oilcake"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-soybean-meal",
+      "code": "bd-soybean-meal",
+      "nameBn": "সয়াবিন খৈল",
+      "nameEn": "Soybean meal",
+      "category": "CONCENTRATE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "CONCENTRATE",
+      "approxPriceBdt": 60,
+      "availabilityScore": 3,
+      "sortOrder": 210,
+      "aliases": [
+        "soy meal",
+        "soybean cake"
+      ],
+      "nutrientTags": [
+        "protein",
+        "oilcake"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-sesame-cake",
+      "code": "bd-sesame-cake",
+      "nameBn": "তিলের খৈল",
+      "nameEn": "Sesame oilcake",
+      "category": "CONCENTRATE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "CONCENTRATE",
+      "approxPriceBdt": 58,
+      "availabilityScore": 3,
+      "sortOrder": 220,
+      "aliases": [
+        "til khail",
+        "sesame cake"
+      ],
+      "nutrientTags": [
+        "protein",
+        "oilcake"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-coconut-cake",
+      "code": "bd-coconut-cake",
+      "nameBn": "নারিকেলের খৈল",
+      "nameEn": "Coconut oilcake",
+      "category": "CONCENTRATE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "CONCENTRATE",
+      "approxPriceBdt": 45,
+      "availabilityScore": 3,
+      "sortOrder": 230,
+      "aliases": [
+        "copra cake",
+        "narikel khail"
+      ],
+      "nutrientTags": [
+        "protein",
+        "oilcake"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-pulse-broken",
+      "code": "bd-pulse-broken",
+      "nameBn": "ডাল ভাঙ্গা",
+      "nameEn": "Broken pulses",
+      "category": "CONCENTRATE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "CONCENTRATE",
+      "approxPriceBdt": 55,
+      "availabilityScore": 4,
+      "sortOrder": 240,
+      "aliases": [
+        "dal vanga",
+        "broken dal"
+      ],
+      "nutrientTags": [
+        "protein",
+        "pulse"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-fish-meal",
+      "code": "bd-fish-meal",
+      "nameBn": "মাছের গুঁড়া",
+      "nameEn": "Fish meal",
+      "category": "CONCENTRATE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "CONCENTRATE",
+      "approxPriceBdt": 75,
+      "availabilityScore": 2,
+      "sortOrder": 250,
+      "aliases": [
+        "fish powder",
+        "machher gura"
+      ],
+      "nutrientTags": [
+        "protein",
+        "animal"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-salt",
+      "code": "bd-salt",
+      "nameBn": "লবণ",
+      "nameEn": "Salt",
+      "category": "MINERAL",
+      "defaultUnit": "KG",
+      "legacyFeedType": "MINERAL",
+      "approxPriceBdt": 20,
+      "availabilityScore": 5,
+      "sortOrder": 300,
+      "aliases": [
+        "salt lick",
+        "common salt"
+      ],
+      "nutrientTags": [
+        "mineral",
+        "sodium"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-mineral-mix",
+      "code": "bd-mineral-mix",
+      "nameBn": "মিনারেল মিক্স",
+      "nameEn": "Mineral mix",
+      "category": "MINERAL",
+      "defaultUnit": "KG",
+      "legacyFeedType": "MINERAL",
+      "approxPriceBdt": 95,
+      "availabilityScore": 4,
+      "sortOrder": 310,
+      "aliases": [
+        "mineral premix",
+        "trace minerals"
+      ],
+      "nutrientTags": [
+        "mineral"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-dcp",
+      "code": "bd-dcp",
+      "nameBn": "ডি সি পি",
+      "nameEn": "Dicalcium phosphate (DCP)",
+      "category": "MINERAL",
+      "defaultUnit": "KG",
+      "legacyFeedType": "MINERAL",
+      "approxPriceBdt": 110,
+      "availabilityScore": 3,
+      "sortOrder": 320,
+      "aliases": [
+        "DCP",
+        "dicalcium phosphate"
+      ],
+      "nutrientTags": [
+        "mineral",
+        "phosphorus",
+        "calcium"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-calcium",
+      "code": "bd-calcium",
+      "nameBn": "ক্যালসিয়াম",
+      "nameEn": "Calcium supplement",
+      "category": "MINERAL",
+      "defaultUnit": "KG",
+      "legacyFeedType": "MINERAL",
+      "approxPriceBdt": 85,
+      "availabilityScore": 3,
+      "sortOrder": 330,
+      "aliases": [
+        "calcium powder",
+        "lime supplement"
+      ],
+      "nutrientTags": [
+        "mineral",
+        "calcium"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-cattle-feed-pellet",
+      "code": "bd-cattle-feed-pellet",
+      "nameBn": "ফিড মিল গরুর খাদ্য",
+      "nameEn": "Cattle feed pellet (feed mill)",
+      "category": "CONCENTRATE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "CONCENTRATE",
+      "approxPriceBdt": 48,
+      "availabilityScore": 4,
+      "sortOrder": 400,
+      "aliases": [
+        "ready feed",
+        "pellet feed",
+        "রেডিমেড ফিড"
+      ],
+      "nutrientTags": [
+        "commercial",
+        "complete"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-grower-feed",
+      "code": "bd-grower-feed",
+      "nameBn": "গ্রোয়ার",
+      "nameEn": "Grower feed",
+      "category": "CONCENTRATE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "CONCENTRATE",
+      "approxPriceBdt": 52,
+      "availabilityScore": 3,
+      "sortOrder": 410,
+      "aliases": [
+        "grower pellet",
+        "growth feed"
+      ],
+      "nutrientTags": [
+        "commercial",
+        "growth"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-finisher-feed",
+      "code": "bd-finisher-feed",
+      "nameBn": "ফিনিশার",
+      "nameEn": "Finisher feed",
+      "category": "CONCENTRATE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "CONCENTRATE",
+      "approxPriceBdt": 54,
+      "availabilityScore": 3,
+      "sortOrder": 420,
+      "aliases": [
+        "finishing feed",
+        "fattening pellet"
+      ],
+      "nutrientTags": [
+        "commercial",
+        "finishing"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-dairy-feed",
+      "code": "bd-dairy-feed",
+      "nameBn": "দুগ্ধ ফিড",
+      "nameEn": "Dairy feed",
+      "category": "CONCENTRATE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "CONCENTRATE",
+      "approxPriceBdt": 56,
+      "availabilityScore": 4,
+      "sortOrder": 430,
+      "aliases": [
+        "milk feed",
+        "dairy pellet"
+      ],
+      "nutrientTags": [
+        "commercial",
+        "dairy"
+      ],
+      "isPopular": true
+    },
+    {
+      "id": "bd-banana-tree",
+      "code": "bd-banana-tree",
+      "nameBn": "কলাগাছ",
+      "nameEn": "Banana pseudostem",
+      "category": "GREEN",
+      "defaultUnit": "KG",
+      "legacyFeedType": "GRASS",
+      "approxPriceBdt": 2,
+      "availabilityScore": 4,
+      "sortOrder": 500,
+      "aliases": [
+        "banana stem",
+        "kola gach"
+      ],
+      "nutrientTags": [
+        "roughage",
+        "green"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-vegetable-waste",
+      "code": "bd-vegetable-waste",
+      "nameBn": "সবজি অবশিষ্ট",
+      "nameEn": "Vegetable waste",
+      "category": "GREEN",
+      "defaultUnit": "KG",
+      "legacyFeedType": "GRASS",
+      "approxPriceBdt": 1,
+      "availabilityScore": 4,
+      "sortOrder": 510,
+      "aliases": [
+        "kitchen waste",
+        "veg scraps"
+      ],
+      "nutrientTags": [
+        "roughage",
+        "green"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-water-hyacinth",
+      "code": "bd-water-hyacinth",
+      "nameBn": "কচুরিপানা",
+      "nameEn": "Water hyacinth",
+      "category": "GREEN",
+      "defaultUnit": "KG",
+      "legacyFeedType": "GRASS",
+      "approxPriceBdt": 1,
+      "availabilityScore": 3,
+      "sortOrder": 520,
+      "aliases": [
+        "kochuripana",
+        "hyacinth"
+      ],
+      "nutrientTags": [
+        "roughage",
+        "green"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-maize-leaves",
+      "code": "bd-maize-leaves",
+      "nameBn": "ভুট্টা পাতা",
+      "nameEn": "Maize leaves",
+      "category": "GREEN",
+      "defaultUnit": "KG",
+      "legacyFeedType": "GRASS",
+      "approxPriceBdt": 2,
+      "availabilityScore": 4,
+      "sortOrder": 530,
+      "aliases": [
+        "corn leaves",
+        "maize fodder leaves"
+      ],
+      "nutrientTags": [
+        "roughage",
+        "green"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-sugarcane-tops",
+      "code": "bd-sugarcane-tops",
+      "nameBn": "আখের ছিবড়া",
+      "nameEn": "Sugarcane tops",
+      "category": "GREEN",
+      "defaultUnit": "KG",
+      "legacyFeedType": "GRASS",
+      "approxPriceBdt": 2,
+      "availabilityScore": 4,
+      "sortOrder": 540,
+      "aliases": [
+        "sugar cane tops",
+        "akh chibora"
+      ],
+      "nutrientTags": [
+        "roughage",
+        "green"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-fruit-waste",
+      "code": "bd-fruit-waste",
+      "nameBn": "ফল অবশিষ্ট",
+      "nameEn": "Fruit waste",
+      "category": "GREEN",
+      "defaultUnit": "KG",
+      "legacyFeedType": "GRASS",
+      "approxPriceBdt": 1,
+      "availabilityScore": 3,
+      "sortOrder": 550,
+      "aliases": [
+        "fruit scraps",
+        "fol oboshishto"
+      ],
+      "nutrientTags": [
+        "roughage",
+        "green"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-grass-silage",
+      "code": "bd-grass-silage",
+      "nameBn": "ঘাস সাইলেজ",
+      "nameEn": "Grass silage",
+      "category": "SILAGE",
+      "defaultUnit": "KG",
+      "legacyFeedType": "SILAGE",
+      "approxPriceBdt": 12,
+      "availabilityScore": 3,
+      "sortOrder": 560,
+      "aliases": [
+        "grass silage bale"
+      ],
+      "nutrientTags": [
+        "roughage",
+        "silage"
+      ],
+      "isPopular": false
+    },
+    {
+      "id": "bd-local-grass",
+      "code": "bd-local-grass",
+      "nameBn": "স্থানীয় ঘাস",
+      "nameEn": "Local grass",
+      "category": "GREEN",
+      "defaultUnit": "KG",
+      "legacyFeedType": "GRASS",
+      "approxPriceBdt": 2,
+      "availabilityScore": 5,
+      "sortOrder": 570,
+      "aliases": [
+        "local fodder"
+      ],
+      "nutrientTags": [
+        "roughage",
+        "green"
+      ],
+      "isPopular": false
+    }
+  ]
+}

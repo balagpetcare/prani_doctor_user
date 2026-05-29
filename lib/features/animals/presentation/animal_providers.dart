@@ -65,7 +65,9 @@ final animalFilterProvider = StateProvider<AnimalFilter>(
 final animalSortProvider = StateProvider<AnimalSort>(
   (ref) => AnimalSort.recentFirst,
 );
-final animalUploadProgressProvider = StateProvider<double?>((ref) => null);
+final animalUploadProgressProvider = StateProvider.autoDispose<double?>(
+  (ref) => null,
+);
 
 final animalListProvider =
     AsyncNotifierProvider<AnimalListNotifier, AnimalListState>(

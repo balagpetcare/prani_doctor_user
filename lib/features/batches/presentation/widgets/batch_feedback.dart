@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../../shared/widgets/widgets.dart';
+
 class BatchFeedback {
   BatchFeedback._();
 
-  static Widget loading() => const Center(child: CircularProgressIndicator());
+  static Widget loading() => const AppLoadingView();
 
   static Widget error(
     BuildContext context, {
@@ -12,43 +14,20 @@ class BatchFeedback {
     String? message,
   }) {
     final l10n = AppLocalizations.of(context)!;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 16),
-            Text(message ?? l10n.batchLoadError, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onRetry, child: Text(l10n.batchRetry)),
-          ],
-        ),
-      ),
+    return AppErrorView(
+      message: message ?? l10n.batchLoadError,
+      onRetry: onRetry,
+      retryLabel: l10n.batchRetry,
     );
   }
 
   static Widget empty(BuildContext context, {required VoidCallback onCreate}) {
     final l10n = AppLocalizations.of(context)!;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.groups_outlined, size: 48),
-            const SizedBox(height: 16),
-            Text(l10n.batchEmpty, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onCreate, child: Text(l10n.batchAddTitle)),
-          ],
-        ),
-      ),
+    return AppEmptyView(
+      icon: Icons.groups_outlined,
+      message: l10n.batchEmpty,
+      actionLabel: l10n.batchAddTitle,
+      onAction: onCreate,
     );
   }
 

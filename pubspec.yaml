@@ -45,13 +45,15 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  generate: true
+  generate: false
   assets:
+    - assets/i18n/
     - assets/brand/app_icons/
     - assets/brand/logos/
     - assets/brand/illustrations/
     - assets/images/onboarding/
     - assets/images/home/
+    - assets/seeds/
 
 flutter_launcher_icons:
   android: true

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
 import '../../data/profile_media_models.dart';
 import '../../services/profile_media_optimizer.dart';
 import '../../services/profile_media_upload_lock.dart';
@@ -22,6 +23,7 @@ abstract final class ProfileMediaActions {
   }) async {
     if (_lock.isUploading(kind)) return;
 
+    final l10n = context.tr;
     final profile = ref.read(mobileMeProvider).valueOrNull;
     final hasMedia = kind == ProfileMediaKind.avatar
         ? (profile?.profilePhotoUrl?.isNotEmpty ?? false)
@@ -36,7 +38,7 @@ abstract final class ProfileMediaActions {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('Camera'),
+              title: Text(l10n.t('uploadCamera')),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickCropUpload(
@@ -44,12 +46,14 @@ abstract final class ProfileMediaActions {
                   kind,
                   ImageSource.camera,
                   onMessage,
+                  l10n.profileUploading,
+                  l10n.profileUpdatedSuccess,
                 );
               },
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Gallery'),
+              title: Text(l10n.t('uploadGallery')),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickCropUpload(
@@ -57,6 +61,8 @@ abstract final class ProfileMediaActions {
                   kind,
                   ImageSource.gallery,
                   onMessage,
+                  l10n.profileUploading,
+                  l10n.profileUpdatedSuccess,
                 );
               },
             ),
@@ -65,12 +71,18 @@ abstract final class ProfileMediaActions {
                 leading: const Icon(Icons.delete_outline),
                 title: Text(
                   kind == ProfileMediaKind.avatar
-                      ? 'Remove photo'
-                      : 'Remove cover',
+                      ? l10n.profileRemovePhoto
+                      : l10n.profileRemoveCover,
                 ),
                 onTap: () {
                   Navigator.pop(ctx);
-                  _removeMedia(ref, kind, onMessage);
+                  _removeMedia(
+                    ref,
+                    kind,
+                    onMessage,
+                    l10n.profileUploading,
+                    l10n.t('Removed'),
+                  );
                 },
               ),
           ],
@@ -84,6 +96,8 @@ abstract final class ProfileMediaActions {
     ProfileMediaKind kind,
     ImageSource source,
     void Function(String message) onMessage,
+    String uploadingLabel,
+    String updatedLabel,
   ) async {
     if (_lock.isUploading(kind)) return;
 
@@ -102,23 +116,25 @@ abstract final class ProfileMediaActions {
     );
     if (stats == null) return;
 
-    onMessage('Uploading…');
+    onMessage(uploadingLabel);
     final notifier = ref.read(mobileMeProvider.notifier);
     final error = kind == ProfileMediaKind.avatar
         ? await notifier.uploadAvatar(stats.outputPath)
         : await notifier.uploadCover(stats.outputPath);
 
-    onMessage(error == null ? 'Updated' : (error));
+    onMessage(error == null ? updatedLabel : error);
   }
 
   static Future<void> _removeMedia(
     WidgetRef ref,
     ProfileMediaKind kind,
     void Function(String message) onMessage,
+    String uploadingLabel,
+    String removedLabel,
   ) async {
     if (_lock.isUploading(kind)) return;
-    onMessage('Uploading…');
+    onMessage(uploadingLabel);
     final error = await ref.read(mobileMeProvider.notifier).removeMedia(kind);
-    onMessage(error ?? 'Removed');
+    onMessage(error ?? removedLabel);
   }
 }

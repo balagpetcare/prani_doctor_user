@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/auth/jwt_utils.dart';
@@ -18,7 +17,7 @@ import '../data/mobile_me_dto.dart';
 import '../data/profile_media_models.dart';
 import '../data/profile_repository.dart';
 import '../data/profile_repository_contract.dart';
-import 'profile_locale_controller.dart';
+import '../../../core/localization/language_controller.dart';
 import 'profile_location_draft_provider.dart';
 
 final mobileMeProvider = AsyncNotifierProvider<MobileMeNotifier, MobileMeDto?>(
@@ -95,6 +94,7 @@ class MobileMeNotifier extends AsyncNotifier<MobileMeDto?> {
       unawaited(
         ref.read(profileLocationDraftProvider.notifier).hydrateFromProfile(
           cached,
+          replace: false,
         ),
       );
       ref.scheduleSilentRefresh(() => _refreshProfileInBackground(repo));
@@ -105,11 +105,12 @@ class MobileMeNotifier extends AsyncNotifier<MobileMeDto?> {
     if (result is ApiSuccess<MobileMeDto>) {
       ref
           .read(profileLocaleControllerProvider.notifier)
-          .syncFromProfile(result.data.locale);
+          .syncFromApiTag(result.data.locale);
       _log('[PROFILE_FETCH] profile loaded from API');
       unawaited(
         ref.read(profileLocationDraftProvider.notifier).hydrateFromProfile(
           result.data,
+          replace: false,
         ),
       );
       return result.data;
@@ -133,8 +134,14 @@ class MobileMeNotifier extends AsyncNotifier<MobileMeDto?> {
     if (result is ApiSuccess<MobileMeDto>) {
       ref
           .read(profileLocaleControllerProvider.notifier)
-          .syncFromProfile(result.data.locale);
+          .syncFromApiTag(result.data.locale);
       state = AsyncData(result.data);
+      unawaited(
+        ref.read(profileLocationDraftProvider.notifier).hydrateFromProfile(
+          result.data,
+          replace: false,
+        ),
+      );
       _log('[PROFILE_REFRESH] background refresh ok');
       if (result.data.canContinueToHome) {
         _log('[CONTINUE_ENABLED] profile ready after background refresh');
@@ -188,12 +195,12 @@ class MobileMeNotifier extends AsyncNotifier<MobileMeDto?> {
       if (input.address != null) {
         await ref
             .read(profileLocationDraftProvider.notifier)
-            .hydrateFromProfile(result.data);
+            .hydrateFromProfile(result.data, replace: true);
       }
       if (input.locale != null) {
         ref
             .read(profileLocaleControllerProvider.notifier)
-            .syncFromProfile(input.locale!);
+            .syncFromApiTag(input.locale!);
       }
       _log('profile saved — refreshing');
       await profileRefresh(forceRefresh: true);
@@ -205,6 +212,11 @@ class MobileMeNotifier extends AsyncNotifier<MobileMeDto?> {
       final optimistic = error.cause;
       if (optimistic is MobileMeDto) {
         state = AsyncData(optimistic);
+        if (input.address != null) {
+          await ref
+              .read(profileLocationDraftProvider.notifier)
+              .hydrateFromProfile(optimistic, replace: true);
+        }
       }
       _log('profile saved offline');
       return null;
@@ -314,13 +326,9 @@ class MobileMeNotifier extends AsyncNotifier<MobileMeDto?> {
   void hydrate(MobileMeDto profile) {
     ref
         .read(profileLocaleControllerProvider.notifier)
-        .syncFromProfile(profile.locale);
+        .syncFromApiTag(profile.locale);
     state = AsyncData(profile);
     _log('profile hydrated from boot');
   }
 }
 
-final profileLocaleControllerProvider =
-    StateNotifierProvider<ProfileLocaleController, Locale?>((ref) {
-      return ProfileLocaleController();
-    });

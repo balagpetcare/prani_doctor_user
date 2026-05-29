@@ -9,10 +9,14 @@ import 'api_envelope.dart';
 final class ApiMethodCache {
   ApiMethodCache._();
   static final Map<String, String> _methods = {};
+  static const _maxEntries = 128;
 
   static String? preferred(String path) => _methods[path];
 
   static void remember(String path, String method) {
+    if (_methods.length >= _maxEntries) {
+      _methods.clear();
+    }
     _methods[path] = method;
   }
 }

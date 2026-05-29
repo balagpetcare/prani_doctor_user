@@ -51,19 +51,25 @@ class _ProfileAddressPageState extends ConsumerState<ProfileAddressPage> {
     super.dispose();
   }
 
-  void _initFromProfile(MobileMeDto profile) {
+  Future<void> _initFromSources(MobileMeDto profile) async {
     if (_initialized) return;
-    _divisionId = profile.address?.divisionId;
-    _districtId = profile.address?.districtId;
-    _upazilaId = profile.address?.upazilaId;
-    _unionId = profile.address?.unionId;
-    _villageId = profile.address?.villageId;
-    _villageName = profile.address?.villageName;
-    _line1Controller.text = profile.address?.line1 ?? '';
-    _postalController.text = profile.address?.postalCode ?? '';
-    _areaLabel = profile.area;
+    final draft = await ref.read(profileLocationDraftProvider.future);
+    final merged = draft.toAddressDto().mergeForPatch(profile.address);
+    _divisionId = merged.divisionId;
+    _districtId = merged.districtId;
+    _upazilaId = merged.upazilaId;
+    _unionId = merged.unionId;
+    _villageId = merged.villageId;
+    _villageName = merged.villageName;
+    _line1Controller.text =
+        merged.line1 ?? profile.address?.line1 ?? draft.line1 ?? '';
+    _postalController.text = merged.postalCode ??
+        profile.address?.postalCode ??
+        draft.postalCode ??
+        '';
+    _areaLabel = draft.areaLabel ?? profile.area;
     _initialized = true;
-    ref.read(profileLocationDraftProvider.notifier).hydrateFromProfile(profile);
+    if (mounted) setState(() {});
   }
 
   Future<void> _persistDraft() async {
@@ -195,7 +201,9 @@ class _ProfileAddressPageState extends ConsumerState<ProfileAddressPage> {
         ),
         data: (profile) {
           if (profile == null) return ProfileFeedback.empty(context);
-          _initFromProfile(profile);
+          if (!_initialized) {
+            Future.microtask(() => _initFromSources(profile));
+          }
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24),

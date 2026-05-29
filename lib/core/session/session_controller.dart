@@ -5,49 +5,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../auth/jwt_utils.dart';
+import '../storage/token_storage.dart';
 import '../../features/auth/data/auth_dto.dart';
 import 'session_state.dart';
 
-/// Holds authentication snapshot and secure token persistence.
+/// Holds authentication snapshot and delegates secure token persistence to
+/// [TokenStorage] (service isolation — see `core/storage`).
 class SessionController extends StateNotifier<SessionState> {
   SessionController(
-    this._secureStorage, {
+    FlutterSecureStorage secureStorage, {
     @visibleForTesting Map<String, String>? testStore,
-  }) : _testStore = testStore,
+  }) : _storage = TokenStorage(secureStorage, testStore: testStore),
        super(const SessionState());
 
-  final FlutterSecureStorage _secureStorage;
-  final Map<String, String>? _testStore;
+  final TokenStorage _storage;
 
-  static const _accessTokenKey = 'auth.accessToken';
-  static const _refreshTokenKey = 'auth.refreshToken';
-  static const _userIdKey = 'auth.userId';
-  static const _displayNameKey = 'auth.displayName';
-  static const _phoneKey = 'auth.phone';
-  static const _deviceKeyKey = 'auth.deviceKey';
+  static const _accessTokenKey = TokenStorage.accessTokenKey;
+  static const _refreshTokenKey = TokenStorage.refreshTokenKey;
+  static const _userIdKey = TokenStorage.userIdKey;
+  static const _displayNameKey = TokenStorage.displayNameKey;
+  static const _phoneKey = TokenStorage.phoneKey;
+  static const _deviceKeyKey = TokenStorage.deviceKeyKey;
 
   String? _memoryAccessToken;
 
-  Future<String?> _readKey(String key) async {
-    if (_testStore != null) return _testStore[key];
-    return _secureStorage.read(key: key);
-  }
+  Future<String?> _readKey(String key) => _storage.read(key);
 
-  Future<void> _writeKey(String key, String value) async {
-    if (_testStore != null) {
-      _testStore[key] = value;
-      return;
-    }
-    await _secureStorage.write(key: key, value: value);
-  }
-
-  Future<void> _deleteKey(String key) async {
-    if (_testStore != null) {
-      _testStore.remove(key);
-      return;
-    }
-    await _secureStorage.delete(key: key);
-  }
+  Future<void> _writeKey(String key, String value) =>
+      _storage.write(key, value);
 
   Future<String?> readAccessToken() async {
     if (_memoryAccessToken != null && _memoryAccessToken!.isNotEmpty) {
@@ -193,13 +178,7 @@ class SessionController extends StateNotifier<SessionState> {
     );
   }
 
-  Future<void> _clearStoredTokens() async {
-    await _deleteKey(_accessTokenKey);
-    await _deleteKey(_refreshTokenKey);
-    await _deleteKey(_userIdKey);
-    await _deleteKey(_displayNameKey);
-    await _deleteKey(_phoneKey);
-  }
+  Future<void> _clearStoredTokens() => _storage.clearTokens();
 
   String _generateDeviceKey() {
     final random = Random.secure();

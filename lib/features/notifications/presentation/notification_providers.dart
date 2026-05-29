@@ -67,7 +67,7 @@ class NotificationListState {
 }
 
 final notificationUnreadOnlyProvider = StateProvider<bool>((ref) => false);
-final notificationSearchProvider = StateProvider<String>((ref) => '');
+final notificationSearchProvider = StateProvider.autoDispose<String>((ref) => '');
 
 class NotificationListNotifier extends AsyncNotifier<NotificationListState>
     with AsyncRefreshGuard<NotificationListState> {

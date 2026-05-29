@@ -134,7 +134,15 @@ class _StatRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(child: Text(label)),
-          Text(value, style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.titleSmall,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
         ],
       ),
     );

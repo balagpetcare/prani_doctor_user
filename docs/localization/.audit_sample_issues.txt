@@ -1,0 +1,80 @@
+LATIN|fatteningAddSelectedAnimals|{count}টি পশু যোগ করুন
+LATIN|fatteningAnimalsInBatch|ব্যাচে {count}টি পশু
+SAME_AS_EN|fatteningPlannedAmount
+LATIN|fatteningPlannedAmount|Plan: {amount} kg/day
+LATIN|fatteningDailyCostChart|Daily খাদ্য cost
+LATIN|fatteningNoFeedData|কোনো খাদ্য তথ্য এর জন্য this ব্যাচ নেই.
+SAME_AS_EN|fatteningRoiTitle
+SAME_AS_EN|fatteningRoiCostSection
+LATIN|fatteningRoiCostSection|Cost breakdown
+SAME_AS_EN|fatteningRoiPurchase
+LATIN|fatteningRoiPurchase|Purchase
+LATIN|fatteningRoiTreatmentHint|Log ওষুধ expenses in Finance linked to this ব্যাচ
+SAME_AS_EN|fatteningRoiTotalCost
+LATIN|fatteningRoiTotalCost|Total cost
+SAME_AS_EN|fatteningRoiProjectedSale
+LATIN|fatteningRoiProjectedSale|Projected sale
+SAME_AS_EN|fatteningRoiProfit
+LATIN|fatteningRoiProfit|Estimated profit
+SAME_AS_EN|fatteningRoiMargin
+LATIN|fatteningRoiMargin|{pct}% margin
+LATIN|fatteningRoiRecordCount|{count} তথ্য
+SAME_AS_EN|fatteningGoalTypeQurbani
+LATIN|fatteningGoalTypeQurbani|Qurbani
+LATIN|fatteningQurbaniTargetRequired|Set a লক্ষ্য তারিখ এর জন্য Qurbani ব্যাচ
+SAME_AS_EN|fatteningQurbaniTitle
+LATIN|fatteningQurbaniTitle|Qurbani
+SAME_AS_EN|fatteningQurbaniCountdown
+LATIN|fatteningQurbaniCountdown|Countdown
+SAME_AS_EN|fatteningQurbaniDaysLabel
+LATIN|fatteningQurbaniDaysLabel|{days} days
+LATIN|fatteningQurbaniSetTargetDate|Set a লক্ষ্য তারিখ on the ব্যাচ see the countdown.
+SAME_AS_EN|fatteningQurbaniReadiness
+LATIN|fatteningQurbaniReadiness|Readiness
+SAME_AS_EN|fatteningQurbaniStatusReady
+LATIN|fatteningQurbaniStatusReady|Ready
+SAME_AS_EN|fatteningQurbaniStatusAtRisk
+LATIN|fatteningQurbaniStatusAtRisk|At risk
+SAME_AS_EN|fatteningQurbaniStatusOverdue
+LATIN|fatteningQurbaniStatusOverdue|Overdue
+SAME_AS_EN|fatteningQurbaniStatusOnTrack
+LATIN|fatteningQurbaniStatusOnTrack|On track
+LATIN|fatteningQurbaniWeightProgress|Weight: {pct}% of লক্ষ্য
+SAME_AS_EN|fatteningQurbaniTimeProgress
+LATIN|fatteningQurbaniTimeProgress|Timeline: {pct}%
+SAME_AS_EN|fatteningQurbaniAnimals
+LATIN|fatteningQurbaniAnimals|Cattle readiness
+LATIN|fatteningQurbaniAnimalProgress|{current} kg / {লক্ষ্য} kg ({pct}%)
+SAME_AS_EN|fatteningWeightRecordCount
+LATIN|fatteningWeightRecordCount|{count} weigh-ins
+LATIN|drawerMilkSection|দুধ production
+SAME_AS_EN|drawerGrowthRecords
+LATIN|drawerGrowthRecords|Growth
+SAME_AS_EN|exitAppTitle
+LATIN|exitAppTitle|Exit app?
+LATIN|exitAppMessage|Do you want close Praniডাক্তার?
+SAME_AS_EN|exitAppConfirm
+LATIN|exitAppConfirm|Exit
+SAME_AS_EN|logoutConfirmTitle
+LATIN|logoutConfirmTitle|Sign out?
+LATIN|logoutConfirmMessage|You will need প্রবেশ করুন again access আপনার account.
+LATIN|authGoogleSignIn|Continue সহ Google
+SAME_AS_EN|authGoogleComingSoon
+LATIN|authGoogleComingSoon|Google sign-in coming soon
+LATIN|loginDevContinue|Continue (ডেভেলপমেন্ট)
+SAME_AS_EN|phoneLabel
+LATIN|phoneLabel|Mobile number
+SAME_AS_EN|otpCodeLabel
+LATIN|otpCodeLabel|Verification code
+SAME_AS_EN|sendOtp
+LATIN|sendOtp|Send code
+LATIN|verifyOtp|Verify & প্রবেশ করুন
+SAME_AS_EN|identifierLabel
+LATIN|identifierLabel|Mobile or email
+LATIN|nameLabel|Full নাম
+LATIN|emailOptionalLabel|Email (ঐচ্ছিক)
+SAME_AS_EN|noAccountPrompt
+LATIN|noAccountPrompt|Don't have an account?
+SAME_AS_EN|registerLink
+LATIN|registerLink|Register
+SAME_AS_EN|hasAccountPrompt

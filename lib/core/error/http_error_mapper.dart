@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../logging/app_logger.dart';
 import 'app_exception.dart';
 
 /// Maps HTTP status / [AppException] codes to user-facing copy (no raw Dio text).
@@ -93,14 +94,9 @@ abstract final class HttpErrorMapper {
   }
 
   static void logDeveloper(Object error, {String tag = 'API'}) {
-    assert(() {
-      // ignore: avoid_print
-      print('[$tag] developer: $error');
-      if (error is AppException && error.cause != null) {
-        // ignore: avoid_print
-        print('[$tag] cause: ${error.cause}');
-      }
-      return true;
-    }());
+    AppLog.debug('developer: $error', tag: tag);
+    if (error is AppException && error.cause != null) {
+      AppLog.debug('cause: ${error.cause}', tag: tag);
+    }
   }
 }

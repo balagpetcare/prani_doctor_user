@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../core/localization/app_date_format.dart';
 import '../../../core/navigation/navigation_guard.dart';
 
 import '../../offline/data/sync_coordinator.dart';
@@ -51,7 +51,7 @@ class SettingsDataSyncPage extends ConsumerWidget {
                   title: Text(l10n.settingsLastSyncTitle),
                   subtitle: Text(
                     lastSync != null
-                        ? DateFormat.yMMMd().add_jm().format(lastSync.toLocal())
+                        ? ref.watch(appDateFormatProvider).dateTime(lastSync)
                         : l10n.settingsLastSyncNever,
                   ),
                 ),

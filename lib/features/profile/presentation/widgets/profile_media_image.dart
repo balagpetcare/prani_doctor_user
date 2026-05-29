@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Cached network avatar/cover with placeholder fallback.
+import '../../../../shared/widgets/app_network_image.dart';
+
+/// Network avatar/cover with placeholder fallback.
 class ProfileMediaImage extends StatelessWidget {
   const ProfileMediaImage({
     super.key,
@@ -19,8 +21,8 @@ class ProfileMediaImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resolved = (thumbUrl?.isNotEmpty ?? false) ? thumbUrl! : (url ?? '');
-    if (resolved.isEmpty) {
+    final resolved = (thumbUrl?.isNotEmpty ?? false) ? thumbUrl : url;
+    if (resolved == null || resolved.trim().isEmpty) {
       return ColoredBox(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         child: Center(
@@ -34,23 +36,10 @@ class ProfileMediaImage extends StatelessWidget {
       );
     }
 
-    return Image.network(
-      resolved,
+    return AppNetworkImage(
+      url: resolved,
       fit: fit,
-      loadingBuilder: (context, child, progress) {
-        if (progress == null) return child;
-        return Center(
-          child: CircularProgressIndicator(
-            value: progress.expectedTotalBytes != null
-                ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
-                : null,
-          ),
-        );
-      },
-      errorBuilder: (_, _, _) => ColoredBox(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        child: Icon(placeholderIcon, size: 40),
-      ),
+      placeholderIcon: placeholderIcon,
     );
   }
 }

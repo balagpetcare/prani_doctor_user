@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/branding/brand_assets.dart';
 import '../../../core/branding/brand_theme.dart';
+import '../../../core/localization/localization_extensions.dart';
 import '../../../routing/app_routes.dart';
 import '../../auth/data/auth_preferences.dart';
 import 'onboarding_providers.dart';
@@ -56,6 +57,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.tr;
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final pad = MediaQuery.paddingOf(context);
@@ -157,7 +159,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                                       foregroundColor: BrandColors.white
                                           .withValues(alpha: 0.92),
                                     ),
-                                    child: const Text('পিছনে'),
+                                    child: Text(l10n.animalFormBack),
                                   )
                                 : const SizedBox(height: 48),
                           ),
@@ -169,8 +171,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                               onPressed: _goNext,
                               child: Text(
                                 _page < _slides.length - 1
-                                    ? 'পরের ধাপ'
-                                    : 'শুরু করুন',
+                                    ? l10n.animalFormNext
+                                    : l10n.welcomeGetStarted,
                               ),
                             ),
                           ),

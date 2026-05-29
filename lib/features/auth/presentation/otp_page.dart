@@ -105,14 +105,21 @@ class _OtpPageState extends ConsumerState<OtpPage> {
           rememberSession: _rememberSession,
         );
 
-    ref.read(otpFlowProvider.notifier).setLoading(false);
+    if (mounted) {
+      ref.read(otpFlowProvider.notifier).setLoading(false);
+    }
+
+    if (!mounted) return;
 
     result.when(
       success: (_) async {
         ref.read(otpFlowProvider.notifier).reset();
         if (mounted) await navigateAfterAuth(context, ref);
       },
-      failure: (error) => setState(() => _localError = error.message),
+      failure: (error) {
+        if (!mounted) return;
+        setState(() => _localError = error.message);
+      },
     );
   }
 
@@ -125,8 +132,16 @@ class _OtpPageState extends ConsumerState<OtpPage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.authTabOtp)),
+      // resizeToAvoidBottomInset keeps the scaffold from resizing; instead we
+      // scroll the content above the keyboard using viewInsetsOf padding.
+      resizeToAvoidBottomInset: false,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.fromLTRB(
+          24,
+          24,
+          24,
+          24 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

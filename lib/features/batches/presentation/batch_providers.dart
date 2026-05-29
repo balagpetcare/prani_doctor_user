@@ -54,11 +54,11 @@ class BatchListState {
   }
 }
 
-final batchSearchProvider = StateProvider<String>((ref) => '');
-final batchFilterProvider = StateProvider<BatchFilter>(
+final batchSearchProvider = StateProvider.autoDispose<String>((ref) => '');
+final batchFilterProvider = StateProvider.autoDispose<BatchFilter>(
   (ref) => BatchFilter.all,
 );
-final batchSortProvider = StateProvider<BatchSort>(
+final batchSortProvider = StateProvider.autoDispose<BatchSort>(
   (ref) => BatchSort.recentFirst,
 );
 

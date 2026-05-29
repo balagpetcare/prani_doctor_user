@@ -1,3 +1,4 @@
+import '../../../core/location/location_merge.dart';
 import '../../profile/data/mobile_me_dto.dart';
 
 /// Normalized farm/profile location with IDs + labels for persistence and restore.
@@ -125,6 +126,29 @@ class FarmLocation {
       villageId: address.villageId,
       villageName: address.villageName,
       displayAddress: areaLabel,
+    );
+  }
+
+  /// Merges [other] into this location; non-empty fields on either side are kept.
+  FarmLocation mergeWith(FarmLocation other) {
+    return FarmLocation(
+      divisionId:
+          LocationMerge.preserveExistingIfNull(divisionId, other.divisionId),
+      districtId:
+          LocationMerge.preserveExistingIfNull(districtId, other.districtId),
+      upazilaId:
+          LocationMerge.preserveExistingIfNull(upazilaId, other.upazilaId),
+      unionId: LocationMerge.preserveExistingIfNull(unionId, other.unionId),
+      villageId:
+          LocationMerge.preserveExistingIfNull(villageId, other.villageId),
+      villageName: LocationMerge.preserveExistingIfNull(
+        villageName,
+        other.villageName,
+      ),
+      displayAddress: LocationMerge.preserveExistingIfNull(
+        displayAddress,
+        other.displayAddress,
+      ),
     );
   }
 

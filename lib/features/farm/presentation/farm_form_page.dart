@@ -190,55 +190,65 @@ class _FarmFormPageState extends ConsumerState<FarmFormPage> {
 
 
 
-    // Create mode — hydrate from server profile, then local location draft.
+    // Create mode — merge profile, cached profile, and location draft.
 
     MobileMeDto? profile = ref.read(mobileMeProvider).valueOrNull;
 
     profile ??= await ref.read(profileRepositoryProvider).readCachedProfile();
 
+    final locationDraft = await ref.read(profileLocationDraftProvider.future);
 
+    var resolved = const FarmLocation();
 
-    if (profile?.address != null) {
+    if (profile != null) {
 
-      _log('restore profile union=${profile!.address!.unionId} village=${profile.address!.villageId}');
+      resolved = FarmLocation.fromAddress(
 
-      _applyLocation(
+        profile.address,
 
-        FarmLocation.fromAddress(profile.address, areaLabel: profile.area),
+        areaLabel: profile.area,
 
       );
 
-    } else {
+      _log(
 
-      final locationDraft = await ref.read(profileLocationDraftProvider.future);
+        'restore profile union=${profile.address?.unionId} village=${profile.address?.villageId} villageName=${profile.address?.villageName}',
 
-      if (locationDraft.hasUnion) {
+      );
 
-        _log('restore location draft union=${locationDraft.unionId}');
+    }
 
-        _applyLocation(
+    if (locationDraft.hasUnion) {
 
-          FarmLocation(
+      resolved = resolved.mergeWith(
 
-            divisionId: locationDraft.divisionId,
+        FarmLocation(
 
-            districtId: locationDraft.districtId,
+          divisionId: locationDraft.divisionId,
 
-            upazilaId: locationDraft.upazilaId,
+          districtId: locationDraft.districtId,
 
-            unionId: locationDraft.unionId,
+          upazilaId: locationDraft.upazilaId,
 
-            villageId: locationDraft.villageId,
+          unionId: locationDraft.unionId,
 
-            villageName: locationDraft.villageName,
+          villageId: locationDraft.villageId,
 
-            displayAddress: locationDraft.areaLabel,
+          villageName: locationDraft.villageName,
 
-          ),
+          displayAddress: locationDraft.areaLabel,
 
-        );
+        ),
 
-      }
+      );
+
+      _log('merged location draft union=${locationDraft.unionId}');
+
+    }
+
+    if (resolved.hasHierarchy) {
+
+      _applyLocation(resolved);
 
     }
 

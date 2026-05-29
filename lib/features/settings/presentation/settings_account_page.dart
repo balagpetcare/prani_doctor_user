@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../core/localization/localization_extensions.dart';
 import '../../../core/navigation/navigation_guard.dart';
 
 import '../../../routing/app_routes.dart';
@@ -16,7 +16,7 @@ class SettingsAccountPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = context.tr;
     final profileAsync = ref.watch(mobileMeProvider);
 
     return Scaffold(
@@ -54,16 +54,16 @@ class SettingsAccountPage extends ConsumerWidget {
                 SettingsSectionHeader(title: l10n.settingsAccountManageTitle),
                 ListTile(
                   leading: const Icon(Icons.palette_outlined),
-                  title: const Text('Profile appearance'),
-                  subtitle: const Text('Photo, cover, display name'),
+                  title: Text(l10n.t('settingsProfileAppearance')),
+                  subtitle: Text(l10n.t('settingsProfileAppearanceHint')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () =>
                       context.push(AppRoutes.settingsProfileAppearance),
                 ),
                 ListTile(
                   leading: const Icon(Icons.badge_outlined),
-                  title: const Text('Personal information'),
-                  subtitle: const Text('Email and phone'),
+                  title: Text(l10n.t('settingsPersonalInfo')),
+                  subtitle: Text(l10n.t('settingsPersonalInfoHint')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push(AppRoutes.settingsPersonalInfo),
                 ),

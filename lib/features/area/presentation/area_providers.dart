@@ -9,9 +9,13 @@ import '../../profile/presentation/profile_providers.dart';
 import '../data/area_repository.dart';
 
 /// Area locale derived from profile (`bn` / `en` for `/api/mobile/locations/*`).
+///
+/// Only rebuilds when the locale field changes (not on any other profile field).
 final areaLocaleProvider = Provider<String>((ref) {
-  final profile = ref.watch(mobileMeProvider).valueOrNull;
-  return AreaLocale.fromProfileTag(profile?.locale);
+  final locale = ref.watch(
+    mobileMeProvider.select((p) => p.valueOrNull?.locale),
+  );
+  return AreaLocale.fromProfileTag(locale);
 });
 
 Future<AreaLevelResult> _loadLevel(
@@ -100,8 +104,9 @@ final villageProvider = FutureProvider.autoDispose
       );
     });
 
-/// Tracks whether last successful load used disk/memory fallback.
-final areaOfflineHintProvider = StateProvider<bool>((ref) => false);
+/// Tracks whether the last successful area load used a disk/memory fallback.
+/// Scoped with autoDispose; resets automatically when the picker is dismissed.
+final areaOfflineHintProvider = StateProvider.autoDispose<bool>((ref) => false);
 
 /// Parameters for scoped village search.
 class AreaSearchParams {

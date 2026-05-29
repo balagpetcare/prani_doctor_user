@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/location/location_merge.dart';
 import '../../../core/offline/local_cache_contract.dart';
 import '../../offline/data/local_cache_service.dart';
 import '../../offline/offline_providers.dart';
@@ -109,6 +110,30 @@ class ProfileLocationDraft {
       postalCode: postalCode,
     );
   }
+
+  /// Server/draft [incoming] wins when non-empty; keeps local [other] for gaps.
+  ProfileLocationDraft mergePreserving(ProfileLocationDraft other) {
+    return ProfileLocationDraft(
+      divisionId:
+          LocationMerge.preserveExistingIfNull(divisionId, other.divisionId),
+      districtId:
+          LocationMerge.preserveExistingIfNull(districtId, other.districtId),
+      upazilaId:
+          LocationMerge.preserveExistingIfNull(upazilaId, other.upazilaId),
+      unionId: LocationMerge.preserveExistingIfNull(unionId, other.unionId),
+      villageId:
+          LocationMerge.preserveExistingIfNull(villageId, other.villageId),
+      villageName: LocationMerge.preserveExistingIfNull(
+        villageName,
+        other.villageName,
+      ),
+      areaLabel:
+          LocationMerge.preserveExistingIfNull(areaLabel, other.areaLabel),
+      line1: LocationMerge.preserveExistingIfNull(line1, other.line1),
+      postalCode:
+          LocationMerge.preserveExistingIfNull(postalCode, other.postalCode),
+    );
+  }
 }
 
 class ProfileLocationDraftNotifier extends AsyncNotifier<ProfileLocationDraft> {
@@ -123,12 +148,30 @@ class ProfileLocationDraftNotifier extends AsyncNotifier<ProfileLocationDraft> {
     return const ProfileLocationDraft();
   }
 
-  Future<void> hydrateFromProfile(MobileMeDto profile) async {
-    final draft = ProfileLocationDraft.fromAddress(profile.address).copyWith(
+  /// When [replace] is true (after explicit save), server data replaces the draft.
+  /// Otherwise merges server into existing draft so background refresh does not wipe village.
+  Future<void> hydrateFromProfile(
+    MobileMeDto profile, {
+    bool replace = false,
+  }) async {
+    final incoming = ProfileLocationDraft.fromAddress(profile.address).copyWith(
       areaLabel: profile.area,
     );
-    await _persist(draft);
-    state = AsyncData(draft);
+    if (replace) {
+      await _persist(incoming);
+      state = AsyncData(incoming);
+      return;
+    }
+    final current = state.valueOrNull ?? await _readPersisted();
+    final merged = incoming.mergePreserving(current);
+    await _persist(merged);
+    state = AsyncData(merged);
+  }
+
+  Future<ProfileLocationDraft> _readPersisted() async {
+    final raw = await _cache.read(_locationDraftKey);
+    if (raw == null) return const ProfileLocationDraft();
+    return ProfileLocationDraft.fromJson(raw);
   }
 
   Future<void> saveDraft(ProfileLocationDraft draft) async {

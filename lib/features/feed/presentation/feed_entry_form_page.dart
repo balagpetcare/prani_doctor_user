@@ -8,6 +8,10 @@ import '../../../core/offline/network_errors.dart';
 import '../../animals/presentation/animal_providers.dart';
 import '../../batches/presentation/batch_providers.dart';
 import '../../farm/presentation/farm_providers.dart';
+import '../../inventory/presentation/inventory_navigation.dart';
+import '../../inventory/presentation/inventory_providers.dart';
+import '../../offline/data/connectivity_service.dart';
+import '../../offline/offline_providers.dart';
 import '../data/feed_dto.dart';
 import '../data/feed_repository.dart';
 import '../data/feed_validation.dart';
@@ -15,9 +19,16 @@ import 'feed_navigation.dart';
 import 'feed_providers.dart';
 
 class FeedEntryFormPage extends ConsumerStatefulWidget {
-  const FeedEntryFormPage({super.key, this.recordId});
+  const FeedEntryFormPage({
+    super.key,
+    this.recordId,
+    this.initialInventoryItemId,
+    this.initialDeductStock = false,
+  });
 
   final String? recordId;
+  final String? initialInventoryItemId;
+  final bool initialDeductStock;
 
   @override
   ConsumerState<FeedEntryFormPage> createState() => _FeedEntryFormPageState();
@@ -35,12 +46,16 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
   FeedType _feedType = FeedType.grass;
   FeedUnit _unit = FeedUnit.kg;
   DateTime _recordedDate = DateTime.now();
+  String? _inventoryItemId;
+  bool _deductStock = false;
   bool _loading = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
+    _inventoryItemId = widget.initialInventoryItemId;
+    _deductStock = widget.initialDeductStock;
     Future.microtask(_bootstrap);
   }
 
@@ -114,6 +129,8 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
       recordedDate: _recordedDate,
       notes: _notesController.text.trim(),
       target: _target,
+      inventoryItemId: _deductStock ? _inventoryItemId : null,
+      deductStock: _deductStock,
     );
   }
 
@@ -152,6 +169,20 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
       return;
     }
 
+    if (_deductStock) {
+      final online = isOnlineMode(
+        ref.read(connectivityServiceProvider).currentMode,
+      );
+      if (!online) {
+        setState(() => _error = 'Stock deduction requires an internet connection.');
+        return;
+      }
+      if (_inventoryItemId == null || _inventoryItemId!.isEmpty) {
+        setState(() => _error = 'Select a feed from your stock catalog.');
+        return;
+      }
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -180,6 +211,9 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
     result.when(
       success: (record) {
         FeedNavigation.afterSave(ref, recordId: record.id);
+        if (_farmRef != null && _deductStock) {
+          InventoryNavigation.afterStockChange(ref, _farmRef!);
+        }
         context.pop();
       },
       failure: (e) {
@@ -432,6 +466,52 @@ class _FeedEntryFormPageState extends ConsumerState<FeedEntryFormPage> {
             decoration: InputDecoration(labelText: l10n.feedNotesLabel),
             maxLines: 3,
           ),
+          if (widget.recordId == null && _farmRef != null) ...[
+            const SizedBox(height: 16),
+            SwitchListTile(
+              title: const Text('Deduct from my feed stock'),
+              subtitle: const Text(
+                'Requires internet. Reduces catalog quantity when saved.',
+              ),
+              value: _deductStock,
+              onChanged: _loading
+                  ? null
+                  : (v) => setState(() {
+                      _deductStock = v;
+                      if (!v) _inventoryItemId = null;
+                    }),
+            ),
+            if (_deductStock)
+              ref.watch(inventoryFeedListProvider(_farmRef!)).when(
+                loading: () => const LinearProgressIndicator(),
+                error: (_, _) => const Text('Could not load feed catalog'),
+                data: (state) {
+                  if (state.result.items.isEmpty) {
+                    return const Text('Add feeds in Inventory → Feed stock first.');
+                  }
+                  return DropdownButtonFormField<String>(
+                    value: _inventoryItemId,
+                    decoration: const InputDecoration(
+                      labelText: 'Feed from stock',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: state.result.items
+                        .map(
+                          (i) => DropdownMenuItem(
+                            value: i.id,
+                            child: Text(
+                              '${i.displayName} (${i.quantityAvailable} ${i.unitLabel})',
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: _loading
+                        ? null
+                        : (v) => setState(() => _inventoryItemId = v),
+                  );
+                },
+              ),
+          ],
           const SizedBox(height: 24),
           FilledButton(
             onPressed: _loading ? null : _submit,

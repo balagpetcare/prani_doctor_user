@@ -47,18 +47,18 @@ class MilkListState {
 
 DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
-final milkFromDateProvider = StateProvider<DateTime>((ref) {
+final milkFromDateProvider = StateProvider.autoDispose<DateTime>((ref) {
   final now = DateTime.now();
   return _dateOnly(now.subtract(const Duration(days: 7)));
 });
 
-final milkToDateProvider = StateProvider<DateTime>(
+final milkToDateProvider = StateProvider.autoDispose<DateTime>(
   (ref) => _dateOnly(DateTime.now()),
 );
 
-final milkAnimalFilterProvider = StateProvider<String?>((ref) => null);
-final milkSearchProvider = StateProvider<String>((ref) => '');
-final milkSessionFilterProvider = StateProvider<MilkSessionFilter>(
+final milkAnimalFilterProvider = StateProvider.autoDispose<String?>((ref) => null);
+final milkSearchProvider = StateProvider.autoDispose<String>((ref) => '');
+final milkSessionFilterProvider = StateProvider.autoDispose<MilkSessionFilter>(
   (ref) => MilkSessionFilter.all,
 );
 

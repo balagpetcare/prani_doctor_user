@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../core/localization/language_controller.dart';
+import '../../../core/localization/locale_storage.dart';
 import '../../../core/navigation/navigation_guard.dart';
 
 import '../../profile/data/mobile_me_dto.dart';
@@ -30,6 +32,10 @@ class _SettingsLanguagePageState extends ConsumerState<SettingsLanguagePage> {
       _error = null;
       _selected = locale;
     });
+
+    await ref
+        .read(languageControllerProvider.notifier)
+        .setLanguageCode(LocaleStorage.fromApiTag(locale));
 
     final settingsResult = await ref
         .read(settingsProvider.notifier)

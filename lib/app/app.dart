@@ -1,8 +1,8 @@
 ﻿import 'package:flutter/material.dart';
-import 'package:pranidoctor_user/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
-import '../features/profile/presentation/profile_providers.dart';
+import '../core/localization/language_controller.dart';
 import '../routing/app_router.dart';
 import '../theme/theme_controller.dart';
 import '../core/network/app_lifecycle_coordinator.dart';
@@ -17,7 +17,7 @@ class PraniDoctorApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
     final themeMode = ref.watch(themeModeProvider);
-    final locale = ref.watch(profileLocaleControllerProvider);
+    final locale = ref.watch(languageControllerProvider);
     final light = ref.watch(lightThemeProvider);
     final dark = ref.watch(darkThemeProvider);
 
@@ -32,6 +32,14 @@ class PraniDoctorApp extends ConsumerWidget {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: locale,
+            localeListResolutionCallback: (deviceLocales, supported) {
+              for (final supportedLocale in supported) {
+                if (supportedLocale.languageCode == locale.languageCode) {
+                  return supportedLocale;
+                }
+              }
+              return const Locale('bn');
+            },
             theme: light,
             darkTheme: dark,
             themeMode: themeMode,

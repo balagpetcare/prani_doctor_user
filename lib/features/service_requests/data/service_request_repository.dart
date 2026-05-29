@@ -251,7 +251,7 @@ final serviceRequestListProvider = FutureProvider<List<ServiceRequestDto>>((
 });
 
 final serviceRequestDetailProvider =
-    FutureProvider.family<ServiceRequestDto, String>((ref, id) async {
+    FutureProvider.autoDispose.family<ServiceRequestDto, String>((ref, id) async {
       final result = await ref
           .read(serviceRequestRepositoryProvider)
           .getRequest(id);
@@ -259,7 +259,7 @@ final serviceRequestDetailProvider =
     });
 
 final serviceRequestTimelineProvider =
-    FutureProvider.family<ServiceRequestTimelineDto, String>((ref, id) async {
+    FutureProvider.autoDispose.family<ServiceRequestTimelineDto, String>((ref, id) async {
       final result = await ref
           .read(serviceRequestRepositoryProvider)
           .getTimeline(id);

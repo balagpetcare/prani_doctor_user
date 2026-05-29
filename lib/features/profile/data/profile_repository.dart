@@ -165,8 +165,24 @@ class ProfileRepository implements ProfileRepositoryContract {
     }
   }
 
+  Future<PatchMobileMeInput> _mergePatchInput(PatchMobileMeInput input) async {
+    if (input.address == null) return input;
+    final cachedProfile = await readCachedProfile();
+    final cachedAddress =
+        cachedProfile?.address ?? await readCachedAddress();
+    final mergedAddress = input.address!.mergeForPatch(cachedAddress);
+    return PatchMobileMeInput(
+      name: input.name,
+      email: input.email,
+      area: input.area ?? cachedProfile?.area,
+      locale: input.locale,
+      address: mergedAddress,
+    );
+  }
+
   Future<ApiResult<MobileMeDto>> _patchMe(PatchMobileMeInput input) async {
-    final body = input.toJson();
+    final mergedInput = await _mergePatchInput(input);
+    final body = mergedInput.toJson();
 
     try {
       final data = await patchJsonFlexible(
@@ -175,11 +191,11 @@ class ProfileRepository implements ProfileRepositoryContract {
         body,
         logTag: 'PROFILE',
       ).timeout(ProfileFetchPolicy.requestTimeout);
-      if (input.address != null) {
-        await _writeAddressCache(input.address);
+      if (mergedInput.address != null) {
+        await _writeAddressCache(mergedInput.address);
         if (kDebugMode) {
           debugPrint(
-            '[LOCATION_SAVE] union=${input.address!.unionId} village=${input.address!.villageId}',
+            '[LOCATION_SAVE] union=${mergedInput.address!.unionId} village=${mergedInput.address!.villageId} villageName=${mergedInput.address!.villageName}',
           );
         }
       }
@@ -189,14 +205,14 @@ class ProfileRepository implements ProfileRepositoryContract {
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {
         await _enqueuePatch(body: body);
-        if (input.address != null) {
-          await _writeAddressCache(input.address);
+        if (mergedInput.address != null) {
+          await _writeAddressCache(mergedInput.address);
         }
         final cached = await _cache.read(LocalCacheContract.profileKey);
         if (cached != null) {
           final merged = Map<String, dynamic>.from(cached)..addAll(body);
-          if (input.address != null) {
-            merged['address'] = input.address!.toJson();
+          if (mergedInput.address != null) {
+            merged['address'] = mergedInput.address!.toJson();
           }
           await _writeProfileCache(merged);
           final profile = await _mergeCachedAddress(

@@ -132,7 +132,7 @@ final doctorListProvider = FutureProvider<DoctorListResultDto>((ref) async {
 });
 
 final doctorDetailProvider =
-    FutureProvider.family<ProviderDoctorDetailDto, String>((ref, id) async {
+    FutureProvider.autoDispose.family<ProviderDoctorDetailDto, String>((ref, id) async {
       final result = await ref.read(doctorRepositoryProvider).getDoctor(id);
       return result.when(success: (data) => data, failure: (e) => throw e);
     });

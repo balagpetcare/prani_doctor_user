@@ -297,7 +297,8 @@ class FarmRepository implements FarmRepositoryContract {
 
   @override
   Future<ApiResult<Farm>> saveFarm(FarmInput input, {String? farmId}) async {
-    final patch = input.toPatchInput();
+    final existing = await _profileRepo.readCachedProfile();
+    final patch = input.toPatchInput(existingProfile: existing);
     final result = await _profileRepo.patchMe(patch);
     if (result case ApiSuccess(:final data)) {
       FarmSummary? summary;

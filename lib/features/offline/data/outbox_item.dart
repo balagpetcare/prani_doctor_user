@@ -8,12 +8,18 @@ enum OutboxKind {
   batchPatch('batch_patch'),
   batchMove('batch_move'),
   batchMerge('batch_merge'),
+  fatteningBatchCreate('fattening_batch_create'),
+  fatteningBatchAddAnimals('fattening_batch_add_animals'),
+  fatteningBatchStart('fattening_batch_start'),
+  fatteningWeightCreate('fattening_weight_create'),
   milkCreate('milk_create'),
   milkPatch('milk_patch'),
   milkDelete('milk_delete'),
   feedCreate('feed_create'),
   feedPatch('feed_patch'),
   feedDelete('feed_delete'),
+  inventoryAdd('inventory_add'),
+  inventoryConsume('inventory_consume'),
   financeExpenseCreate('finance_expense_create'),
   financeExpensePatch('finance_expense_patch'),
   financeExpenseDelete('finance_expense_delete'),
@@ -33,7 +39,10 @@ enum OutboxKind {
   supportTicketReply('support_ticket_reply'),
   supportTicketPatch('support_ticket_patch'),
   aiChatMessage('ai_chat_message'),
-  settingsSync('settings_sync');
+  settingsSync('settings_sync'),
+  livestockCreate('livestock_create'),
+  phase4FeedPurchase('phase4_feed_purchase'),
+  phase4FeedConsumption('phase4_feed_consumption');
 
   const OutboxKind(this.apiValue);
   final String apiValue;

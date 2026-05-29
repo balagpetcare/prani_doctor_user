@@ -126,13 +126,35 @@ class _AreaPickerState extends ConsumerState<AreaPicker> {
   }
 
   Future<void> _refreshHierarchy() async {
+    final preservedDivision = _divisionId;
+    final preservedDistrict = _districtId;
+    final preservedUpazila = _upazilaId;
+    final preservedUnion = _unionId;
+    final preservedVillageId = _villageId;
+    final preservedVillageName = _villageName;
+    final preservedLabel = _selectedLabel;
+    final preservedUnionLabel = _unionLabel;
+
     invalidateAreaHierarchy(
       ref,
-      divisionId: _divisionId,
-      districtId: _districtId,
-      upazilaId: _upazilaId,
-      unionId: _unionId,
+      divisionId: preservedDivision,
+      districtId: preservedDistrict,
+      upazilaId: preservedUpazila,
+      unionId: preservedUnion,
     );
+
+    if (!mounted) return;
+    setState(() {
+      _divisionId = preservedDivision;
+      _districtId = preservedDistrict;
+      _upazilaId = preservedUpazila;
+      _unionId = preservedUnion;
+      _villageId = preservedVillageId;
+      _villageName = preservedVillageName;
+      _selectedLabel = preservedLabel;
+      _unionLabel = preservedUnionLabel;
+    });
+    _emit();
   }
 
   Future<void> _searchVillages() async {

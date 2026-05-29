@@ -108,11 +108,21 @@ class OfflineQueuePanel extends ConsumerWidget {
       case OutboxKind.animalCreate:
       case OutboxKind.animalPatch:
         return l10n.selectAnimal;
+      case OutboxKind.livestockCreate:
+        return 'Livestock sync pending';
+      case OutboxKind.phase4FeedPurchase:
+      case OutboxKind.phase4FeedConsumption:
+        return 'Feed stock sync pending';
       case OutboxKind.batchCreate:
       case OutboxKind.batchPatch:
       case OutboxKind.batchMove:
       case OutboxKind.batchMerge:
         return l10n.offlineItemBatch;
+      case OutboxKind.fatteningBatchCreate:
+      case OutboxKind.fatteningBatchAddAnimals:
+      case OutboxKind.fatteningBatchStart:
+      case OutboxKind.fatteningWeightCreate:
+        return l10n.drawerFatteningSection;
       case OutboxKind.milkCreate:
       case OutboxKind.milkPatch:
       case OutboxKind.milkDelete:
@@ -121,6 +131,9 @@ class OfflineQueuePanel extends ConsumerWidget {
       case OutboxKind.feedPatch:
       case OutboxKind.feedDelete:
         return l10n.offlineItemFeed;
+      case OutboxKind.inventoryAdd:
+      case OutboxKind.inventoryConsume:
+        return 'Inventory sync pending';
       case OutboxKind.financeExpenseCreate:
       case OutboxKind.financeExpensePatch:
       case OutboxKind.financeExpenseDelete:

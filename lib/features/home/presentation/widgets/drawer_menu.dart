@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
 import '../../../../core/navigation/navigation_service.dart';
+import '../../../../core/localization/localization_extensions.dart';
 import '../../../../routing/app_routes.dart';
 import '../../../auth/presentation/auth_logout.dart';
 import '../../../doctors/data/doctor_repository.dart';
 import '../../../notifications/presentation/notification_providers.dart';
 import '../../../profile/data/mobile_me_dto.dart';
+import '../../../farm/presentation/farm_providers.dart';
 import '../../../profile/presentation/profile_providers.dart';
 import '../../../profile/presentation/widgets/profile_hero_avatar.dart';
 
@@ -87,6 +89,11 @@ class _HomeDrawerMenuState extends ConsumerState<HomeDrawerMenu> {
                     onTap: () => _pushRoute(context, AppRoutes.animals),
                   ),
                   _DrawerTile(
+                    icon: Icons.agriculture_outlined,
+                    title: l10n.t('ecosystemHubTitle'),
+                    onTap: () => _pushRoute(context, AppRoutes.ecosystemHub),
+                  ),
+                  _DrawerTile(
                     icon: Icons.event_available_outlined,
                     title: l10n.dashboardUpcomingAppointments,
                     onTap: () => _goToTab(context, 2, AppRoutes.inbox),
@@ -100,6 +107,11 @@ class _HomeDrawerMenuState extends ConsumerState<HomeDrawerMenu> {
                     icon: Icons.medical_services_outlined,
                     title: l10n.treatmentListTitle,
                     onTap: () => _pushRoute(context, AppRoutes.treatments),
+                  ),
+                  _DrawerTile(
+                    icon: Icons.inventory_2_outlined,
+                    title: l10n.t('inventoryTitle'),
+                    onTap: () => _pushRoute(context, AppRoutes.inventory),
                   ),
                   _DrawerTile(
                     icon: Icons.history_outlined,
@@ -183,12 +195,54 @@ class _HomeDrawerMenuState extends ConsumerState<HomeDrawerMenu> {
                           onTap: () => _pushRoute(context, AppRoutes.feeds),
                         ),
                         ListTile(
+                          title: Text(l10n.t('inventoryFeedStock')),
+                          onTap: () {
+                            final farmId = ref
+                                .read(activeFarmIdProvider)
+                                .valueOrNull;
+                            if (farmId != null && farmId.isNotEmpty) {
+                              _pushRoute(context, AppRoutes.inventoryFeed);
+                            } else {
+                              _pushRoute(context, AppRoutes.inventory);
+                            }
+                          },
+                        ),
+                        ListTile(
+                          title: Text(l10n.t('inventoryMedicineStock')),
+                          onTap: () {
+                            final farmId = ref
+                                .read(activeFarmIdProvider)
+                                .valueOrNull;
+                            if (farmId != null && farmId.isNotEmpty) {
+                              _pushRoute(context, AppRoutes.inventoryMedicine);
+                            } else {
+                              _pushRoute(context, AppRoutes.inventory);
+                            }
+                          },
+                        ),
+                        ListTile(
                           title: Text(l10n.milkEntryTitle),
                           onTap: () => _pushRoute(context, AppRoutes.milk),
                         ),
                         ListTile(
                           title: Text(l10n.batchListTitle),
                           onTap: () => _pushRoute(context, AppRoutes.batches),
+                        ),
+                        ListTile(
+                          title: Text(l10n.drawerFatteningSection),
+                          onTap: () {
+                            final farmId = ref
+                                .read(activeFarmIdProvider)
+                                .valueOrNull;
+                            if (farmId != null && farmId.isNotEmpty) {
+                              _pushRoute(
+                                context,
+                                AppRoutes.farmFattening(farmId),
+                              );
+                            } else {
+                              _pushRoute(context, AppRoutes.farms);
+                            }
+                          },
                         ),
                       ],
                     ),

@@ -15,10 +15,56 @@ abstract final class AppRoutes {
   static String farmDetail(String id) => '/farms/$id';
   static String farmEdit(String id) => '/farms/$id/edit';
   static String farmSettings(String id) => '/farms/$id/settings';
+  static String farmFattening(String farmId) => '/farms/$farmId/fattening';
+  static String fatteningCreate(String farmId) =>
+      '/farms/$farmId/fattening/create';
+  static String fatteningBatchDetail(String farmId, String batchId) =>
+      '/farms/$farmId/fattening/$batchId';
+  static String fatteningAddAnimals(String farmId, String batchId) =>
+      '/farms/$farmId/fattening/$batchId/animals';
+  static String fatteningBatchProgress(String farmId, String batchId) =>
+      '/farms/$farmId/fattening/$batchId/progress';
+  static String fatteningBatchFeed(String farmId, String batchId) =>
+      '/farms/$farmId/fattening/$batchId/feed-dashboard';
+  static String fatteningLogFeed(String farmId, String batchId) =>
+      '/farms/$farmId/fattening/$batchId/log-feed';
+  static String fatteningBatchRoi(String farmId, String batchId) =>
+      '/farms/$farmId/fattening/$batchId/roi';
+  static String fatteningBatchQurbani(String farmId, String batchId) =>
+      '/farms/$farmId/fattening/$batchId/qurbani';
+  static String fatteningWeightEntry(
+    String farmId,
+    String batchId, {
+    String? animalId,
+  }) {
+    final base = '/farms/$farmId/fattening/$batchId/weight';
+    if (animalId == null || animalId.isEmpty) return base;
+    return '$base?animalId=$animalId';
+  }
+
+  static String fatteningWeightHistory(String farmId, String batchId) =>
+      '/farms/$farmId/fattening/$batchId/weight/history';
   static const animals = '/animals';
   static const animalCreate = '/animals/create';
   static String animalDetail(String id) => '/animals/$id';
   static String animalEdit(String id) => '/animals/$id/edit';
+  static const ecosystemHub = '/ecosystem';
+  static const livestock = '/livestock';
+  static const livestockCreate = '/livestock/create';
+  static String livestockDetail(String id) => '/livestock/$id';
+  static String livestockEdit(String id) => '/livestock/$id/edit';
+  static String livestockTimeline(String id) => '/livestock/$id/timeline';
+  static String livestockQr(String id) => '/livestock/$id/qr';
+  static const phase4FeedHub = '/feed-ecosystem';
+  static const phase4FeedItems = '/feed-ecosystem/items';
+  static String phase4FeedItemDetail(String id) => '/feed-ecosystem/items/$id';
+  static const phase4FeedInventory = '/feed-ecosystem/inventory';
+  static const phase4FeedPurchase = '/feed-ecosystem/purchase';
+  static const phase4FeedConsumption = '/feed-ecosystem/consumption';
+  static String dailyRation(String livestockId) =>
+      '/recommendations/$livestockId';
+  static const livestockAnalytics = '/analytics/livestock';
+  static const feedEfficiency = '/analytics/livestock/feed-efficiency';
   static const batches = '/batches';
   static const batchCreate = '/batches/create';
   static String batchDetail(String id) => '/batches/$id';
@@ -35,6 +81,18 @@ abstract final class AppRoutes {
   static String feedEdit(String id) => '/feeds/$id/edit';
   static const feedCost = '/feeds/cost';
   static const feedAnalytics = '/feeds/analytics';
+  static const inventory = '/inventory';
+  static const inventoryFeed = '/inventory/feed';
+  static const inventoryFeedCreate = '/inventory/feed/create';
+  static String inventoryFeedDetail(String id) => '/inventory/feed/$id';
+  static String inventoryFeedReceipt(String id) =>
+      '/inventory/feed/$id/receipt';
+  static const inventoryMedicine = '/inventory/medicine';
+  static const inventoryMedicineCreate = '/inventory/medicine/create';
+  static String inventoryMedicineDetail(String id) => '/inventory/medicine/$id';
+  static String inventoryMedicineReceipt(String id) =>
+      '/inventory/medicine/$id/receipt';
+  static const inventoryConsumptionHistory = '/inventory/consumption-history';
   static const finance = '/finance';
   static const financeReports = '/finance/reports';
   static const financeExpenses = '/finance/expenses';
@@ -86,6 +144,12 @@ abstract final class AppRoutes {
   static const aiHistory = '/ai/history';
   static const aiSettings = '/ai/settings';
   static const aiResult = '/ai/result';
+  static const aiSymptomChecker = '/ai/symptom-check';
+  static const aiSmartRecommendations = '/ai/recommendations';
+  static const aiFarmHealth = '/ai/farm-health';
+  static const aiSmartAlerts = '/ai/alerts';
+  static const aiKnowledgeSearch = '/ai/knowledge';
+  static const aiFollowUps = '/ai/follow-ups';
   static const services = '/services';
   static const inbox = '/inbox';
   static const notifications = '/notifications';

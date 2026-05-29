@@ -1,13 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/localization/language_controller.dart';
+import '../../../core/localization/localization_loader.dart';
 import '../../animals/presentation/animal_providers.dart';
 import '../../doctors/data/doctor_repository.dart';
 import '../../service_requests/data/service_request_repository.dart';
 import '../../support/presentation/support_providers.dart';
 import '../../../routing/app_routes.dart';
 
-const _recentKey = 'universal_search_recent';
 const _maxRecent = 8;
+
+/// Input debounce for the search box — prevents a request per keystroke.
+const _searchDebounce = Duration(milliseconds: 350);
 
 class UniversalSearchResult {
   const UniversalSearchResult({
@@ -25,8 +29,13 @@ class UniversalSearchResult {
   final String route;
 }
 
-final universalSearchQueryProvider = StateProvider<String>((ref) => '');
+/// Scoped to the search page; resets when user dismisses search.
+final universalSearchQueryProvider = StateProvider.autoDispose<String>(
+  (ref) => '',
+);
 
+/// Persistent in-memory recent searches for the session.
+/// Not autoDispose so the list survives search-page dismissal.
 final universalSearchRecentProvider =
     NotifierProvider<UniversalSearchRecentNotifier, List<String>>(
       UniversalSearchRecentNotifier.new,
@@ -54,10 +63,28 @@ class UniversalSearchRecentNotifier extends Notifier<List<String>> {
   }
 }
 
+String _localized(Ref ref, String key) {
+  // Only rebuild when the language code changes, not on every locale object change.
+  final locale = ref.watch(
+    languageControllerProvider.select((l) => l.languageCode),
+  );
+  return LocalizationLoader.lookup(locale, key);
+}
+
+/// Search results for the current query.
+///
+/// Scoped with autoDispose so memory is reclaimed when the search page
+/// is dismissed. Debounced: waits [_searchDebounce] before firing network
+/// requests, so rapid keystrokes don't trigger a fetch per character.
 final universalSearchResultsProvider =
-    FutureProvider<List<UniversalSearchResult>>((ref) async {
+    FutureProvider.autoDispose<List<UniversalSearchResult>>((ref) async {
       final query = ref.watch(universalSearchQueryProvider).trim().toLowerCase();
       if (query.isEmpty) return const [];
+
+      // Debounce: if the query changes again within the window, Riverpod will
+      // cancel this build and restart, so the delay effectively coalesces
+      // rapid keystrokes into a single request.
+      await Future<void>.delayed(_searchDebounce);
 
       final results = <UniversalSearchResult>[];
 
@@ -88,8 +115,10 @@ final universalSearchResultsProvider =
           addIfMatch(
             id: 'doc-${doctor.id}',
             title: doctor.name,
-            subtitle: doctor.serviceType ?? doctor.fee ?? '',
-            category: 'Doctors',
+            subtitle: doctor.serviceType.isNotEmpty
+                ? doctor.serviceType
+                : (doctor.fee ?? ''),
+            category: _localized(ref, 'homeSearchSourceDoctors'),
             route: AppRoutes.doctorDetail(doctor.id),
           );
         }
@@ -102,7 +131,7 @@ final universalSearchResultsProvider =
             id: 'cat-${category.id}',
             title: category.name,
             subtitle: category.description ?? category.slug,
-            category: 'Services',
+            category: _localized(ref, 'homeSearchSourceServices'),
             route: AppRoutes.services,
           );
         }
@@ -115,7 +144,7 @@ final universalSearchResultsProvider =
             id: 'faq-${item.id}',
             title: item.question,
             subtitle: item.answer,
-            category: 'Community',
+            category: _localized(ref, 'homeSearchSourceCommunity'),
             route: AppRoutes.supportHelp,
           );
         }
@@ -128,39 +157,39 @@ final universalSearchResultsProvider =
             id: 'animal-${animal.id}',
             title: animal.name,
             subtitle: animal.species,
-            category: 'Animals',
+            category: _localized(ref, 'homeSearchSourceAnimals'),
             route: AppRoutes.animalDetail(animal.id),
           );
         }
       } catch (_) {}
 
-      const staticEntries = [
+      final staticEntries = [
         (
           id: 'ai-chat',
-          title: 'AI Assistant',
-          subtitle: 'Ask health questions',
-          category: 'AI Assistant',
+          titleKey: 'searchAiAssistant',
+          subtitleKey: 'searchAiSubtitle',
+          categoryKey: 'searchAiAssistant',
           route: AppRoutes.aiChat,
         ),
         (
           id: 'marketplace',
-          title: 'Marketplace',
-          subtitle: 'Services and offers',
-          category: 'Marketplace',
+          titleKey: 'searchMarketplace',
+          subtitleKey: 'searchMarketplaceSubtitle',
+          categoryKey: 'searchMarketplace',
           route: AppRoutes.marketplace,
         ),
         (
           id: 'reports',
-          title: 'Reports',
-          subtitle: 'Health records and reports',
-          category: 'Reports',
+          titleKey: 'searchReports',
+          subtitleKey: 'searchReportsSubtitle',
+          categoryKey: 'searchReports',
           route: AppRoutes.healthHistory,
         ),
         (
           id: 'emergency',
-          title: 'Emergency',
-          subtitle: 'Emergency doctors and services',
-          category: 'Emergency',
+          titleKey: 'searchEmergency',
+          subtitleKey: 'searchEmergencySubtitle',
+          categoryKey: 'searchEmergency',
           route: AppRoutes.services,
         ),
       ];
@@ -168,9 +197,9 @@ final universalSearchResultsProvider =
       for (final entry in staticEntries) {
         addIfMatch(
           id: entry.id,
-          title: entry.title,
-          subtitle: entry.subtitle,
-          category: entry.category,
+          title: _localized(ref, entry.titleKey),
+          subtitle: _localized(ref, entry.subtitleKey),
+          category: _localized(ref, entry.categoryKey),
           route: entry.route,
         );
       }

@@ -42,21 +42,22 @@ class OtpFlowState {
   }
 }
 
-class OtpFlowNotifier extends StateNotifier<OtpFlowState> {
-  OtpFlowNotifier(this._ref) : super(const OtpFlowState());
-
-  final Ref _ref;
+/// Riverpod 2 [AutoDisposeNotifier] replacement for the previous
+/// [StateNotifier]-based OTP flow. Timer lifecycle is managed via
+/// [Ref.onDispose] so it is always cancelled when the provider is disposed
+/// (auth flow complete / user navigates away).
+class OtpFlowNotifier extends AutoDisposeNotifier<OtpFlowState> {
   Timer? _timer;
 
   @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
+  OtpFlowState build() {
+    ref.onDispose(() => _timer?.cancel());
+    return const OtpFlowState();
   }
 
   Future<void> bootstrap(String? phone) async {
     if (phone == null || phone.isEmpty) return;
-    final cached = await _ref
+    final cached = await ref
         .read(authRepositoryProvider)
         .readCachedOtpRequest(phone);
     if (cached != null) {
@@ -67,7 +68,7 @@ class OtpFlowNotifier extends StateNotifier<OtpFlowState> {
 
   Future<String?> requestOtp(String phone) async {
     state = state.copyWith(loading: true, clearError: true);
-    final result = await _ref.read(authRepositoryProvider).requestOtp(phone);
+    final result = await ref.read(authRepositoryProvider).requestOtp(phone);
     return result.when(
       success: (dto) {
         _startCountdown(dto.resendCooldownSeconds);
@@ -119,11 +120,11 @@ class OtpFlowNotifier extends StateNotifier<OtpFlowState> {
   }
 }
 
-final otpFlowProvider = StateNotifierProvider<OtpFlowNotifier, OtpFlowState>((
-  ref,
-) {
-  return OtpFlowNotifier(ref);
-});
+/// Scoped to the auth flow. State (phone, timer, loading flag) is
+/// automatically discarded when the user leaves the OTP screen.
+final otpFlowProvider = NotifierProvider.autoDispose<OtpFlowNotifier, OtpFlowState>(
+  OtpFlowNotifier.new,
+);
 
 final welcomeSeenProvider = FutureProvider<bool>((ref) async {
   return ref.read(authPreferencesProvider).isWelcomeSeen();

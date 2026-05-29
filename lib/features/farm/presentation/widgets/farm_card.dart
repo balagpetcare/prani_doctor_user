@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../../shared/widgets/app_network_image.dart';
 import '../../data/farm_dto.dart';
 
 class FarmCard extends StatelessWidget {
@@ -20,10 +21,15 @@ class FarmCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (farm.coverPhotoUrl != null)
+            if (farm.coverPhotoUrl != null &&
+                farm.coverPhotoUrl!.trim().isNotEmpty)
               AspectRatio(
                 aspectRatio: 16 / 9,
-                child: Image.network(farm.coverPhotoUrl!, fit: BoxFit.cover),
+                child: AppNetworkImage(
+                  url: farm.coverPhotoUrl,
+                  fit: BoxFit.cover,
+                  placeholderIcon: Icons.agriculture_outlined,
+                ),
               ),
             Padding(
               padding: const EdgeInsets.all(16),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../shared/theme/app_colors.dart';
+import '../../../shared/widgets/app_status_chip.dart';
 import '../data/service_request_dto.dart';
 
 class ServiceRequestStatusChip extends StatelessWidget {
@@ -11,33 +13,28 @@ class ServiceRequestStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final (label, color) = _labelAndColor(l10n);
-    return Chip(
-      label: Text(label),
-      backgroundColor: color.withValues(alpha: 0.15),
-      side: BorderSide(color: color),
-      labelStyle: TextStyle(color: color, fontWeight: FontWeight.w600),
-    );
+    return AppStatusChip(label: _label(l10n), tone: _tone);
   }
 
-  (String, Color) _labelAndColor(AppLocalizations l10n) {
-    switch (status) {
-      case ServiceRequestStatus.pending:
-        return (l10n.statusPending, Colors.orange);
-      case ServiceRequestStatus.assigned:
-        return (l10n.statusAssigned, Colors.blue);
-      case ServiceRequestStatus.accepted:
-        return (l10n.statusAccepted, Colors.indigo);
-      case ServiceRequestStatus.inProgress:
-        return (l10n.statusInProgress, Colors.deepPurple);
-      case ServiceRequestStatus.completed:
-        return (l10n.statusCompleted, Colors.green);
-      case ServiceRequestStatus.cancelled:
-        return (l10n.statusCancelled, Colors.grey);
-      case ServiceRequestStatus.rejected:
-        return (l10n.statusRejected, Colors.red);
-    }
-  }
+  String _label(AppLocalizations l10n) => switch (status) {
+    ServiceRequestStatus.pending => l10n.statusPending,
+    ServiceRequestStatus.assigned => l10n.statusAssigned,
+    ServiceRequestStatus.accepted => l10n.statusAccepted,
+    ServiceRequestStatus.inProgress => l10n.statusInProgress,
+    ServiceRequestStatus.completed => l10n.statusCompleted,
+    ServiceRequestStatus.cancelled => l10n.statusCancelled,
+    ServiceRequestStatus.rejected => l10n.statusRejected,
+  };
+
+  StatusTone get _tone => switch (status) {
+    ServiceRequestStatus.pending => StatusTone.warning,
+    ServiceRequestStatus.assigned => StatusTone.info,
+    ServiceRequestStatus.accepted => StatusTone.info,
+    ServiceRequestStatus.inProgress => StatusTone.neutral,
+    ServiceRequestStatus.completed => StatusTone.positive,
+    ServiceRequestStatus.cancelled => StatusTone.muted,
+    ServiceRequestStatus.rejected => StatusTone.danger,
+  };
 }
 
 String serviceTypeLabel(AppLocalizations l10n, String serviceType) {

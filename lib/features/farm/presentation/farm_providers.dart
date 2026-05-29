@@ -63,7 +63,9 @@ class FarmListState {
 final farmSearchProvider = StateProvider<String>((ref) => '');
 final farmFilterProvider = StateProvider<FarmFilter>((ref) => FarmFilter.all);
 final farmSortProvider = StateProvider<FarmSort>((ref) => FarmSort.nameAsc);
-final farmUploadProgressProvider = StateProvider<double?>((ref) => null);
+final farmUploadProgressProvider = StateProvider.autoDispose<double?>(
+  (ref) => null,
+);
 
 final activeFarmIdProvider =
     AsyncNotifierProvider<ActiveFarmIdNotifier, String?>(

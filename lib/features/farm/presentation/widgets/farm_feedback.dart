@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../../shared/widgets/widgets.dart';
+
 class FarmFeedback {
   FarmFeedback._();
 
-  static Widget loading() => const Center(child: CircularProgressIndicator());
+  static Widget loading() => const AppLoadingView();
 
   static Widget error(
     BuildContext context, {
@@ -12,46 +14,20 @@ class FarmFeedback {
     String? message,
   }) {
     final l10n = AppLocalizations.of(context)!;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 16),
-            Text(message ?? l10n.farmLoadError, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onRetry, child: Text(l10n.farmRetry)),
-          ],
-        ),
-      ),
+    return AppErrorView(
+      message: message ?? l10n.farmLoadError,
+      onRetry: onRetry,
+      retryLabel: l10n.farmRetry,
     );
   }
 
   static Widget empty(BuildContext context, {required VoidCallback onCreate}) {
     final l10n = AppLocalizations.of(context)!;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.agriculture_outlined, size: 48),
-            const SizedBox(height: 16),
-            Text(l10n.farmEmpty, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: onCreate,
-              child: Text(l10n.farmCreateTitle),
-            ),
-          ],
-        ),
-      ),
+    return AppEmptyView(
+      icon: Icons.agriculture_outlined,
+      message: l10n.farmEmpty,
+      actionLabel: l10n.farmCreateTitle,
+      onAction: onCreate,
     );
   }
 

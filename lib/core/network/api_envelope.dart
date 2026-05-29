@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../error/app_exception.dart';
 import '../error/http_error_mapper.dart';
+import '../errors/safe_parse.dart';
 
 /// Parses legacy compat `{ ok, data }` and foundation `{ success, data }` responses.
 class ApiEnvelope {
@@ -69,10 +70,6 @@ class ApiEnvelope {
   }
 
   static Map<String, dynamic> _bodyMap(Response<dynamic> response) {
-    final body = response.data;
-    if (body is! Map<String, dynamic>) {
-      throw const AppException(message: 'Invalid response format');
-    }
-    return body;
+    return SafeParse.map(response.data, context: 'API response body');
   }
 }

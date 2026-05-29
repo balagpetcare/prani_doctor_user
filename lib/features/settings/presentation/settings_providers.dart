@@ -9,8 +9,8 @@ import '../../../core/error/app_exception.dart';
 import '../../../core/network/auto_refresh_guard.dart';
 import '../../../core/providers/provider_stability.dart';
 import '../../../core/session/session_providers.dart';
+import '../../../core/localization/language_controller.dart';
 import '../../profile/data/profile_validation.dart';
-import '../../profile/presentation/profile_providers.dart';
 import '../../../theme/theme_controller.dart';
 import '../data/settings_dto.dart';
 import '../data/settings_repository.dart';
@@ -61,7 +61,7 @@ class SettingsNotifier extends AsyncNotifier<SettingsBundle?>
     if (locale != null && ProfileValidation.isSupportedLocale(locale)) {
       ref
           .read(profileLocaleControllerProvider.notifier)
-          .syncFromProfile(locale);
+          .syncFromApiTag(locale);
     }
   }
 

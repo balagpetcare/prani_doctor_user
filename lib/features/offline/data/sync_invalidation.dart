@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ai/presentation/ai_providers.dart';
 import '../../animals/presentation/animal_providers.dart';
 import '../../batches/presentation/batch_providers.dart';
+import '../../fattening/presentation/fattening_providers.dart';
 import '../../feed/presentation/feed_providers.dart';
 import '../../finance/presentation/finance_providers.dart';
 import '../../health/presentation/health_providers.dart';
@@ -13,6 +14,9 @@ import '../../service_requests/data/service_request_repository.dart';
 import '../../settings/presentation/settings_providers.dart';
 import '../../support/presentation/support_providers.dart';
 import '../../treatment/presentation/treatment_providers.dart';
+import '../../inventory/presentation/inventory_providers.dart';
+import '../../livestock/presentation/livestock_providers.dart';
+import '../../phase4_feed/presentation/phase4_feed_providers.dart';
 import '../../vaccine/presentation/vaccine_providers.dart';
 import '../offline_providers.dart';
 import 'outbox_item.dart';
@@ -23,12 +27,16 @@ enum SyncDomain {
   serviceRequest,
   animal,
   batch,
+  fattening,
   milk,
   feed,
   finance,
   health,
   vaccine,
   treatment,
+  inventory,
+  livestock,
+  phase4Feed,
   support,
   ai,
   settings,
@@ -48,6 +56,11 @@ SyncDomain? syncDomainForOutboxKind(OutboxKind kind) {
     case OutboxKind.batchMove:
     case OutboxKind.batchMerge:
       return SyncDomain.batch;
+    case OutboxKind.fatteningBatchCreate:
+    case OutboxKind.fatteningBatchAddAnimals:
+    case OutboxKind.fatteningBatchStart:
+    case OutboxKind.fatteningWeightCreate:
+      return SyncDomain.fattening;
     case OutboxKind.milkCreate:
     case OutboxKind.milkPatch:
     case OutboxKind.milkDelete:
@@ -75,6 +88,14 @@ SyncDomain? syncDomainForOutboxKind(OutboxKind kind) {
     case OutboxKind.treatmentPatch:
     case OutboxKind.treatmentDelete:
       return SyncDomain.treatment;
+    case OutboxKind.inventoryAdd:
+    case OutboxKind.inventoryConsume:
+      return SyncDomain.inventory;
+    case OutboxKind.livestockCreate:
+      return SyncDomain.livestock;
+    case OutboxKind.phase4FeedPurchase:
+    case OutboxKind.phase4FeedConsumption:
+      return SyncDomain.phase4Feed;
     case OutboxKind.supportTicketCreate:
     case OutboxKind.supportTicketReply:
     case OutboxKind.supportTicketPatch:
@@ -105,6 +126,8 @@ void invalidateSyncDomains(Ref ref, Set<SyncDomain> domains) {
         ref.invalidate(animalListProvider);
       case SyncDomain.batch:
         ref.invalidate(batchListProvider);
+      case SyncDomain.fattening:
+        ref.invalidate(fatteningListRefreshProvider);
       case SyncDomain.milk:
         ref.invalidate(milkListProvider);
         ref.invalidate(milkSummaryProvider);
@@ -137,6 +160,18 @@ void invalidateSyncDomains(Ref ref, Set<SyncDomain> domains) {
         ref.invalidate(treatmentTimelineProvider);
         ref.invalidate(treatmentMedicinePlanProvider);
         ref.invalidate(treatmentFollowUpProvider);
+      case SyncDomain.inventory:
+        ref.invalidate(inventoryDashboardProvider);
+        ref.invalidate(inventoryFeedListProvider);
+        ref.invalidate(inventoryMedicineListProvider);
+      case SyncDomain.livestock:
+        ref.invalidate(livestockListProvider);
+        ref.invalidate(animalListProvider);
+      case SyncDomain.phase4Feed:
+        ref.invalidate(phase4FeedItemsProvider);
+        ref.invalidate(phase4FeedInventoryProvider);
+        ref.invalidate(phase4FeedConsumptionProvider);
+        ref.invalidate(phase4LowStockAlertsProvider);
       case SyncDomain.support:
         ref.invalidate(supportTicketListProvider);
         ref.invalidate(supportHelpProvider);

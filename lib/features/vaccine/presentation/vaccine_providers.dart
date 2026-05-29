@@ -52,13 +52,17 @@ class VaccineListState {
 
 DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
-final vaccineSearchProvider = StateProvider<String>((ref) => '');
-final vaccineAnimalFilterProvider = StateProvider<String?>((ref) => null);
-final vaccineStatusFilterProvider = StateProvider<VaccineStatus?>(
+final vaccineSearchProvider = StateProvider.autoDispose<String>((ref) => '');
+final vaccineAnimalFilterProvider = StateProvider.autoDispose<String?>((ref) => null);
+final vaccineStatusFilterProvider = StateProvider.autoDispose<VaccineStatus?>(
   (ref) => null,
 );
-final vaccineFromDateProvider = StateProvider<DateTime?>((ref) => null);
-final vaccineToDateProvider = StateProvider<DateTime?>((ref) => null);
+final vaccineFromDateProvider = StateProvider.autoDispose<DateTime?>(
+  (ref) => null,
+);
+final vaccineToDateProvider = StateProvider.autoDispose<DateTime?>(
+  (ref) => null,
+);
 
 List<VaccineRecord> applyVaccineClientFilters(
   List<VaccineRecord> records, {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../shared/widgets/app_graceful_error.dart';
 import 'nav_guard.dart';
 import '../features/auth/presentation/forgot_password_page.dart';
 import '../features/auth/presentation/login_page.dart';
@@ -19,6 +20,15 @@ import '../features/feed/presentation/feed_cost_page.dart';
 import '../features/feed/presentation/feed_detail_page.dart';
 import '../features/feed/presentation/feed_entry_form_page.dart';
 import '../features/feed/presentation/feed_entry_page.dart';
+import '../features/inventory/presentation/inventory_consumption_history_page.dart';
+import '../features/inventory/presentation/inventory_feed_create_page.dart';
+import '../features/inventory/presentation/inventory_feed_detail_page.dart';
+import '../features/inventory/presentation/inventory_feed_list_page.dart';
+import '../features/inventory/presentation/inventory_home_page.dart';
+import '../features/inventory/presentation/inventory_medicine_create_page.dart';
+import '../features/inventory/presentation/inventory_medicine_list_page.dart';
+import '../features/inventory/presentation/inventory_stock_receipt_page.dart';
+import '../features/inventory/data/inventory_dto.dart';
 import '../features/finance/presentation/finance_dashboard_page.dart';
 import '../features/finance/presentation/finance_detail_page.dart';
 import '../features/finance/presentation/finance_expense_form_page.dart';
@@ -57,6 +67,9 @@ import '../features/support/presentation/support_ticket_create_page.dart';
 import '../features/support/presentation/support_ticket_detail_page.dart';
 import '../features/support/presentation/support_ticket_list_page.dart';
 import '../features/ai/presentation/ai_chat_page.dart';
+import '../features/ai/presentation/phase8/phase8_farm_scope.dart';
+import '../features/ai/presentation/phase8/smart_alerts_page.dart';
+import '../features/ai/presentation/phase8/symptom_checker_page.dart';
 import '../features/ai/presentation/ai_history_page.dart';
 import '../features/ai/presentation/ai_home_page.dart';
 import '../features/ai/presentation/ai_result_page.dart';
@@ -73,10 +86,42 @@ import '../features/batches/presentation/batch_list_page.dart';
 import '../features/animals/presentation/animal_detail_page.dart';
 import '../features/animals/presentation/animal_form_page.dart';
 import '../features/animals/presentation/animal_list_page.dart';
+import '../features/ecosystem/presentation/ecosystem_hub_page.dart';
+import '../features/feed_recommendations/presentation/daily_ration_page.dart';
+import '../features/livestock/presentation/livestock_detail_page.dart';
+import '../features/livestock/presentation/livestock_form_page.dart';
+import '../features/livestock/presentation/livestock_list_page.dart';
+import '../features/livestock/presentation/livestock_timeline_page.dart';
+import '../features/livestock_analytics/presentation/livestock_dashboard_page.dart';
+import '../features/phase4_feed/presentation/phase4_feed_hub_page.dart';
+import '../features/phase4_feed/presentation/phase4_feed_inventory_pages.dart';
+import '../features/phase4_feed/presentation/phase4_feed_item_pages.dart';
 import '../features/farm/presentation/farm_detail_page.dart';
 import '../features/farm/presentation/farm_form_page.dart';
 import '../features/farm/presentation/farm_list_page.dart';
 import '../features/farm/presentation/farm_settings_page.dart';
+import '../features/fattening/presentation/add_animal_page.dart'
+    show FatteningAddAnimalPage;
+import '../features/fattening/presentation/batch_detail_page.dart'
+    show FatteningBatchDetailPage;
+import '../features/fattening/presentation/batch_list_page.dart'
+    show FatteningBatchListPage;
+import '../features/fattening/presentation/batch_feed_dashboard_page.dart'
+    show FatteningBatchFeedDashboardPage;
+import '../features/fattening/presentation/batch_qurbani_page.dart'
+    show FatteningBatchQurbaniPage;
+import '../features/fattening/presentation/batch_roi_page.dart'
+    show FatteningBatchRoiPage;
+import '../features/fattening/weight/presentation/batch_progress_page.dart'
+    show FatteningBatchProgressPage;
+import '../features/fattening/presentation/fattening_log_feed_page.dart'
+    show FatteningLogFeedPage;
+import '../features/fattening/presentation/create_batch_page.dart'
+    show FatteningCreateBatchPage;
+import '../features/fattening/weight/presentation/weight_entry_page.dart'
+    show FatteningWeightEntryPage;
+import '../features/fattening/weight/presentation/weight_history_page.dart'
+    show FatteningWeightHistoryPage;
 import '../features/home/home_page.dart';
 import '../features/home/presentation/pages/community_page.dart';
 import '../features/home/presentation/pages/marketplace_page.dart';
@@ -474,6 +519,111 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) =>
                     FarmSettingsPage(farmId: state.pathParameters['id']!),
               ),
+              GoRoute(
+                path: 'fattening',
+                name: 'farmFattening',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => FatteningBatchListPage(
+                  farmId: state.pathParameters['id']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'create',
+                    name: 'fatteningCreate',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => FatteningCreateBatchPage(
+                      farmId: state.pathParameters['id']!,
+                    ),
+                  ),
+                  GoRoute(
+                    path: ':batchId',
+                    name: 'fatteningBatchDetail',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => FatteningBatchDetailPage(
+                      farmId: state.pathParameters['id']!,
+                      batchId: state.pathParameters['batchId']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'animals',
+                        name: 'fatteningAddAnimals',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) => FatteningAddAnimalPage(
+                          farmId: state.pathParameters['id']!,
+                          batchId: state.pathParameters['batchId']!,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'progress',
+                        name: 'fatteningBatchProgress',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) => FatteningBatchProgressPage(
+                          farmId: state.pathParameters['id']!,
+                          batchId: state.pathParameters['batchId']!,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'feed-dashboard',
+                        name: 'fatteningBatchFeed',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) => FatteningBatchFeedDashboardPage(
+                          farmId: state.pathParameters['id']!,
+                          batchId: state.pathParameters['batchId']!,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'qurbani',
+                        name: 'fatteningBatchQurbani',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) => FatteningBatchQurbaniPage(
+                          farmId: state.pathParameters['id']!,
+                          batchId: state.pathParameters['batchId']!,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'roi',
+                        name: 'fatteningBatchRoi',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) => FatteningBatchRoiPage(
+                          farmId: state.pathParameters['id']!,
+                          batchId: state.pathParameters['batchId']!,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'log-feed',
+                        name: 'fatteningLogFeed',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) => FatteningLogFeedPage(
+                          farmId: state.pathParameters['id']!,
+                          batchId: state.pathParameters['batchId']!,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'weight',
+                        name: 'fatteningWeightEntry',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) => FatteningWeightEntryPage(
+                          farmId: state.pathParameters['id']!,
+                          batchId: state.pathParameters['batchId']!,
+                          animalId: state.uri.queryParameters['animalId'],
+                        ),
+                        routes: [
+                          GoRoute(
+                            path: 'history',
+                            name: 'fatteningWeightHistory',
+                            parentNavigatorKey: _rootNavigatorKey,
+                            builder: (context, state) =>
+                                FatteningWeightHistoryPage(
+                              farmId: state.pathParameters['id']!,
+                              batchId: state.pathParameters['batchId']!,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ],
           ),
         ],
@@ -505,6 +655,126 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     AnimalFormPage(animalId: state.pathParameters['id']),
               ),
             ],
+          ),
+        ],
+      ),
+      GoRoute(
+        path: AppRoutes.ecosystemHub,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'ecosystemHub',
+        builder: (context, state) => const EcosystemHubPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.livestock,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'livestock',
+        builder: (context, state) => const LivestockListPage(),
+        routes: [
+          GoRoute(
+            path: 'create',
+            name: 'livestockCreate',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const LivestockFormPage(),
+          ),
+          GoRoute(
+            path: ':id',
+            name: 'livestockDetail',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) =>
+                LivestockDetailPage(livestockId: state.pathParameters['id']!),
+            routes: [
+              GoRoute(
+                path: 'edit',
+                name: 'livestockEdit',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => LivestockFormPage(
+                  livestockId: state.pathParameters['id'],
+                ),
+              ),
+              GoRoute(
+                path: 'timeline',
+                name: 'livestockTimeline',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => LivestockTimelinePage(
+                  livestockId: state.pathParameters['id']!,
+                ),
+              ),
+              GoRoute(
+                path: 'qr',
+                name: 'livestockQr',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => LivestockQrPage(
+                  livestockId: state.pathParameters['id']!,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      GoRoute(
+        path: AppRoutes.phase4FeedHub,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'phase4FeedHub',
+        builder: (context, state) => const Phase4FeedHubPage(),
+        routes: [
+          GoRoute(
+            path: 'items',
+            name: 'phase4FeedItems',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const Phase4FeedItemListPage(),
+            routes: [
+              GoRoute(
+                path: ':itemId',
+                name: 'phase4FeedItemDetail',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => Phase4FeedItemDetailPage(
+                  itemId: state.pathParameters['itemId']!,
+                ),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: 'inventory',
+            name: 'phase4FeedInventory',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const Phase4FeedInventoryListPage(),
+          ),
+          GoRoute(
+            path: 'purchase',
+            name: 'phase4FeedPurchase',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const Phase4FeedPurchasePage(),
+          ),
+          GoRoute(
+            path: 'consumption',
+            name: 'phase4FeedConsumption',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) {
+              final livestockId = state.uri.queryParameters['livestockId'];
+              return Phase4FeedConsumptionPage(livestockId: livestockId);
+            },
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/recommendations/:livestockId',
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'dailyRation',
+        builder: (context, state) => DailyRationPage(
+          livestockId: state.pathParameters['livestockId']!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.livestockAnalytics,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'livestockAnalytics',
+        builder: (context, state) => const LivestockDashboardPage(),
+        routes: [
+          GoRoute(
+            path: 'feed-efficiency',
+            name: 'feedEfficiency',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const FeedEfficiencyPage(),
           ),
         ],
       ),
@@ -587,6 +857,88 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
+        path: AppRoutes.inventory,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'inventory',
+        builder: (context, state) => const InventoryHomePage(),
+        routes: [
+          GoRoute(
+            path: 'feed',
+            name: 'inventoryFeed',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const InventoryFeedListPage(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'inventoryFeedCreate',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => const InventoryFeedCreatePage(),
+              ),
+              GoRoute(
+                path: ':id',
+                name: 'inventoryFeedDetail',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => InventoryFeedDetailPage(
+                  itemId: state.pathParameters['id']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'receipt',
+                    name: 'inventoryFeedReceipt',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => InventoryStockReceiptPage(
+                      itemId: state.pathParameters['id']!,
+                      inventoryType: InventoryType.feed,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          GoRoute(
+            path: 'medicine',
+            name: 'inventoryMedicine',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const InventoryMedicineListPage(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'inventoryMedicineCreate',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) =>
+                    const InventoryMedicineCreatePage(),
+              ),
+              GoRoute(
+                path: ':id',
+                name: 'inventoryMedicineDetail',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => InventoryMedicineDetailPage(
+                  itemId: state.pathParameters['id']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'receipt',
+                    name: 'inventoryMedicineReceipt',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => InventoryStockReceiptPage(
+                      itemId: state.pathParameters['id']!,
+                      inventoryType: InventoryType.medicine,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          GoRoute(
+            path: 'consumption-history',
+            name: 'inventoryConsumptionHistory',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) =>
+                const InventoryConsumptionHistoryPage(),
+          ),
+        ],
+      ),
+      GoRoute(
         path: AppRoutes.feeds,
         parentNavigatorKey: _rootNavigatorKey,
         name: 'feeds',
@@ -596,7 +948,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: 'create',
             name: 'feedCreate',
             parentNavigatorKey: _rootNavigatorKey,
-            builder: (context, state) => const FeedEntryFormPage(),
+            builder: (context, state) {
+              final inventoryItemId =
+                  state.uri.queryParameters['inventoryItemId'];
+              final deductStock =
+                  state.uri.queryParameters['deductStock'] == '1';
+              return FeedEntryFormPage(
+                initialInventoryItemId: inventoryItemId,
+                initialDeductStock: deductStock,
+              );
+            },
           ),
           GoRoute(
             path: 'cost',
@@ -935,6 +1296,48 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             AiResultPage(result: triageResultFromExtra(state.extra)),
       ),
       GoRoute(
+        path: AppRoutes.aiSymptomChecker,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiSymptomChecker',
+        builder: (context, state) => SymptomCheckerPage(
+          species: state.uri.queryParameters['species'] ?? 'CATTLE',
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.aiSmartRecommendations,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiSmartRecommendations',
+        builder: (context, state) => SmartRecommendationsScope(
+          farmRef: state.uri.queryParameters['farmRef'],
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.aiFarmHealth,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiFarmHealth',
+        builder: (context, state) => FarmHealthDashboardScope(
+          farmRef: state.uri.queryParameters['farmRef'],
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.aiSmartAlerts,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiSmartAlerts',
+        builder: (context, state) => const SmartAlertsPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.aiKnowledgeSearch,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiKnowledgeSearch',
+        builder: (context, state) => const KnowledgeSearchPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.aiFollowUps,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiFollowUps',
+        builder: (context, state) => const FollowUpSuggestionsPage(),
+      ),
+      GoRoute(
         path: AppRoutes.support,
         parentNavigatorKey: _rootNavigatorKey,
         name: 'supportHome',
@@ -1016,5 +1419,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SupportHelpPage(),
       ),
     ],
+    errorBuilder: (context, state) => AppRouteErrorPage(
+      error: state.error,
+      onGoHome: () => context.go(AppRoutes.home),
+    ),
   );
 });

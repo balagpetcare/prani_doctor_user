@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
+
+import '../../../core/localization/app_date_format.dart';
 
 import '../../../core/navigation/navigation_guard.dart';
 
@@ -117,7 +118,7 @@ class _ConnectionCheckPageState extends ConsumerState<ConnectionCheckPage> {
                   children: [
                     Text(
                       '${l10n.networkLastChecked}: '
-                      '${DateFormat.jms().format(diagnostics.checkedAt.toLocal())}',
+                      '${ref.watch(appDateFormatProvider).time(diagnostics.checkedAt)}',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     if (!diagnostics.deviceOnline) ...[

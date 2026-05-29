@@ -1,3 +1,5 @@
+import '../../../core/location/location_merge.dart';
+
 const _unset = Object();
 
 class MobileMeAddressDto {
@@ -52,6 +54,42 @@ class MobileMeAddressDto {
   }
 
   Map<String, dynamic> toJson() => toPatchJson();
+
+  /// Prefer non-empty values on [incoming]; fall back to [existing].
+  static String? preserveExistingIfNull(String? incoming, String? existing) =>
+      LocationMerge.preserveExistingIfNull(incoming, existing);
+
+  /// Merges a PATCH payload with stored address so empty/null fields do not clear hierarchy.
+  MobileMeAddressDto mergeForPatch(MobileMeAddressDto? existing) {
+    if (existing == null) return this;
+    return MobileMeAddressDto(
+      divisionId: preserveExistingIfNull(divisionId, existing.divisionId),
+      districtId: preserveExistingIfNull(districtId, existing.districtId),
+      upazilaId: preserveExistingIfNull(upazilaId, existing.upazilaId),
+      unionId: preserveExistingIfNull(unionId, existing.unionId),
+      villageId: preserveExistingIfNull(villageId, existing.villageId),
+      villageName: preserveExistingIfNull(villageName, existing.villageName),
+      line1: preserveExistingIfNull(line1, existing.line1),
+      postalCode: preserveExistingIfNull(postalCode, existing.postalCode),
+    );
+  }
+
+  /// Merges GET response with cached address when API omits optional fields (e.g. village).
+  MobileMeAddressDto mergeFromCache(MobileMeAddressDto? cached) {
+    if (cached == null) return this;
+    return cached.mergeForPatch(this);
+  }
+
+  bool get hasUnion => unionId != null && unionId!.isNotEmpty;
+
+  bool get hasHierarchy =>
+      divisionId != null &&
+      divisionId!.isNotEmpty &&
+      districtId != null &&
+      districtId!.isNotEmpty &&
+      upazilaId != null &&
+      upazilaId!.isNotEmpty &&
+      hasUnion;
 }
 
 class MobileMeDto {
@@ -195,8 +233,9 @@ class MobileMeDto {
   };
 
   MobileMeDto mergeAddress(MobileMeAddressDto? cachedAddress) {
-    if (address != null || cachedAddress == null) return this;
-    return copyWith(address: cachedAddress);
+    if (cachedAddress == null) return this;
+    if (address == null) return copyWith(address: cachedAddress);
+    return copyWith(address: address!.mergeFromCache(cachedAddress));
   }
 }
 

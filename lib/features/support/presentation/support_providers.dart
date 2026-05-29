@@ -264,7 +264,7 @@ final supportSummaryProvider = Provider<AsyncValue<SupportSummary>>((ref) {
 });
 
 class SupportTicketNotifier
-    extends FamilyAsyncNotifier<SupportTicketDetail, String> {
+    extends AutoDisposeFamilyAsyncNotifier<SupportTicketDetail, String> {
   @override
   Future<SupportTicketDetail> build(String id) async {
     final cached = await ref
@@ -293,7 +293,7 @@ class SupportTicketNotifier
 }
 
 final supportTicketProvider =
-    AsyncNotifierProvider.family<
+    AsyncNotifierProvider.autoDispose.family<
       SupportTicketNotifier,
       SupportTicketDetail,
       String

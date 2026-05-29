@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../core/localization/localization_extensions.dart';
 import '../../../core/navigation/navigation_guard.dart';
 import '../../../routing/app_routes.dart';
 import '../data/mobile_me_dto.dart';
@@ -128,13 +129,13 @@ class _ProfileBody extends ConsumerWidget {
               const Divider(height: 32),
               ListTile(
                 leading: const Icon(Icons.palette_outlined),
-                title: const Text('Profile appearance'),
+                title: Text(l10n.t('settingsProfileAppearance')),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.go(AppRoutes.settingsProfileAppearance),
               ),
               ListTile(
                 leading: const Icon(Icons.badge_outlined),
-                title: const Text('Personal information'),
+                title: Text(l10n.t('settingsPersonalInfo')),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.go(AppRoutes.settingsPersonalInfo),
               ),

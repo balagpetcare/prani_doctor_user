@@ -35,6 +35,7 @@ class FeedRecord {
     this.animalName,
     this.batchId,
     this.batchName,
+    this.fatteningBatchId,
     required this.feedType,
     required this.amount,
     required this.unit,
@@ -54,6 +55,7 @@ class FeedRecord {
   final String? animalName;
   final String? batchId;
   final String? batchName;
+  final String? fatteningBatchId;
   final FeedType feedType;
   final double amount;
   final FeedUnit unit;
@@ -74,6 +76,7 @@ class FeedRecord {
     String? animalName,
     String? batchId,
     String? batchName,
+    String? fatteningBatchId,
     FeedType? feedType,
     double? amount,
     FeedUnit? unit,
@@ -92,6 +95,7 @@ class FeedRecord {
       animalName: animalName ?? this.animalName,
       batchId: batchId ?? this.batchId,
       batchName: batchName ?? this.batchName,
+      fatteningBatchId: fatteningBatchId ?? this.fatteningBatchId,
       feedType: feedType ?? this.feedType,
       amount: amount ?? this.amount,
       unit: unit ?? this.unit,
@@ -118,6 +122,7 @@ class FeedRecord {
       animalName: json['animalName'] as String?,
       batchId: json['batchId'] as String?,
       batchName: json['batchName'] as String?,
+      fatteningBatchId: json['fatteningBatchId'] as String?,
       feedType: FeedTypeApi.fromApi(json['feedType'] as String? ?? 'OTHER'),
       amount: double.tryParse(json['amount']?.toString() ?? '') ?? 0,
       unit: FeedUnitApi.fromApi(json['unit'] as String? ?? 'KG'),
@@ -147,6 +152,7 @@ class FeedRecord {
     if (animalName != null) 'animalName': animalName,
     if (batchId != null) 'batchId': batchId,
     if (batchName != null) 'batchName': batchName,
+    if (fatteningBatchId != null) 'fatteningBatchId': fatteningBatchId,
     'feedType': feedType.apiValue,
     'amount': amount.toStringAsFixed(3),
     'unit': unit.apiValue,
@@ -168,6 +174,7 @@ class FeedInput {
     this.animalId,
     this.batchId,
     this.batchName,
+    this.fatteningBatchId,
     required this.feedType,
     required this.amount,
     required this.unit,
@@ -175,12 +182,15 @@ class FeedInput {
     required this.recordedDate,
     this.notes,
     this.target = FeedTarget.animal,
+    this.inventoryItemId,
+    this.deductStock = false,
   });
 
   final String? farmRef;
   final String? animalId;
   final String? batchId;
   final String? batchName;
+  final String? fatteningBatchId;
   final FeedType feedType;
   final double amount;
   final FeedUnit unit;
@@ -188,10 +198,14 @@ class FeedInput {
   final DateTime recordedDate;
   final String? notes;
   final FeedTarget target;
+  final String? inventoryItemId;
+  final bool deductStock;
 
   Map<String, dynamic> toCreateJson() => {
     if (farmRef != null && farmRef!.isNotEmpty) 'farmRef': farmRef,
-    if (target == FeedTarget.animal && animalId != null) 'animalId': animalId,
+    if (animalId != null && animalId!.isNotEmpty) 'animalId': animalId,
+    if (fatteningBatchId != null && fatteningBatchId!.isNotEmpty)
+      'fatteningBatchId': fatteningBatchId,
     if (target == FeedTarget.group && batchId != null) 'batchId': batchId,
     if (target == FeedTarget.group && batchName != null) 'batchName': batchName,
     'feedType': feedType.apiValue,
@@ -200,6 +214,9 @@ class FeedInput {
     if (costBdt != null) 'costBdt': costBdt,
     'recordedDate': _dateOnly(recordedDate),
     if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
+    if (inventoryItemId != null && inventoryItemId!.isNotEmpty)
+      'inventoryItemId': inventoryItemId,
+    if (deductStock) 'deductStock': true,
   };
 
   Map<String, dynamic> toPatchJson() => toCreateJson();
@@ -209,6 +226,7 @@ class FeedInput {
     'animalId': animalId,
     'batchId': batchId,
     'batchName': batchName,
+    'fatteningBatchId': fatteningBatchId,
     'feedType': feedType.apiValue,
     'amount': amount,
     'unit': unit.apiValue,
@@ -223,6 +241,7 @@ class FeedInput {
       farmRef: json['farmRef'] as String?,
       animalId: json['animalId'] as String?,
       batchId: json['batchId'] as String?,
+      fatteningBatchId: json['fatteningBatchId'] as String?,
       batchName: json['batchName'] as String?,
       feedType: FeedTypeApi.fromApi(json['feedType'] as String? ?? 'OTHER'),
       amount: (json['amount'] as num?)?.toDouble() ?? 0,

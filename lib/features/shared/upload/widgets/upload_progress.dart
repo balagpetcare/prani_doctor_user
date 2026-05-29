@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localization_extensions.dart';
+import '../../../../core/localization/translation_keys.dart';
 import '../models/upload_result.dart';
 
 class UploadProgress extends StatelessWidget {
@@ -22,6 +24,7 @@ class UploadProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.tr;
     final theme = Theme.of(context);
 
     if (state == UploadTaskState.idle) {
@@ -38,8 +41,8 @@ class UploadProgress extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               state == UploadTaskState.validating
-                  ? 'Validating…'
-                  : 'Uploading…',
+                  ? l10n.t('Validating…')
+                  : l10n.profileUploading,
               style: theme.textTheme.bodySmall,
             ),
           ],
@@ -49,7 +52,7 @@ class UploadProgress extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: onCancel,
-                child: const Text('Cancel'),
+                child: Text(l10n.cancel),
               ),
             ),
           ],
@@ -63,7 +66,7 @@ class UploadProgress extends StatelessWidget {
                 size: 18,
               ),
               const SizedBox(width: 8),
-              Text('Upload complete', style: theme.textTheme.bodySmall),
+              Text(l10n.t('uploadComplete'), style: theme.textTheme.bodySmall),
             ],
           ),
         ],
@@ -72,11 +75,14 @@ class UploadProgress extends StatelessWidget {
           if (onRetry != null)
             Align(
               alignment: Alignment.centerLeft,
-              child: TextButton(onPressed: onRetry, child: const Text('Retry')),
+              child: TextButton(
+                onPressed: onRetry,
+                child: Text(l10n.t(TranslationKeys.feedRetry)),
+              ),
             ),
         ],
         if (state == UploadTaskState.cancelled) ...[
-          Text('Upload cancelled', style: theme.textTheme.bodySmall),
+          Text(l10n.t('uploadCancelled'), style: theme.textTheme.bodySmall),
         ],
       ],
     );

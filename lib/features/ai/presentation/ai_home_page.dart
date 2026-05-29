@@ -58,6 +58,30 @@ class AiHomePage extends ConsumerWidget {
             icon: const Icon(Icons.history),
             label: Text(l10n.aiHistoryTitle),
           ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () => context.push(AppRoutes.aiSymptomChecker),
+            icon: const Icon(Icons.medical_information_outlined),
+            label: const Text('লক্ষণ যাচাই'),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () => context.push(AppRoutes.aiSmartRecommendations),
+            icon: const Icon(Icons.lightbulb_outline),
+            label: const Text('AI পরামর্শ'),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () => context.push(AppRoutes.aiFarmHealth),
+            icon: const Icon(Icons.health_and_safety_outlined),
+            label: const Text('খামার স্বাস্থ্য'),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () => context.push(AppRoutes.aiKnowledgeSearch),
+            icon: const Icon(Icons.menu_book_outlined),
+            label: const Text('জ্ঞান ভান্ডার'),
+          ),
         ],
       ),
     );

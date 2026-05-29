@@ -6,6 +6,9 @@ import 'package:pranidoctor_user/l10n/app_localizations.dart';
 import '../../../core/offline/network_errors.dart';
 import '../../animals/presentation/animal_providers.dart';
 import '../../farm/presentation/farm_providers.dart';
+import '../../inventory/presentation/inventory_medicine_sync.dart';
+import '../../offline/data/connectivity_service.dart';
+import '../../offline/offline_providers.dart';
 import '../data/treatment_dto.dart';
 import '../data/treatment_repository.dart';
 import '../data/treatment_validation.dart';
@@ -37,6 +40,7 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
   DateTime? _endDate;
   TreatmentStatus _status = TreatmentStatus.active;
   final List<MedicineItem> _medicines = [];
+  bool _deductMedicineStock = false;
   bool _loading = false;
   bool _submitting = false;
   String? _error;
@@ -187,6 +191,16 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
       return;
     }
 
+    if (_deductMedicineStock && widget.recordId == null) {
+      final online = isOnlineMode(
+        ref.read(connectivityServiceProvider).currentMode,
+      );
+      if (!online) {
+        setState(() => _error = 'Medicine stock update requires internet.');
+        return;
+      }
+    }
+
     setState(() {
       _loading = true;
       _submitting = true;
@@ -206,9 +220,20 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
     });
 
     result.when(
-      success: (_) {
-        TreatmentNavigation.afterSave(ref, recordId: widget.recordId);
-        context.pop();
+      success: (record) async {
+        if (_deductMedicineStock &&
+            _farmRef != null &&
+            _medicines.isNotEmpty &&
+            widget.recordId == null) {
+          await syncMedicineStockFromTreatment(
+            ref: ref,
+            farmRef: _farmRef!,
+            treatmentId: record.id,
+            medicines: _medicines,
+          );
+        }
+        TreatmentNavigation.afterSave(ref, recordId: widget.recordId ?? record.id);
+        if (context.mounted) context.pop();
       },
       failure: (e) {
         if (e.code == offlineQueuedCode) {
@@ -461,6 +486,19 @@ class _TreatmentFormPageState extends ConsumerState<TreatmentFormPage> {
             decoration: InputDecoration(labelText: l10n.treatmentNotesLabel),
             maxLines: 3,
           ),
+          if (widget.recordId == null && _medicines.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            SwitchListTile(
+              title: const Text('Update medicine stock'),
+              subtitle: const Text(
+                'Matches medicine names in your inventory and reduces quantity (online only).',
+              ),
+              value: _deductMedicineStock,
+              onChanged: _submitting
+                  ? null
+                  : (v) => setState(() => _deductMedicineStock = v),
+            ),
+          ],
           const SizedBox(height: 24),
           FilledButton(
             onPressed: _loading ? null : _submit,

@@ -14,6 +14,7 @@ import '../../../core/session/session_auth.dart';
 import '../../../core/session/session_controller.dart';
 import '../../profile/data/profile_api_paths.dart';
 import '../../feed/data/feed_api_paths.dart';
+import '../../inventory/data/inventory_api_paths.dart';
 import '../../finance/data/finance_api_paths.dart';
 import '../../health/data/health_api_paths.dart';
 import '../../vaccine/data/vaccine_api_paths.dart';
@@ -23,7 +24,10 @@ import '../../settings/data/settings_api_paths.dart';
 import '../../ai/data/ai_api_paths.dart';
 import '../../milk/data/milk_api_paths.dart';
 import '../../batches/data/batch_api_paths.dart';
+import '../../fattening/data/fattening_api_paths.dart';
 import '../../animals/data/animal_api_paths.dart';
+import '../../livestock/data/livestock_api_paths.dart';
+import '../../phase4_feed/data/phase4_feed_api_paths.dart';
 import '../../service_requests/data/service_request_api_paths.dart';
 import '../../../core/providers/provider_stability.dart';
 import '../../shared/upload/services/upload_service.dart';
@@ -157,6 +161,8 @@ class SyncCoordinator {
             await patchJson(dio, ProfileApiPaths.me, item.payload);
           case OutboxKind.animalCreate:
             await postJson(dio, AnimalApiPaths.animals, item.payload);
+          case OutboxKind.livestockCreate:
+            await postJson(dio, LivestockApiPaths.list, item.payload);
           case OutboxKind.animalPatch:
             final id = item.payload['id'] as String?;
             if (id == null) {
@@ -181,6 +187,34 @@ class SyncCoordinator {
             await postJson(dio, BatchApiPaths.move(fromId), item.payload);
           case OutboxKind.batchMerge:
             await postJson(dio, BatchApiPaths.merge, item.payload);
+          case OutboxKind.fatteningBatchCreate:
+            await postJson(dio, FatteningApiPaths.batches, item.payload);
+          case OutboxKind.fatteningBatchAddAnimals:
+            final batchId = item.payload['batchId'] as String?;
+            if (batchId == null) {
+              throw const AppException(message: 'Missing fattening batch id');
+            }
+            final body = Map<String, dynamic>.from(item.payload)
+              ..remove('batchId');
+            await postJson(dio, FatteningApiPaths.animals(batchId), body);
+          case OutboxKind.fatteningBatchStart:
+            final startBatchId = item.payload['batchId'] as String?;
+            if (startBatchId == null) {
+              throw const AppException(message: 'Missing fattening batch id');
+            }
+            final startBody = Map<String, dynamic>.from(item.payload)
+              ..remove('batchId');
+            await postJson(
+              dio,
+              FatteningApiPaths.start(startBatchId),
+              startBody,
+            );
+          case OutboxKind.fatteningWeightCreate:
+            try {
+              await postJson(dio, FatteningApiPaths.weight, item.payload);
+            } on AppException catch (e) {
+              if (e.code != 'DUPLICATE_WEIGHT_DAY') rethrow;
+            }
           case OutboxKind.milkCreate:
             await postJson(dio, MilkApiPaths.milk, item.payload);
           case OutboxKind.milkPatch:
@@ -211,6 +245,22 @@ class SyncCoordinator {
               throw const AppException(message: 'Missing feed record id');
             }
             await deleteJson(dio, FeedApiPaths.record(id));
+          case OutboxKind.inventoryAdd:
+            await postJson(dio, InventoryApiPaths.add, item.payload);
+          case OutboxKind.inventoryConsume:
+            await postJson(dio, InventoryApiPaths.consume, item.payload);
+          case OutboxKind.phase4FeedPurchase:
+            await postJson(
+              dio,
+              Phase4FeedApiPaths.feedInventoryPurchase,
+              item.payload,
+            );
+          case OutboxKind.phase4FeedConsumption:
+            await postJson(
+              dio,
+              Phase4FeedApiPaths.feedConsumption,
+              item.payload,
+            );
           case OutboxKind.financeExpenseCreate:
             await postJson(dio, FinanceApiPaths.expenses, item.payload);
           case OutboxKind.financeExpensePatch:

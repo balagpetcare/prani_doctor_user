@@ -49,21 +49,24 @@ class FinanceListState {
 
 DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
-final financeFromDateProvider = StateProvider<DateTime>((ref) {
+final financeFromDateProvider = StateProvider.autoDispose<DateTime>((ref) {
   final now = DateTime.now();
   return _dateOnly(now.subtract(const Duration(days: 30)));
 });
 
-final financeToDateProvider = StateProvider<DateTime>(
+final financeToDateProvider = StateProvider.autoDispose<DateTime>(
   (ref) => _dateOnly(DateTime.now()),
 );
 
-final financeExpenseSearchProvider = StateProvider<String>((ref) => '');
-final financeExpenseCategoryFilterProvider = StateProvider<ExpenseCategory?>(
-  (ref) => null,
+final financeExpenseSearchProvider = StateProvider.autoDispose<String>(
+  (ref) => '',
 );
-final financeIncomeSearchProvider = StateProvider<String>((ref) => '');
-final financeIncomeSourceFilterProvider = StateProvider<IncomeSource?>(
+final financeExpenseCategoryFilterProvider =
+    StateProvider.autoDispose<ExpenseCategory?>((ref) => null);
+final financeIncomeSearchProvider = StateProvider.autoDispose<String>(
+  (ref) => '',
+);
+final financeIncomeSourceFilterProvider = StateProvider.autoDispose<IncomeSource?>(
   (ref) => null,
 );
 

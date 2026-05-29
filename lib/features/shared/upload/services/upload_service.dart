@@ -8,6 +8,7 @@ import '../../../../core/error/api_result.dart';
 import '../../../../core/error/app_exception.dart';
 import '../../../../core/network/api_envelope.dart';
 import '../../../../core/network/dio_provider.dart';
+import '../../../../core/network/multipart.dart';
 import '../../../../core/network/network_providers.dart';
 import '../models/upload_purpose.dart';
 import '../models/upload_result.dart';
@@ -22,13 +23,7 @@ class UploadService {
 
   static const _maxAttempts = 3;
 
-  String get uploadBaseUrl {
-    const fromEnv = String.fromEnvironment('UPLOAD_URL');
-    if (fromEnv.trim().isNotEmpty) {
-      return fromEnv.trim().replaceAll(RegExp(r'/+$'), '');
-    }
-    return _env.apiBaseUrl;
-  }
+  String get uploadBaseUrl => _env.uploadBaseUrl;
 
   Future<ApiResult<UploadResult>> uploadFile({
     required String filePath,
@@ -56,7 +51,7 @@ class UploadService {
     }
 
     final formMap = <String, dynamic>{
-      'file': await MultipartFile.fromFile(filePath),
+      'file': await Multipart.fileFromPath(filePath),
       ...?fields,
     };
 

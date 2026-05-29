@@ -109,18 +109,39 @@ class Farm {
     if (!location.canSaveFarm) return null;
 
     final resolvedVillageId = location.villageId ?? location.locationKey;
+    final villageDisplay = location.villageName?.trim().isNotEmpty == true
+        ? location.villageName!.trim()
+        : villageLabel?.trim();
     final label = location.fullAddress?.isNotEmpty == true
         ? location.fullAddress!
-        : (profile.area?.trim().isNotEmpty == true
-              ? profile.area!.trim()
-              : (villageLabel?.trim().isNotEmpty == true
-                    ? villageLabel!.trim()
+        : (villageDisplay?.isNotEmpty == true
+              ? villageDisplay!
+              : (profile.area?.trim().isNotEmpty == true
+                    ? profile.area!.trim()
                     : profile.name));
+
+    final locationLabel = [
+      if (villageDisplay != null && villageDisplay.isNotEmpty) villageDisplay,
+      if (profile.area?.trim().isNotEmpty == true) profile.area!.trim(),
+    ].join(', ').trim().isEmpty
+        ? label
+        : [
+            if (villageDisplay != null && villageDisplay.isNotEmpty)
+              villageDisplay,
+            if (profile.area?.trim().isNotEmpty == true) profile.area!.trim(),
+          ].join(', ');
+
+    final farmName = () {
+      final area = profile.area?.trim();
+      if (area != null && area.isNotEmpty) return area;
+      if (profile.name.trim().isNotEmpty) return profile.name.trim();
+      return label;
+    }();
 
     return Farm(
       id: location.farmIdFor(),
-      name: label,
-      locationLabel: profile.area ?? villageLabel ?? label,
+      name: farmName,
+      locationLabel: locationLabel,
       villageId: resolvedVillageId,
       animalCount: animalCount,
       activeAnimalCount: activeAnimalCount,
@@ -205,8 +226,17 @@ class FarmInput {
   final String? areaLabel;
   final String? coverPhotoUrl;
 
-  PatchMobileMeInput toPatchInput() {
-    return PatchMobileMeInput(area: areaLabel ?? name, address: address);
+  PatchMobileMeInput toPatchInput({MobileMeDto? existingProfile}) {
+    final existingAddress = existingProfile?.address;
+    final mergedAddress = address.mergeForPatch(existingAddress);
+    final resolvedArea = () {
+      final label = areaLabel?.trim();
+      if (label != null && label.isNotEmpty) return label;
+      final existingArea = existingProfile?.area?.trim();
+      if (existingArea != null && existingArea.isNotEmpty) return existingArea;
+      return null;
+    }();
+    return PatchMobileMeInput(area: resolvedArea, address: mergedAddress);
   }
 
   Map<String, dynamic> toDraftJson() => {

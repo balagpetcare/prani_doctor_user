@@ -49,13 +49,19 @@ class TreatmentListState {
 
 DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
-final treatmentSearchProvider = StateProvider<String>((ref) => '');
-final treatmentStatusFilterProvider = StateProvider<TreatmentStatus?>(
+final treatmentSearchProvider = StateProvider.autoDispose<String>((ref) => '');
+final treatmentStatusFilterProvider = StateProvider.autoDispose<TreatmentStatus?>(
   (ref) => null,
 );
-final treatmentAnimalFilterProvider = StateProvider<String?>((ref) => null);
-final treatmentFromDateProvider = StateProvider<DateTime?>((ref) => null);
-final treatmentToDateProvider = StateProvider<DateTime?>((ref) => null);
+final treatmentAnimalFilterProvider = StateProvider.autoDispose<String?>(
+  (ref) => null,
+);
+final treatmentFromDateProvider = StateProvider.autoDispose<DateTime?>(
+  (ref) => null,
+);
+final treatmentToDateProvider = StateProvider.autoDispose<DateTime?>(
+  (ref) => null,
+);
 
 List<FarmTreatment> applyTreatmentDateFilter(
   List<FarmTreatment> records, {
