@@ -29,8 +29,11 @@ class AppEnv {
     required this.logNetwork,
     required this.enablePush,
     required this.privacyPolicyUrl,
+    required this.termsOfServiceUrl,
+    required this.crashReportingWebhookUrl,
     required this.minimumAppVersion,
     required this.updateUrl,
+    required this.uploadBaseUrl,
     required this.connectTimeout,
     required this.receiveTimeout,
   });
@@ -55,8 +58,11 @@ class AppEnv {
     const logNetwork = bool.fromEnvironment('LOG_NETWORK', defaultValue: false);
     const enablePush = bool.fromEnvironment('ENABLE_PUSH', defaultValue: true);
     const privacyFromEnv = String.fromEnvironment('PRIVACY_POLICY_URL');
+    const termsFromEnv = String.fromEnvironment('TERMS_OF_SERVICE_URL');
+    const crashWebhookFromEnv = String.fromEnvironment('CRASH_REPORTING_WEBHOOK_URL');
     const minimumVersionFromEnv = String.fromEnvironment('MINIMUM_APP_VERSION');
     const updateUrlFromEnv = String.fromEnvironment('UPDATE_URL');
+    const uploadUrlFromEnv = String.fromEnvironment('UPLOAD_URL');
     const connectSec = int.fromEnvironment(
       'API_CONNECT_TIMEOUT_SEC',
       defaultValue: NetworkConstants.defaultConnectTimeoutSec,
@@ -85,6 +91,10 @@ class AppEnv {
       environment: environment,
     );
 
+    final uploadBaseUrl = uploadUrlFromEnv.trim().isNotEmpty
+        ? _normalizeBaseUrl(uploadUrlFromEnv.trim())
+        : resolved.url;
+
     return AppEnv._(
       environment: environment,
       apiBaseUrl: resolved.url,
@@ -97,8 +107,13 @@ class AppEnv {
       privacyPolicyUrl: privacyFromEnv.isNotEmpty
           ? privacyFromEnv
           : 'https://pranidoctor.com/privacy',
+      termsOfServiceUrl: termsFromEnv.isNotEmpty
+          ? termsFromEnv
+          : 'https://pranidoctor.com/terms',
+      crashReportingWebhookUrl: crashWebhookFromEnv,
       minimumAppVersion: minimumVersionFromEnv,
       updateUrl: updateUrlFromEnv,
+      uploadBaseUrl: uploadBaseUrl,
       connectTimeout: Duration(seconds: connectSec.clamp(5, 120)),
       receiveTimeout: Duration(seconds: receiveSec.clamp(5, 120)),
     );
@@ -113,8 +128,11 @@ class AppEnv {
   final bool logNetwork;
   final bool enablePush;
   final String privacyPolicyUrl;
+  final String termsOfServiceUrl;
+  final String crashReportingWebhookUrl;
   final String minimumAppVersion;
   final String updateUrl;
+  final String uploadBaseUrl;
   final Duration connectTimeout;
   final Duration receiveTimeout;
 
@@ -126,7 +144,8 @@ class AppEnv {
   bool get usesLocalhost =>
       apiBaseUrl.contains('localhost') || apiBaseUrl.contains('127.0.0.1');
 
-  bool get usesCleartextHttp => apiBaseUrl.startsWith('http://');
+  bool get usesCleartextHttp =>
+      apiBaseUrl.startsWith('http://') || uploadBaseUrl.startsWith('http://');
 
   String get apiUrlSourceLabel => switch (apiUrlSource) {
     ApiUrlSource.explicitBaseUrl => 'API_BASE_URL',
@@ -143,7 +162,30 @@ class AppEnv {
       );
     }
     if (environment == AppEnvironment.production && usesCleartextHttp) {
-      throw StateError('Production builds must use HTTPS for API_BASE_URL.');
+      throw StateError(
+        'Production builds must use HTTPS for API_BASE_URL and UPLOAD_URL.',
+      );
+    }
+    if (environment == AppEnvironment.staging && usesCleartextHttp) {
+      throw StateError(
+        'Staging builds must use HTTPS for API_BASE_URL and UPLOAD_URL.',
+      );
+    }
+    if (environment == AppEnvironment.production &&
+        !privacyPolicyUrl.startsWith('https://')) {
+      throw StateError(
+        'PRIVACY_POLICY_URL must be an HTTPS URL for production release.',
+      );
+    }
+  }
+
+  /// Call after Firebase bootstrap when [enablePush] is true.
+  void assertPushReady({required bool firebaseReady}) {
+    if (kDebugMode || !enablePush) return;
+    if (!firebaseReady) {
+      throw StateError(
+        'ENABLE_PUSH=true requires google-services.json and Firebase options.',
+      );
     }
   }
 
