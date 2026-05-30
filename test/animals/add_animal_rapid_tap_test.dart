@@ -14,6 +14,8 @@ import 'package:pranidoctor_user/features/home/data/dashboard_context_dto.dart';
 import 'package:pranidoctor_user/features/home/presentation/home_providers.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../helpers/widget_test_harness.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -47,6 +49,7 @@ void main() {
             dashboardProvider.overrideWith(_StubDashboardNotifier.new),
           ],
           child: MaterialApp.router(
+            locale: testLocale,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             routerConfig: router,

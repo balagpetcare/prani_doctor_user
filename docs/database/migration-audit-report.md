@@ -1,6 +1,6 @@
 # Migration Audit Report
 
-**Generated:** 2026-05-29T22:30:13.697Z  
+**Generated:** 2026-05-30T11:17:00.449Z  
 **Migration count:** 59  
 **High-risk (P0/P1):** 4  
 **Non-reversible:** 4  
@@ -10,7 +10,6 @@
 - `20260509120000`: 20260509120000_knowledge_hub_content, 20260509120000_service_request_booking_enums_fields
 - `20260523120000`: 20260523120000_animal_photo_upload_purpose, 20260523120000_phase1_fattening_batches
 - `20260529120000`: 20260529120000_notification_user_created_index, 20260529120000_phase4_livestock_feed_ecosystem
-- `20260530180000`: 20260530180000_legal_consent, 20260530180000_user_consent_registry
 - `20260601120000`: 20260601120000_ai_governance_scopes, 20260601120000_phase8_ai_ecosystem
 
 ## High-risk migrations
@@ -79,9 +78,9 @@
 | 51 | 20260530140000_ai_token_tracking | P3 | yes |
 | 52 | 20260530160000_ai_governance_kill_switch | P3 | yes |
 | 53 | 20260530180000_legal_consent | P3 | yes |
-| 54 | 20260530180000_user_consent_registry | P3 | yes |
-| 55 | 20260530190000_vet_disclaimer | P3 | yes |
-| 56 | 20260601120000_ai_governance_scopes | P3 | yes |
-| 57 | 20260601120000_phase8_ai_ecosystem | P3 | yes |
-| 58 | 20260601180000_legal_document_registry | P3 | yes |
-| 59 | 20260601200000_emergency_limitation | P3 | yes |
+| 54 | 20260530190000_vet_disclaimer | P3 | yes |
+| 55 | 20260601120000_ai_governance_scopes | P3 | yes |
+| 56 | 20260601120000_phase8_ai_ecosystem | P3 | yes |
+| 57 | 20260601180000_legal_document_registry | P3 | yes |
+| 58 | 20260601200000_emergency_limitation | P3 | yes |
+| 59 | 20260602120000_ai_production_platform | P3 | yes |

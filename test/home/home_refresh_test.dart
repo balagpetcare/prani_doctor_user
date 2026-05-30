@@ -18,7 +18,8 @@ import 'package:pranidoctor_user/features/support/data/support_dto.dart';
 import 'package:pranidoctor_user/features/support/presentation/support_providers.dart';
 import 'package:pranidoctor_user/features/vaccine/data/vaccine_dto.dart';
 import 'package:pranidoctor_user/features/vaccine/presentation/vaccine_providers.dart';
-import 'package:pranidoctor_user/l10n/app_localizations.dart';
+
+import '../helpers/widget_test_harness.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -40,10 +41,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: _homeOverrides(context),
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: HomePage()),
+          child: testMaterialApp(
+            home: const Scaffold(body: HomePage()),
           ),
         ),
       );
@@ -71,10 +70,8 @@ void main() {
             dashboardProvider.overrideWith(_NullDashboardNotifier.new),
             dashboardPollProvider.overrideWith(_StubPollNotifier.new),
           ],
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: HomePage()),
+          child: testMaterialApp(
+            home: const Scaffold(body: HomePage()),
           ),
         ),
       );

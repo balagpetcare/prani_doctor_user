@@ -14,6 +14,8 @@ import 'package:pranidoctor_user/features/farm/presentation/farm_providers.dart'
 import 'package:pranidoctor_user/features/home/presentation/home_providers.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../helpers/widget_test_harness.dart';
+
 class _FakeAnimalRepository implements AnimalRepositoryContract {
   int createCalls = 0;
 
@@ -107,6 +109,7 @@ void main() {
           dashboardProvider.overrideWith(_StubDashboardNotifier.new),
         ],
         child: MaterialApp.router(
+          locale: testLocale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routerConfig: router,

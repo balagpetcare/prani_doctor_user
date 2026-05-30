@@ -492,6 +492,8 @@ abstract class AppLocalizations {
 
   String get emergencyAvailable;
 
+  String get searchEmergencySubtitle;
+
   String get onlineConsultation;
 
   String get homeVisit;

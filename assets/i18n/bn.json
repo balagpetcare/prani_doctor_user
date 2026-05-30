@@ -210,6 +210,7 @@
   "doctorDetails": "ডাক্তার বিবরণ",
   "availability": "Availability",
   "emergencyAvailable": "জরুরি অনুরোধ গ্রহণ করতে পারেন (খালি থাকলে নয়)",
+  "searchEmergencySubtitle": "যারা জরুরি অনুরোধ গ্রহণ করতে পারেন",
   "onlineConsultation": "অনলাইন consultation",
   "homeVisit": "হোম visit",
   "aboutDoctor": "About",
@@ -1553,6 +1554,5 @@
   "searchMarketplaceSubtitle": "সেবা ও অফার",
   "searchReports": "হিসাব",
   "searchReportsSubtitle": "স্বাস্থ্য তথ্য ও রিপোর্ট",
-  "searchEmergency": "জরুরি",
-  "searchEmergencySubtitle": "যারা জরুরি অনুরোধ গ্রহণ করতে পারেন"
+  "searchEmergency": "জরুরি"
 }

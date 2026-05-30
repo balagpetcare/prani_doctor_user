@@ -7,6 +7,8 @@ import 'package:pranidoctor_user/features/profile/presentation/widgets/profile_h
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 import 'package:pranidoctor_user/theme/app_theme.dart';
 
+import '../helpers/widget_test_harness.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -28,10 +30,8 @@ void main() {
           () => _DrawerGoldenMobileMeNotifier(profile),
         ),
       ],
-      child: MaterialApp(
+      child: testMaterialApp(
         theme: theme,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Builder(
             builder: (context) {

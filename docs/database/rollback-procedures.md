@@ -33,4 +33,4 @@ Count: **4** (DROP COLUMN, DELETE, DROP TABLE, type changes)
 
 See `pranidoctor_user/docs/launch/ROLLBACK_PLAN.md` for full ops steps.
 
-**Report generated:** 2026-05-29T22:30:13.697Z
+**Report generated:** 2026-05-30T11:17:00.449Z

@@ -44,7 +44,7 @@ class HomeQuickActionGrid extends StatelessWidget {
                   crossAxisCount: columns,
                   mainAxisSpacing: HomeTokens.space8,
                   crossAxisSpacing: HomeTokens.space8,
-                  childAspectRatio: columns > 4 ? 0.9 : 0.82,
+                  childAspectRatio: columns > 4 ? 0.9 : 0.72,
                 ),
                 itemCount: actions.length,
                 itemBuilder: (context, index) {
@@ -156,17 +156,23 @@ class _QuickActionTile extends StatelessWidget {
               children: [
                 Icon(
                   action.icon,
+                  size: 20,
                   color: action.isEmergency
                       ? theme.colorScheme.error
                       : theme.colorScheme.primary,
                 ),
-                const SizedBox(height: HomeTokens.space8 - 2),
-                Text(
-                  action.label,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.labelSmall,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                const SizedBox(height: HomeTokens.space4),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Text(
+                      action.label,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.labelSmall,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ),
               ],
             ),

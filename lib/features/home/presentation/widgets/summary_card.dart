@@ -67,7 +67,7 @@ class HomeSummaryCard extends ConsumerWidget {
               physics: const NeverScrollableScrollPhysics(),
               mainAxisSpacing: HomeTokens.space12,
               crossAxisSpacing: HomeTokens.space12,
-              childAspectRatio: columns > 2 ? 1.8 : 1.5,
+              childAspectRatio: columns > 2 ? 1.8 : 1.2,
               children: [
                 HomeMetricCard(
                   icon: Icons.pets_outlined,
@@ -123,26 +123,30 @@ class HomeMetricCard extends StatelessWidget {
       onTap: onTap,
       semanticLabel: '$label $value',
       padding: const EdgeInsets.all(HomeTokens.space12),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 96),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Icon(icon, size: 22, color: theme.colorScheme.primary),
-            AnimatedDefaultTextStyle(
-              duration: HomeTokens.durationNormal,
-              style: theme.textTheme.headlineSmall!,
-              child: Text(value, maxLines: 1, overflow: TextOverflow.ellipsis),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: theme.colorScheme.primary),
+          const SizedBox(height: HomeTokens.space8),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleLarge,
+          ),
+          const SizedBox(height: HomeTokens.space4),
+          Expanded(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Text(
+                label,
+                style: theme.textTheme.bodySmall,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            Text(
-              label,
-              style: theme.textTheme.bodySmall,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -639,6 +639,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emergencyAvailable => tr('emergencyAvailable');
 
   @override
+  String get searchEmergencySubtitle => tr('searchEmergencySubtitle');
+
+  @override
   String get onlineConsultation => tr('onlineConsultation');
 
   @override
@@ -4566,6 +4569,9 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get emergencyAvailable => tr('emergencyAvailable');
+
+  @override
+  String get searchEmergencySubtitle => tr('searchEmergencySubtitle');
 
   @override
   String get onlineConsultation => tr('onlineConsultation');

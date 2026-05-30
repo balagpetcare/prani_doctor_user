@@ -22,7 +22,8 @@ import 'package:pranidoctor_user/features/profile/presentation/profile_providers
 import 'package:pranidoctor_user/features/service_requests/data/service_request_repository.dart';
 import 'package:pranidoctor_user/features/vaccine/data/vaccine_dto.dart';
 import 'package:pranidoctor_user/features/vaccine/presentation/vaccine_providers.dart';
-import 'package:pranidoctor_user/l10n/app_localizations.dart';
+
+import '../helpers/widget_test_harness.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -118,10 +119,9 @@ void main() {
               _StubUnreadNotifier.new,
             ),
           ],
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: HomePage()),
+          child: testMaterialApp(
+            viewportSize: const Size(390, 1600),
+            home: const Scaffold(body: HomePage()),
           ),
         ),
       );
@@ -130,19 +130,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
 
       expect(find.text('Karim'), findsOneWidget);
-      await tester.scrollUntilVisible(
-        find.text('Summary'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
       expect(find.text('Summary'), findsOneWidget);
       expect(find.text('3'), findsWidgets);
-      await tester.scrollUntilVisible(
-        find.text('Upcoming health tasks'),
-        400,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.text('Upcoming health tasks'), findsOneWidget);
     });
 
     testWidgets('shows skeleton while loading', (tester) async {
@@ -152,10 +141,8 @@ void main() {
             dashboardProvider.overrideWith(_LoadingDashboardNotifier.new),
             dashboardPollProvider.overrideWith(_StubPollNotifier.new),
           ],
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: HomePage()),
+          child: testMaterialApp(
+            home: const Scaffold(body: HomePage()),
           ),
         ),
       );

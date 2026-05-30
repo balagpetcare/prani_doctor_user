@@ -7,6 +7,7 @@ import 'package:pranidoctor_user/core/cache/cache_store.dart';
 import 'package:pranidoctor_user/core/offline/local_cache_contract.dart';
 import 'package:pranidoctor_user/features/offline/data/local_cache_service.dart';
 import 'package:pranidoctor_user/features/offline/data/outbox_service.dart';
+import 'package:pranidoctor_user/core/session/session_providers.dart';
 import 'package:pranidoctor_user/features/settings/data/settings_dto.dart';
 import 'package:pranidoctor_user/features/settings/data/settings_repository.dart';
 import 'package:pranidoctor_user/features/settings/presentation/settings_providers.dart';
@@ -197,7 +198,10 @@ void main() {
       );
 
       final container = ProviderContainer(
-        overrides: [settingsRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          protectedApisEnabledProvider.overrideWithValue(true),
+          settingsRepositoryProvider.overrideWithValue(repository),
+        ],
       );
       addTearDown(container.dispose);
 

@@ -16,8 +16,9 @@ import 'package:pranidoctor_user/features/support/data/support_dto.dart';
 import 'package:pranidoctor_user/features/support/presentation/support_providers.dart';
 import 'package:pranidoctor_user/features/vaccine/data/vaccine_dto.dart';
 import 'package:pranidoctor_user/features/vaccine/presentation/vaccine_providers.dart';
-import 'package:pranidoctor_user/l10n/app_localizations.dart';
 import 'package:pranidoctor_user/theme/app_theme.dart';
+
+import '../helpers/widget_test_harness.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -78,14 +79,10 @@ void main() {
         dashboardPollProvider.overrideWith(_GoldenPollNotifier.new),
         unreadNotificationCountProvider.overrideWith(_GoldenUnreadNotifier.new),
       ],
-      child: MaterialApp(
+      child: testMaterialApp(
         theme: theme,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: MediaQuery(
-          data: MediaQueryData(size: size),
-          child: const Scaffold(body: HomePage()),
-        ),
+        viewportSize: size,
+        home: const Scaffold(body: HomePage()),
       ),
     );
   }
