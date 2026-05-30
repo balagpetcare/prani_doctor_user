@@ -5,8 +5,10 @@ import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
 import '../../../../routing/app_routes.dart';
 import '../../data/ai_dto.dart';
-import '../widgets/ai_disclaimer_banner.dart';
 import '../../data/ai_disclaimer_dto.dart';
+import '../compliance/ai_compliance_model.dart';
+import '../compliance/ai_output_compliance_wrapper.dart';
+import '../ai_providers.dart';
 import 'ai_escalation_disclosure_strip.dart';
 
 class TriageCard extends ConsumerWidget {
@@ -17,60 +19,48 @@ class TriageCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final trigger = result.escalationFields?.trigger ??
-        escalationTriggerFromTriage(
-          escalationRequired: result.escalationRequired,
-          emergency: result.emergency,
-        );
+    final evaluation = AiComplianceEvaluation.fromTriage(result);
 
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              l10n.aiTriageTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            _Row(label: l10n.aiPossibleConcern, value: result.possibleConcern),
-            _Row(
-              label: l10n.aiUrgencyLabel,
-              value: _urgencyLabel(l10n, result.urgency),
-            ),
-            _Row(
-              label: l10n.aiRecommendedAction,
-              value: result.recommendedAction,
-            ),
-            _Row(
-              label: l10n.aiDoctorSuggestion,
-              value: result.doctorSuggestion,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              result.disclaimer,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 8),
-            const AiDisclaimerBanner(feature: AiDisclaimerFeature.advisory),
-            if (trigger != null)
-              AiEscalationDisclosureStrip(
-                trigger: trigger,
-                apiDisclosure: result.escalationFields?.disclosure,
-                showKeywordLimitation: true,
-                showSupportAction: true,
-                showFindVetAction: true,
-              )
-            else if (result.escalationRequired) ...[
-              const SizedBox(height: 12),
-              FilledButton.tonal(
-                onPressed: () =>
-                    context.push(AppRoutes.aiResult, extra: result),
-                child: Text(l10n.aiViewResult),
+        child: AiOutputComplianceWrapper(
+          evaluation: evaluation,
+          inlineDisclaimer: result.disclaimer,
+          apiEscalationDisclosure: result.escalationFields?.disclosure,
+          showKeywordLimitation: true,
+          onRequestHumanReview: () => requestAiHumanReview(ref),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.aiTriageTitle,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
+              const SizedBox(height: 12),
+              _Row(label: l10n.aiPossibleConcern, value: result.possibleConcern),
+              _Row(
+                label: l10n.aiUrgencyLabel,
+                value: _urgencyLabel(l10n, result.urgency),
+              ),
+              _Row(
+                label: l10n.aiRecommendedAction,
+                value: result.recommendedAction,
+              ),
+              _Row(
+                label: l10n.aiDoctorSuggestion,
+                value: result.doctorSuggestion,
+              ),
+              if (result.escalationRequired) ...[
+                const SizedBox(height: 12),
+                FilledButton.tonal(
+                  onPressed: () =>
+                      context.push(AppRoutes.aiResult, extra: result),
+                  child: Text(l10n.aiViewResult),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

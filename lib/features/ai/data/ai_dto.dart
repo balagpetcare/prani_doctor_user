@@ -1,4 +1,5 @@
 import 'ai_escalation_disclosure_dto.dart';
+import 'ai_compliance_dto.dart';
 
 enum AiMessageRole { user, assistant, system }
 
@@ -68,6 +69,7 @@ class AiChatMessage {
     this.disclaimer,
     this.escalationDisclosure,
     this.escalationTrigger,
+    this.compliance,
     this.status = AiMessageStatus.sent,
     this.fromCache = false,
   });
@@ -82,6 +84,7 @@ class AiChatMessage {
   final String? disclaimer;
   final String? escalationDisclosure;
   final AiEscalationDisclosureTrigger? escalationTrigger;
+  final AiComplianceMetadata? compliance;
   final AiMessageStatus status;
   final bool fromCache;
 
@@ -101,6 +104,7 @@ class AiChatMessage {
     String? disclaimer,
     String? escalationDisclosure,
     AiEscalationDisclosureTrigger? escalationTrigger,
+    AiComplianceMetadata? compliance,
     AiMessageStatus? status,
     bool? fromCache,
   }) {
@@ -116,6 +120,7 @@ class AiChatMessage {
       disclaimer: disclaimer ?? this.disclaimer,
       escalationDisclosure: escalationDisclosure ?? this.escalationDisclosure,
       escalationTrigger: escalationTrigger ?? this.escalationTrigger,
+      compliance: compliance ?? this.compliance,
       status: status ?? this.status,
       fromCache: fromCache ?? this.fromCache,
     );
@@ -140,6 +145,9 @@ class AiChatMessage {
       escalationTrigger: AiEscalationDisclosureTriggerApi.fromApi(
         json['escalationTrigger'] as String?,
       ),
+      compliance: json['compliance'] is Map<String, dynamic>
+          ? AiComplianceMetadata.fromJson(json['compliance'] as Map<String, dynamic>)
+          : null,
       status: _statusFromJson(json['status'] as String?),
       fromCache: fromCache,
     );
@@ -183,6 +191,8 @@ class AiChatResponse {
     required this.escalationRecommended,
     required this.disclaimer,
     this.escalationFields,
+    this.compliance,
+    this.emergency = false,
   });
 
   final String sessionId;
@@ -193,6 +203,8 @@ class AiChatResponse {
   final bool escalationRecommended;
   final String disclaimer;
   final AiEscalationDisclosureFields? escalationFields;
+  final AiComplianceMetadata? compliance;
+  final bool emergency;
 
   factory AiChatResponse.fromJson(Map<String, dynamic> json) {
     return AiChatResponse(
@@ -204,6 +216,10 @@ class AiChatResponse {
       escalationRecommended: json['escalationRecommended'] as bool? ?? false,
       disclaimer: json['disclaimer'] as String? ?? '',
       escalationFields: AiEscalationDisclosureFields.fromJson(json),
+      compliance: json['compliance'] is Map<String, dynamic>
+          ? AiComplianceMetadata.fromJson(json['compliance'] as Map<String, dynamic>)
+          : null,
+      emergency: json['emergency'] as bool? ?? false,
     );
   }
 }
@@ -231,6 +247,7 @@ class TriageResultModel {
     required this.disclaimer,
     this.urgencyLevel = 0,
     this.emergency = false,
+    this.compliance,
     this.escalationFields,
   });
 
@@ -243,6 +260,7 @@ class TriageResultModel {
   final String disclaimer;
   final int urgencyLevel;
   final bool emergency;
+  final AiComplianceMetadata? compliance;
   final AiEscalationDisclosureFields? escalationFields;
 
   factory TriageResultModel.fromJson(
@@ -253,7 +271,8 @@ class TriageResultModel {
       json['riskBucket'] as String? ?? 'LOW',
     );
     final urgencyLevel = json['urgencyLevel'] as int? ?? 0;
-    final emergency = urgencyLevel >= 10;
+    final emergency =
+        json['emergency'] as bool? ?? urgencyLevel >= 10;
     return TriageResultModel(
       triageId: json['triageId'] as String? ?? '',
       possibleConcern: symptomsSummary,
@@ -266,6 +285,9 @@ class TriageResultModel {
       disclaimer: json['disclaimer'] as String? ?? '',
       urgencyLevel: urgencyLevel,
       emergency: emergency,
+      compliance: json['compliance'] is Map<String, dynamic>
+          ? AiComplianceMetadata.fromJson(json['compliance'] as Map<String, dynamic>)
+          : null,
       escalationFields: AiEscalationDisclosureFields.fromJson(json),
     );
   }

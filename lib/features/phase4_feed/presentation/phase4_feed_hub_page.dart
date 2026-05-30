@@ -23,7 +23,7 @@ class Phase4FeedHubPage extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         children: [
           if (farmRef == null)
-            Text(l10n.t(TranslationKeys.livestockNoFarmHint))
+            Text(l10n.t(TranslationKeys.farmEmpty))
           else
             alertsAsync.when(
               loading: () => const LinearProgressIndicator(),

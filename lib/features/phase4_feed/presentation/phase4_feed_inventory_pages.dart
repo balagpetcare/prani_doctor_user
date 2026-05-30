@@ -368,7 +368,7 @@ class _Phase4FeedConsumptionPageState
                 controller: _notesController,
                 maxLines: 2,
                 decoration: InputDecoration(
-                  labelText: l10n.t(TranslationKeys.livestockNotesLabel),
+                  labelText: l10n.t(TranslationKeys.animalNotesLabel),
                 ),
               ),
               const SizedBox(height: 24),

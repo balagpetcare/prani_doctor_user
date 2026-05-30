@@ -431,6 +431,32 @@ class SupportRepository implements SupportRepositoryContract {
   }
 
   @override
+  Future<ApiResult<String>> submitBetaFeedback({
+    required String message,
+    int? rating,
+    String? screen,
+    String? locale,
+  }) async {
+    try {
+      final data = await postJson(_dio, SupportApiPaths.betaFeedback, {
+        'message': message.trim(),
+        if (rating != null) 'rating': rating,
+        if (screen != null && screen.trim().isNotEmpty) 'screen': screen.trim(),
+        if (locale != null && locale.trim().isNotEmpty) 'locale': locale.trim(),
+      });
+      final ticketId = data['ticketId'];
+      if (ticketId is! String) {
+        return const ApiResult.failure(
+          AppException(message: 'Invalid beta feedback response'),
+        );
+      }
+      return ApiResult.success(ticketId);
+    } on AppException catch (e) {
+      return ApiResult.failure(e);
+    }
+  }
+
+  @override
   Future<ApiResult<SupportHelpData>> getHelp({
     bool forceRefresh = false,
   }) async {

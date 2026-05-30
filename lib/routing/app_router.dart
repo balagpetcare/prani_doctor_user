@@ -152,6 +152,7 @@ import '../features/settings/presentation/settings_about_page.dart';
 import '../features/settings/presentation/connection_check_page.dart';
 import '../features/settings/presentation/settings_data_sync_page.dart';
 import '../features/settings/settings_page.dart';
+import '../features/settings/presentation/settings_providers.dart';
 import '../features/profile/presentation/change_password_page.dart';
 import '../features/profile/presentation/profile_address_page.dart';
 import '../features/profile/presentation/profile_completion_page.dart';
@@ -288,7 +289,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                         path: 'voice',
                         name: 'aiVoiceInput',
                         parentNavigatorKey: _rootNavigatorKey,
-                        builder: (context, state) => const AiVoiceInputPage(),
+                        builder: (context, state) => AiDisclaimerGate(
+                          surface: AiDisclaimerAcceptSurface.aiChat,
+                          child: const AiVoiceInputPage(),
+                        ),
                       ),
                     ],
                   ),
@@ -1355,19 +1359,28 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.aiSmartAlerts,
         parentNavigatorKey: _rootNavigatorKey,
         name: 'aiSmartAlerts',
-        builder: (context, state) => const SmartAlertsPage(),
+        builder: (context, state) => AiDisclaimerGate(
+          surface: AiDisclaimerAcceptSurface.aiAdvisory,
+          child: const SmartAlertsPage(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.aiKnowledgeSearch,
         parentNavigatorKey: _rootNavigatorKey,
         name: 'aiKnowledgeSearch',
-        builder: (context, state) => const KnowledgeSearchPage(),
+        builder: (context, state) => AiDisclaimerGate(
+          surface: AiDisclaimerAcceptSurface.aiAdvisory,
+          child: const KnowledgeSearchPage(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.aiFollowUps,
         parentNavigatorKey: _rootNavigatorKey,
         name: 'aiFollowUps',
-        builder: (context, state) => const FollowUpSuggestionsPage(),
+        builder: (context, state) => AiDisclaimerGate(
+          surface: AiDisclaimerAcceptSurface.aiAdvisory,
+          child: const FollowUpSuggestionsPage(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.support,

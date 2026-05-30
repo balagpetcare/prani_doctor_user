@@ -26,7 +26,7 @@ class EcosystemHubPage extends ConsumerWidget {
           const SizedBox(height: 16),
           _Tile(
             icon: Icons.pets,
-            title: l10n.t(TranslationKeys.livestockListTitle),
+            title: l10n.t(TranslationKeys.animalListTitle),
             route: AppRoutes.livestock,
           ),
           _Tile(

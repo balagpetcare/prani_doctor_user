@@ -4,6 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
 import '../../../core/navigation/navigation_guard.dart';
+import '../../emergency_limitation/data/emergency_limitation_dto.dart';
+import '../../emergency_limitation/presentation/emergency_limitation_providers.dart';
+import '../../emergency_limitation/presentation/widgets/emergency_limitation_banner.dart';
+import '../../vet_disclaimer/data/vet_disclaimer_dto.dart';
+import '../../vet_disclaimer/presentation/vet_disclaimer_providers.dart';
+import '../../vet_disclaimer/presentation/widgets/vet_disclaimer_banner.dart';
 import '../data/doctor_repository.dart';
 import '../../../routing/app_routes.dart';
 
@@ -16,6 +22,9 @@ class DoctorDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final doctorAsync = ref.watch(doctorDetailProvider(doctorId));
+
+    ref.watch(emergencyLimitationProvider);
+    ref.watch(vetDisclaimerProvider);
 
     return Scaffold(
       appBar: safeAppBar(context, title: Text(l10n.doctorDetails)),
@@ -97,6 +106,16 @@ class DoctorDetailPage extends ConsumerWidget {
                     contentPadding: EdgeInsets.zero,
                     title: Text(c.name),
                   ),
+                ),
+              ],
+              if (doctor.emergency) ...[
+                const SizedBox(height: 16),
+                const EmergencyLimitationBanner(
+                  context: EmergencyLimitationContext.discoveryEmergency,
+                ),
+                const VetDisclaimerBanner(
+                  context: VetDisclaimerContext.bookingEmergency,
+                  emergency: true,
                 ),
               ],
               const SizedBox(height: 24),

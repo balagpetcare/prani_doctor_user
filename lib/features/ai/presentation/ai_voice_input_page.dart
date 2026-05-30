@@ -6,6 +6,8 @@ import 'package:pranidoctor_user/l10n/app_localizations.dart';
 import '../../../routing/app_routes.dart';
 import '../data/ai_repository.dart';
 import 'ai_providers.dart';
+import 'compliance/ai_compliance_shell.dart';
+import 'compliance/ai_compliance_model.dart';
 import 'widgets/ai_feedback.dart';
 
 class AiVoiceInputPage extends ConsumerStatefulWidget {
@@ -124,54 +126,57 @@ class _AiVoiceInputPageState extends ConsumerState<AiVoiceInputPage> {
         title: Text(l10n.aiVoiceTitle),
         leading: IconButton(onPressed: _cancel, icon: const Icon(Icons.close)),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              l10n.aiVoiceInstructions,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            if (isListening)
-              LinearProgressIndicator(value: partial.isEmpty ? null : 1),
-            const SizedBox(height: 16),
-            Expanded(
-              child: Center(
-                child: Text(
-                  _transcript ?? partial.ifEmpty ?? l10n.aiVoiceTapHint,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge,
+      body: AiCompliancePageBody(
+        surface: AiComplianceSurface.voice,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.aiVoiceInstructions,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 16),
+              if (isListening)
+                LinearProgressIndicator(value: partial.isEmpty ? null : 1),
+              const SizedBox(height: 16),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    _transcript ?? partial.ifEmpty ?? l10n.aiVoiceTapHint,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
                 ),
               ),
-            ),
-            if (_error != null) ...[
-              Text(
-                _error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              if (_error != null) ...[
+                Text(
+                  _error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+                const SizedBox(height: 8),
+              ],
+              if (_normalizing) const Center(child: CircularProgressIndicator()),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: _normalizing
+                    ? null
+                    : isListening
+                    ? _stopListening
+                    : _startListening,
+                icon: Icon(isListening ? Icons.stop : Icons.mic),
+                label: Text(isListening ? l10n.aiVoiceStop : l10n.aiVoiceStart),
               ),
               const SizedBox(height: 8),
+              if (_transcript != null && !_normalizing)
+                FilledButton.tonal(
+                  onPressed: () =>
+                      context.go(AppRoutes.aiChat, extra: _transcript),
+                  child: Text(l10n.aiVoiceUseText),
+                ),
             ],
-            if (_normalizing) const Center(child: CircularProgressIndicator()),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: _normalizing
-                  ? null
-                  : isListening
-                  ? _stopListening
-                  : _startListening,
-              icon: Icon(isListening ? Icons.stop : Icons.mic),
-              label: Text(isListening ? l10n.aiVoiceStop : l10n.aiVoiceStart),
-            ),
-            const SizedBox(height: 8),
-            if (_transcript != null && !_normalizing)
-              FilledButton.tonal(
-                onPressed: () =>
-                    context.go(AppRoutes.aiChat, extra: _transcript),
-                child: Text(l10n.aiVoiceUseText),
-              ),
-          ],
+          ),
         ),
       ),
     );

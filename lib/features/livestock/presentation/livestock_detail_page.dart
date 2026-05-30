@@ -21,11 +21,11 @@ class LivestockDetailPage extends ConsumerWidget {
 
     return detailAsync.when(
       loading: () => Scaffold(
-        appBar: AppBar(title: Text(l10n.t(TranslationKeys.livestockDetailTitle))),
+        appBar: AppBar(title: Text(l10n.t(TranslationKeys.animalDetailTitle))),
         body: LivestockFeedback.loading(),
       ),
       error: (e, _) => Scaffold(
-        appBar: AppBar(title: Text(l10n.t(TranslationKeys.livestockDetailTitle))),
+        appBar: AppBar(title: Text(l10n.t(TranslationKeys.animalDetailTitle))),
         body: LivestockFeedback.error(
           context,
           message: e.toString(),
@@ -67,38 +67,38 @@ class LivestockDetailPage extends ConsumerWidget {
                 ),
               const SizedBox(height: 16),
               _InfoRow(
-                label: l10n.t(TranslationKeys.livestockSpeciesLabel),
+                label: l10n.t(TranslationKeys.animalTypeLabel),
                 value: profile.displaySpecies,
               ),
               _InfoRow(
-                label: l10n.t(TranslationKeys.livestockGenderLabel),
+                label: l10n.t(TranslationKeys.animalGenderLabel),
                 value: profile.gender,
               ),
               _InfoRow(
-                label: l10n.t(TranslationKeys.livestockPurposeLabel),
+                label: l10n.t(TranslationKeys.animalPurposeLabel),
                 value: profile.purpose,
               ),
               Row(
                 children: [
-                  Text(l10n.t(TranslationKeys.livestockHealthLabel)),
+                  Text(l10n.t(TranslationKeys.animalHealthScore)),
                   const SizedBox(width: 8),
                   LivestockHealthStatusChip(status: profile.healthStatus),
                 ],
               ),
               if (profile.weightKg != null)
                 _InfoRow(
-                  label: l10n.t(TranslationKeys.livestockWeightLabel),
+                  label: l10n.t(TranslationKeys.animalWeightLabel),
                   value: '${profile.weightKg!.toStringAsFixed(1)} kg',
                 ),
               if (profile.earTagNumber != null &&
                   profile.earTagNumber!.isNotEmpty)
                 _InfoRow(
-                  label: l10n.t(TranslationKeys.livestockEarTagLabel),
+                  label: l10n.t(TranslationKeys.animalTagLabel),
                   value: profile.earTagNumber!,
                 ),
               if (profile.notes != null && profile.notes!.isNotEmpty)
                 _InfoRow(
-                  label: l10n.t(TranslationKeys.livestockNotesLabel),
+                  label: l10n.t(TranslationKeys.animalNotesLabel),
                   value: profile.notes!,
                 ),
               const SizedBox(height: 16),
@@ -110,7 +110,7 @@ class LivestockDetailPage extends ConsumerWidget {
                     onPressed: () =>
                         context.push(AppRoutes.livestockTimeline(livestockId)),
                     icon: const Icon(Icons.timeline),
-                    label: Text(l10n.t(TranslationKeys.livestockTimelineTitle)),
+                    label: Text(l10n.t(TranslationKeys.animalTimelineTitle)),
                   ),
                   FilledButton.tonalIcon(
                     onPressed: () => context.push(
@@ -122,7 +122,7 @@ class LivestockDetailPage extends ConsumerWidget {
                   FilledButton.tonalIcon(
                     onPressed: () => context.push(AppRoutes.vaccines),
                     icon: const Icon(Icons.vaccines_outlined),
-                    label: Text(l10n.t(TranslationKeys.livestockVaccinesLink)),
+                    label: Text(l10n.t(TranslationKeys.animalVaccinesShortcut)),
                   ),
                 ],
               ),

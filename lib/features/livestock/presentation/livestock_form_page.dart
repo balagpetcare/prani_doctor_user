@@ -118,7 +118,7 @@ class _LivestockFormPageState extends ConsumerState<LivestockFormPage> {
         .saveDraft(_buildInput(farmRef), livestockId: widget.livestockId);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.tr.t(TranslationKeys.livestockDraftSaved))),
+      SnackBar(content: Text(context.tr.t(TranslationKeys.animalDraftSaved))),
     );
   }
 
@@ -130,7 +130,7 @@ class _LivestockFormPageState extends ConsumerState<LivestockFormPage> {
     final input = _buildInput(farmRef);
     if (!LivestockValidation.isValid(input)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.t(TranslationKeys.livestockFormInvalid))),
+        SnackBar(content: Text(l10n.t(TranslationKeys.animalNameOrTagRequired))),
       );
       return;
     }
@@ -154,7 +154,7 @@ class _LivestockFormPageState extends ConsumerState<LivestockFormPage> {
       },
       failure: (e) {
         final msg = e.code == offlineQueuedCode
-            ? l10n.t(TranslationKeys.livestockOfflineSaved)
+            ? l10n.t(TranslationKeys.savedOffline)
             : e.message;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
         if (e.code == offlineQueuedCode) context.pop();
@@ -182,14 +182,14 @@ class _LivestockFormPageState extends ConsumerState<LivestockFormPage> {
         title: Text(
           l10n.t(
             isEdit
-                ? TranslationKeys.livestockEditTitle
-                : TranslationKeys.livestockAddTitle,
+                ? TranslationKeys.animalEditTitle
+                : TranslationKeys.animalAddTitle,
           ),
         ),
         actions: [
           TextButton(
             onPressed: _loading ? null : _saveDraft,
-            child: Text(l10n.t(TranslationKeys.livestockSaveDraft)),
+            child: Text(l10n.t(TranslationKeys.animalSaveDraft)),
           ),
         ],
       ),
@@ -206,14 +206,14 @@ class _LivestockFormPageState extends ConsumerState<LivestockFormPage> {
                 TextField(
                   controller: _nameController,
                   decoration: InputDecoration(
-                    labelText: l10n.t(TranslationKeys.livestockNameLabel),
+                    labelText: l10n.t(TranslationKeys.animalNameLabel),
                   ),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   value: _species,
                   decoration: InputDecoration(
-                    labelText: l10n.t(TranslationKeys.livestockSpeciesLabel),
+                    labelText: l10n.t(TranslationKeys.animalTypeLabel),
                   ),
                   items: _speciesOptions
                       .map((s) => DropdownMenuItem(value: s, child: Text(s)))
@@ -224,7 +224,7 @@ class _LivestockFormPageState extends ConsumerState<LivestockFormPage> {
                 DropdownButtonFormField<String>(
                   value: _gender,
                   decoration: InputDecoration(
-                    labelText: l10n.t(TranslationKeys.livestockGenderLabel),
+                    labelText: l10n.t(TranslationKeys.animalGenderLabel),
                   ),
                   items: _genderOptions
                       .map((g) => DropdownMenuItem(value: g, child: Text(g)))
@@ -235,7 +235,7 @@ class _LivestockFormPageState extends ConsumerState<LivestockFormPage> {
                 DropdownButtonFormField<String>(
                   value: _purpose,
                   decoration: InputDecoration(
-                    labelText: l10n.t(TranslationKeys.livestockPurposeLabel),
+                    labelText: l10n.t(TranslationKeys.animalPurposeLabel),
                   ),
                   items: _purposeOptions
                       .map((p) => DropdownMenuItem(value: p, child: Text(p)))
@@ -246,7 +246,7 @@ class _LivestockFormPageState extends ConsumerState<LivestockFormPage> {
                 TextField(
                   controller: _breedController,
                   decoration: InputDecoration(
-                    labelText: l10n.t(TranslationKeys.livestockBreedLabel),
+                    labelText: l10n.t(TranslationKeys.animalBreedLabel),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -256,14 +256,14 @@ class _LivestockFormPageState extends ConsumerState<LivestockFormPage> {
                     decimal: true,
                   ),
                   decoration: InputDecoration(
-                    labelText: l10n.t(TranslationKeys.livestockWeightLabel),
+                    labelText: l10n.t(TranslationKeys.animalWeightLabel),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _tagController,
                   decoration: InputDecoration(
-                    labelText: l10n.t(TranslationKeys.livestockEarTagLabel),
+                    labelText: l10n.t(TranslationKeys.animalTagLabel),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -271,7 +271,7 @@ class _LivestockFormPageState extends ConsumerState<LivestockFormPage> {
                   controller: _notesController,
                   maxLines: 3,
                   decoration: InputDecoration(
-                    labelText: l10n.t(TranslationKeys.livestockNotesLabel),
+                    labelText: l10n.t(TranslationKeys.animalNotesLabel),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -283,7 +283,7 @@ class _LivestockFormPageState extends ConsumerState<LivestockFormPage> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : Text(l10n.t(TranslationKeys.livestockSave)),
+                      : Text(l10n.t(TranslationKeys.feedCreateAction)),
                 ),
               ],
             ),

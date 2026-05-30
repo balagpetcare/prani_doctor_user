@@ -16,7 +16,7 @@ class LivestockFeedback {
   }) {
     final l10n = context.tr;
     return AppErrorView(
-      message: message ?? l10n.t(TranslationKeys.livestockLoadError),
+      message: message ?? l10n.t(TranslationKeys.animalLoadError),
       onRetry: onRetry,
       retryLabel: l10n.t(TranslationKeys.retryLabel),
     );
@@ -26,8 +26,8 @@ class LivestockFeedback {
     final l10n = context.tr;
     return AppEmptyView(
       icon: Icons.pets_outlined,
-      message: l10n.t(TranslationKeys.livestockEmpty),
-      actionLabel: l10n.t(TranslationKeys.livestockAddTitle),
+      message: l10n.t(TranslationKeys.animalEmpty),
+      actionLabel: l10n.t(TranslationKeys.animalAddTitle),
       onAction: onCreate,
     );
   }
@@ -37,7 +37,7 @@ class LivestockFeedback {
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Text(
-        l10n.t(TranslationKeys.livestockOfflineHint),
+        l10n.t(TranslationKeys.animalOfflineHint),
         style: Theme.of(context).textTheme.bodySmall,
       ),
     );

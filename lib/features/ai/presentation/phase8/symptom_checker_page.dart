@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pranidoctor_user/l10n/app_localizations.dart';
 import '../../data/ai_phase8_dto.dart';
 import '../../data/ai_phase8_repository.dart';
-import '../../data/ai_disclaimer_dto.dart';
-import '../../data/ai_escalation_disclosure_dto.dart';
-import '../widgets/ai_disclaimer_banner.dart';
-import '../widgets/ai_escalation_disclosure_strip.dart';
-import '../../../emergency_limitation/data/emergency_limitation_dto.dart';
-import '../../../emergency_limitation/presentation/widgets/emergency_limitation_banner.dart';
+import '../compliance/ai_compliance_model.dart';
+import '../compliance/ai_compliance_shell.dart';
+import '../compliance/ai_output_compliance_wrapper.dart';
 import 'phase8_providers.dart';
 
 class SymptomCheckerPage extends ConsumerStatefulWidget {
@@ -28,38 +26,45 @@ class _SymptomCheckerPageState extends ConsumerState<SymptomCheckerPage> {
   Widget build(BuildContext context) {
     final taxonomyAsync = ref.watch(symptomTaxonomyProvider(widget.species));
 
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(title: const Text('লক্ষণ যাচাই')),
-      body: _result != null
-          ? _ResultView(result: _result!, onReset: () => setState(() => _result = null))
-          : taxonomyAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    e is Exception ? e.toString().replaceFirst('Exception: ', '') : 'লোড ব্যর্থ',
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              data: (taxonomy) => ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  const Card(
-                    child: ListTile(
-                      leading: Icon(Icons.info_outline),
-                      title: Text('সহায়ক তথ্য মাত্র'),
-                      subtitle: Text(
-                        'এটি চিকিৎসা নির্ণয় নয়। জরুরি হলে স্থানীয় প্রাণী চিকিৎসকের সহায়তা নিন।',
-                      ),
+      body: AiCompliancePageBody(
+        surface: AiComplianceSurface.symptomCheck,
+        showEscalationAwarenessBanner: true,
+        child: _result != null
+            ? _ResultView(
+                result: _result!,
+                onReset: () => setState(() => _result = null),
+              )
+            : taxonomyAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      e is Exception
+                          ? e.toString().replaceFirst('Exception: ', '')
+                          : 'লোড ব্যর্থ',
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'প্রাণীর লক্ষণ নির্বাচন করুন',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                ),
+                data: (taxonomy) => ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    Text(
+                      l10n.aiSymptomGuidanceNote,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'প্রাণীর লক্ষণ নির্বাচন করুন',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                   const SizedBox(height: 12),
                   for (final system in taxonomy.bodySystems) ...[
                     Text(system.bodySystem, style: Theme.of(context).textTheme.titleSmall),
@@ -94,6 +99,7 @@ class _SymptomCheckerPageState extends ConsumerState<SymptomCheckerPage> {
                 ],
               ),
             ),
+      ),
     );
   }
 
@@ -126,58 +132,52 @@ class _ResultView extends ConsumerWidget {
         : result.triageBucket == 'HIGH'
         ? Colors.orange
         : Colors.green;
+    final evaluation = AiComplianceEvaluation.fromSymptomCheck(result);
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Card(
-          color: color.withValues(alpha: 0.1),
-          child: ListTile(
-            title: Text('ঝুঁকি: ${result.triageBucket}'),
-            subtitle: Text(result.recommendation),
+        AiOutputComplianceWrapper(
+          evaluation: evaluation,
+          apiEscalationDisclosure: result.escalationFields?.disclosure,
+          showKeywordLimitation: true,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Card(
+                color: color.withValues(alpha: 0.1),
+                child: ListTile(
+                  title: Text('ঝুঁকি: ${result.triageBucket}'),
+                  subtitle: Text(result.recommendation),
+                ),
+              ),
+              if (result.redFlags.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  '⚠️ জরুরি লক্ষণ',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.red),
+                ),
+                ...result.redFlags.map(
+                  (f) => ListTile(
+                    dense: true,
+                    leading: const Icon(Icons.warning_amber, color: Colors.red),
+                    title: Text(f['labelBn']?.toString() ?? f['labelEn']?.toString() ?? ''),
+                  ),
+                ),
+              ],
+              if (result.differentials.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text('সম্ভাব্য বিষয় (শিক্ষামূলক)', style: Theme.of(context).textTheme.titleSmall),
+                ...result.differentials.map(
+                  (d) => ListTile(
+                    title: Text(d['title']?.toString() ?? ''),
+                    subtitle: Text(d['disclaimer']?.toString() ?? ''),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
-        if (result.redFlags.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          Text('⚠️ জরুরি লক্ষণ', style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.red)),
-          ...result.redFlags.map(
-            (f) => ListTile(
-              dense: true,
-              leading: const Icon(Icons.warning_amber, color: Colors.red),
-              title: Text(f['labelBn']?.toString() ?? f['labelEn']?.toString() ?? ''),
-            ),
-          ),
-        ],
-        if (result.differentials.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          Text('সম্ভাব্য বিষয় (শিক্ষামূলক)', style: Theme.of(context).textTheme.titleSmall),
-          ...result.differentials.map(
-            (d) => ListTile(
-              title: Text(d['title']?.toString() ?? ''),
-              subtitle: Text(d['disclaimer']?.toString() ?? ''),
-            ),
-          ),
-        ],
-        const SizedBox(height: 12),
-        AiDisclaimerFooter(feature: AiDisclaimerFeature.advisory),
-        if (result.escalationRequired) ...[
-          const SizedBox(height: 12),
-          AiEscalationDisclosureStrip(
-            trigger: result.escalationFields?.trigger ??
-                (result.emergency
-                    ? AiEscalationDisclosureTrigger.emergency
-                    : AiEscalationDisclosureTrigger.high),
-            apiDisclosure: result.escalationFields?.disclosure,
-            showKeywordLimitation: true,
-            showSupportAction: true,
-          ),
-        ],
-        if (result.emergency) ...[
-          const SizedBox(height: 8),
-          const EmergencyLimitationBanner(
-            context: EmergencyLimitationContext.aiEmergency,
-          ),
-        ],
         const SizedBox(height: 16),
         OutlinedButton(onPressed: onReset, child: const Text('আবার চেষ্টা')),
       ],

@@ -32,7 +32,7 @@ class LivestockTimelinePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.t(TranslationKeys.livestockTimelineTitle)),
+        title: Text(l10n.t(TranslationKeys.animalTimelineTitle)),
       ),
       body: timelineAsync.when(
         loading: LivestockFeedback.loading,
@@ -44,7 +44,7 @@ class LivestockTimelinePage extends ConsumerWidget {
         data: (items) {
           if (items.isEmpty) {
             return Center(
-              child: Text(l10n.t(TranslationKeys.livestockTimelineEmpty)),
+              child: Text(l10n.t(TranslationKeys.animalNoHistory)),
             );
           }
           return ListView.separated(
@@ -83,7 +83,7 @@ class LivestockQrPage extends ConsumerWidget {
     final detailAsync = ref.watch(livestockDetailProvider(livestockId));
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.t(TranslationKeys.livestockQrTitle))),
+      appBar: AppBar(title: Text(l10n.t(TranslationKeys.animalQrCode))),
       body: detailAsync.when(
         loading: LivestockFeedback.loading,
         error: (e, _) => LivestockFeedback.error(
@@ -108,7 +108,7 @@ class LivestockQrPage extends ConsumerWidget {
                 if (profile.earTagNumber != null)
                   Text(
                     l10n.t(
-                      TranslationKeys.livestockEarTag,
+                      TranslationKeys.animalTagLabel,
                       {'tag': profile.earTagNumber!},
                     ),
                   ),
@@ -124,12 +124,12 @@ class LivestockQrPage extends ConsumerWidget {
                     Clipboard.setData(ClipboardData(text: payload));
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(l10n.t(TranslationKeys.livestockQrCopied)),
+                        content: Text(l10n.t(TranslationKeys.animalQrCopied)),
                       ),
                     );
                   },
                   icon: const Icon(Icons.copy),
-                  label: Text(l10n.t(TranslationKeys.livestockQrCopy)),
+                  label: Text(l10n.t(TranslationKeys.animalQrCopy)),
                 ),
               ],
             ),

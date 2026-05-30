@@ -11,6 +11,7 @@ import '../../../routing/app_routes.dart';
 import '../../profile/data/profile_repository.dart';
 import '../../profile/presentation/profile_navigation.dart';
 import '../../profile/presentation/profile_providers.dart';
+import '../../settings/presentation/settings_providers.dart';
 
 const _authFailureCodes = {
   '401',

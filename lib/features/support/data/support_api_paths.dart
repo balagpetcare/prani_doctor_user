@@ -4,6 +4,7 @@ abstract final class SupportApiPaths {
   static const tickets = '/api/mobile/support/tickets';
   static const upload = '/api/mobile/support/upload';
   static const help = '/api/mobile/support/help';
+  static const betaFeedback = '/api/mobile/feedback/beta';
 
   static String ticket(String id) => '/api/mobile/support/tickets/$id';
 

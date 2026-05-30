@@ -6,6 +6,8 @@
 
 Full platform alert catalog, severity matrix, and escalation workflow: [production/monitoring/alerting-plan.md](./production/monitoring/alerting-plan.md).
 
+**Ops runbooks & dashboards:** [pranidoctor-backend/docs/monitoring/README.md](../../pranidoctor-backend/docs/monitoring/README.md)
+
 Implementation: [production/monitoring/ALERTING_IMPLEMENTATION.md](./production/monitoring/ALERTING_IMPLEMENTATION.md) — deduplicated webhook alerts on API + admin web (`sendProductionAlert`).
 
 Verification: [ALERTING_READINESS_REPORT.md](./production/monitoring/ALERTING_READINESS_REPORT.md) · [ALERTING_REMAINING_RISKS.md](./production/monitoring/ALERTING_REMAINING_RISKS.md)

@@ -13,6 +13,7 @@ import '../../offline/data/outbox_service.dart';
 import '../../offline/offline_providers.dart';
 import 'ai_api_paths.dart';
 import 'ai_dto.dart';
+import 'ai_escalation_disclosure_dto.dart';
 import 'ai_repository_contract.dart';
 
 class AiRepository implements AiRepositoryContract {
@@ -156,7 +157,10 @@ class AiRepository implements AiRepositoryContract {
         escalationRecommended: response.escalationRecommended,
         disclaimer: response.disclaimer,
         escalationDisclosure: response.escalationFields?.disclosure,
-        escalationTrigger: response.escalationFields?.trigger,
+        escalationTrigger: response.emergency
+            ? AiEscalationDisclosureTrigger.emergency
+            : response.escalationFields?.trigger,
+        compliance: response.compliance,
       );
       await _appendLocalMessages(
         sessionId: response.sessionId,

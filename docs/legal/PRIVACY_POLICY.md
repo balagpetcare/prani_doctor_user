@@ -6,7 +6,8 @@
 **Package:** `com.pranidoctor.user.pranidoctor_user`  
 **Operator:** Prani Doctor / Animal Doctors  
 
-> **Note:** Canonical policy: `pranidoctor-web/docs/compliance/legal/PRIVACY_POLICY.md`  
+> **Note:** Full policy: [privacy-policy.md](./privacy-policy.md)  
+> Canonical operator copy: `pranidoctor-web/docs/compliance/legal/PRIVACY_POLICY.md`  
 > Public URL: https://pranidoctor.com/privacy — set `PRIVACY_POLICY_URL` in release builds.
 
 ---

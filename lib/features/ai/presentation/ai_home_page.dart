@@ -6,6 +6,8 @@ import 'package:pranidoctor_user/l10n/app_localizations.dart';
 import '../../../routing/app_routes.dart';
 import '../../settings/presentation/settings_providers.dart';
 import 'ai_providers.dart';
+import 'compliance/ai_compliance_shell.dart';
+import 'compliance/ai_compliance_model.dart';
 import 'widgets/ai_disclaimer_banner.dart';
 
 class AiHomePage extends ConsumerWidget {
@@ -36,9 +38,12 @@ class AiHomePage extends ConsumerWidget {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
+      body: AiCompliancePageBody(
+        surface: AiComplianceSurface.chat,
+        showEscalationAwarenessBanner: true,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
           if (!aiConsentOk) ...[
             Card(
               child: ListTile(
@@ -51,7 +56,6 @@ class AiHomePage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
           ],
-          const AiDisclaimerBanner(),
           const SizedBox(height: 16),
           chatAsync.when(
             loading: () => const LinearProgressIndicator(minHeight: 2),
@@ -106,6 +110,7 @@ class AiHomePage extends ConsumerWidget {
             label: const Text('জ্ঞান ভান্ডার'),
           ),
         ],
+        ),
       ),
     );
   }

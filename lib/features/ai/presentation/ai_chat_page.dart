@@ -5,10 +5,11 @@ import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
 import '../../../routing/app_routes.dart';
 import '../data/ai_dto.dart';
-import '../data/ai_disclaimer_dto.dart';
 import '../data/ai_validation.dart';
 import 'ai_navigation.dart';
 import 'ai_providers.dart';
+import 'compliance/ai_compliance_shell.dart';
+import 'compliance/ai_compliance_model.dart';
 import 'widgets/ai_disclaimer_banner.dart';
 import 'widgets/ai_feedback.dart';
 import 'widgets/ai_message_bubble.dart';
@@ -174,100 +175,102 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           onRetry: () => ref.read(aiChatProvider.notifier).reload(),
         ),
         data: (state) {
-          return Column(
-            children: [
-              const AiDisclaimerBanner(feature: AiDisclaimerFeature.chat),
-              if (state.fromCache || state.kind == AiChatStateKind.offline)
-                AiFeedback.offlineHint(context),
-              Expanded(
-                child: state.messages.isEmpty
-                    ? AiFeedback.empty(context)
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.all(16),
-                        itemCount: state.messages.length,
-                        itemBuilder: (context, index) {
-                          final message = state.messages[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: AiMessageBubble(
-                              message: message,
-                              onRetry: message.isFailed
-                                  ? () => ref
-                                        .read(aiChatProvider.notifier)
-                                        .retryMessage(message.content)
-                                  : null,
-                            ),
-                          );
-                        },
-                      ),
-              ),
-              if (state.triageResult != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: TriageCard(result: state.triageResult!),
-                ),
-              if (_showTriage)
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: _symptomController,
-                        decoration: InputDecoration(
-                          labelText: l10n.aiSymptomsLabel,
-                          hintText: l10n.aiSymptomsHint,
+          return AiCompliancePageBody(
+            surface: AiComplianceSurface.chat,
+            child: Column(
+              children: [
+                if (state.fromCache || state.kind == AiChatStateKind.offline)
+                  AiFeedback.offlineHint(context),
+                Expanded(
+                  child: state.messages.isEmpty
+                      ? AiFeedback.empty(context)
+                      : ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(16),
+                          itemCount: state.messages.length,
+                          itemBuilder: (context, index) {
+                            final message = state.messages[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: AiMessageBubble(
+                                message: message,
+                                onRetry: message.isFailed
+                                    ? () => ref
+                                          .read(aiChatProvider.notifier)
+                                          .retryMessage(message.content)
+                                    : null,
+                              ),
+                            );
+                          },
                         ),
-                        minLines: 2,
-                        maxLines: 4,
-                      ),
-                      const SizedBox(height: 8),
-                      FilledButton(
-                        onPressed: state.isSending ? null : _runTriage,
-                        child: Text(l10n.aiRunTriage),
-                      ),
-                    ],
-                  ),
                 ),
-              if (settings?.showSuggestions ?? true)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: AiSuggestionChips(
-                    onSelected: (text) {
-                      _inputController.text = text;
-                      if (text == l10n.aiSuggestionSymptoms) {
-                        setState(() => _showTriage = true);
-                      }
-                    },
+                if (state.triageResult != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TriageCard(result: state.triageResult!),
                   ),
-                ),
-              if (state.isSending) const LinearProgressIndicator(minHeight: 2),
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _inputController,
-                          minLines: 1,
-                          maxLines: 4,
+                if (_showTriage)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: _symptomController,
                           decoration: InputDecoration(
-                            hintText: l10n.aiInputHint,
+                            labelText: l10n.aiSymptomsLabel,
+                            hintText: l10n.aiSymptomsHint,
                           ),
-                          onSubmitted: (_) => _send(),
+                          minLines: 2,
+                          maxLines: 4,
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      FilledButton(
-                        onPressed: state.isSending ? null : _send,
-                        child: Text(l10n.aiSend),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        FilledButton(
+                          onPressed: state.isSending ? null : _runTriage,
+                          child: Text(l10n.aiRunTriage),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (settings?.showSuggestions ?? true)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: AiSuggestionChips(
+                      onSelected: (text) {
+                        _inputController.text = text;
+                        if (text == l10n.aiSuggestionSymptoms) {
+                          setState(() => _showTriage = true);
+                        }
+                      },
+                    ),
+                  ),
+                if (state.isSending) const LinearProgressIndicator(minHeight: 2),
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _inputController,
+                            minLines: 1,
+                            maxLines: 4,
+                            decoration: InputDecoration(
+                              hintText: l10n.aiInputHint,
+                            ),
+                            onSubmitted: (_) => _send(),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton(
+                          onPressed: state.isSending ? null : _send,
+                          child: Text(l10n.aiSend),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         },
       ),

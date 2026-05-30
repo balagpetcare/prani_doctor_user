@@ -20,6 +20,7 @@ import 'widgets/home_care_action_bar.dart';
 import 'widgets/home_layout.dart';
 import 'widgets/home_page_skeleton.dart';
 import 'widgets/home_support_entry.dart';
+import '../../app_config/presentation/closed_beta_banner.dart';
 import 'widgets/home_user_hero.dart';
 import 'widgets/insight_section.dart';
 import 'widgets/marketplace_section.dart';
@@ -159,6 +160,7 @@ class _HomeDashboardBody extends ConsumerWidget {
                 SliverToBoxAdapter(
                   child: HomeOfflineBanner(message: l10n.dashboardOfflineHint),
                 ),
+              const SliverToBoxAdapter(child: ClosedBetaBanner()),
               HomeUserHero(contextData: contextData),
               const HomeCareActionBar(),
               if (isTechnician)

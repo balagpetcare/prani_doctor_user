@@ -30,6 +30,14 @@ abstract class SupportRepositoryContract {
 
   Future<ApiResult<SupportHelpData>> getHelp({bool forceRefresh = false});
 
+  /// Closed-beta structured feedback (creates `[Beta Feedback]` support ticket).
+  Future<ApiResult<String>> submitBetaFeedback({
+    required String message,
+    int? rating,
+    String? screen,
+    String? locale,
+  });
+
   Future<ApiResult<SupportUploadResult>> uploadAttachment(
     String filePath, {
     void Function(int sent, int total)? onProgress,

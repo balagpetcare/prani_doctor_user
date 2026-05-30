@@ -3702,6 +3702,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeCareChatEta => tr('homeCareChatEta');
 
   @override
+  String get aiSymptomGuidanceNote => tr('aiSymptomGuidanceNote');
+
+  @override
   String get profileMemberSince => tr('profileMemberSince');
 
   @override
@@ -3727,6 +3730,204 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedCatalogSearchLabel => tr('feedCatalogSearchLabel');
+
+  @override
+  String get consentWithdrawPrivacy => tr('consentWithdrawPrivacy');
+
+  @override
+  String get consentWithdrawConfirm => tr('consentWithdrawConfirm');
+
+  @override
+  String get consentWithdrawn => tr('consentWithdrawn');
+
+  @override
+  String get animalNameLabel => tr('animalNameLabel');
+
+  @override
+  String get animalPurposeLabel => tr('animalPurposeLabel');
+
+  @override
+  String get animalQrCopy => tr('animalQrCopy');
+
+  @override
+  String get animalQrCopied => tr('animalQrCopied');
+
+  @override
+  String get ecosystemHubTitle => tr('ecosystemHubTitle');
+
+  @override
+  String get ecosystemHubSubtitle => tr('ecosystemHubSubtitle');
+
+  @override
+  String get phase4FeedHubTitle => tr('phase4FeedHubTitle');
+
+  @override
+  String get phase4FeedOfflineHint => tr('phase4FeedOfflineHint');
+
+  @override
+  String get phase4FeedLowStockAlerts => tr('phase4FeedLowStockAlerts');
+
+  @override
+  String get phase4FeedCatalogTitle => tr('phase4FeedCatalogTitle');
+
+  @override
+  String get phase4FeedCatalogSubtitle => tr('phase4FeedCatalogSubtitle');
+
+  @override
+  String get phase4FeedInventoryTitle => tr('phase4FeedInventoryTitle');
+
+  @override
+  String get phase4FeedInventorySubtitle => tr('phase4FeedInventorySubtitle');
+
+  @override
+  String get phase4FeedPurchaseTitle => tr('phase4FeedPurchaseTitle');
+
+  @override
+  String get phase4FeedPurchaseSubtitle => tr('phase4FeedPurchaseSubtitle');
+
+  @override
+  String get phase4FeedConsumptionTitle => tr('phase4FeedConsumptionTitle');
+
+  @override
+  String get phase4FeedConsumptionSubtitle => tr('phase4FeedConsumptionSubtitle');
+
+  @override
+  String get phase4FeedInventoryEmpty => tr('phase4FeedInventoryEmpty');
+
+  @override
+  String get phase4FeedPurchaseSaved => tr('phase4FeedPurchaseSaved');
+
+  @override
+  String get phase4FeedOfflineSaved => tr('phase4FeedOfflineSaved');
+
+  @override
+  String get phase4FeedInventoryItemLabel => tr('phase4FeedInventoryItemLabel');
+
+  @override
+  String get phase4FeedQuantityLabel => tr('phase4FeedQuantityLabel');
+
+  @override
+  String get phase4FeedCostLabel => tr('phase4FeedCostLabel');
+
+  @override
+  String get phase4FeedSupplierLabel => tr('phase4FeedSupplierLabel');
+
+  @override
+  String get phase4FeedSavePurchase => tr('phase4FeedSavePurchase');
+
+  @override
+  String get phase4FeedConsumptionSaved => tr('phase4FeedConsumptionSaved');
+
+  @override
+  String get phase4FeedAmountLabel => tr('phase4FeedAmountLabel');
+
+  @override
+  String get phase4FeedDeductStock => tr('phase4FeedDeductStock');
+
+  @override
+  String get phase4FeedSaveConsumption => tr('phase4FeedSaveConsumption');
+
+  @override
+  String get phase4FeedDetailTitle => tr('phase4FeedDetailTitle');
+
+  @override
+  String get phase4FeedCategoryLabel => tr('phase4FeedCategoryLabel');
+
+  @override
+  String get phase4FeedUnitLabel => tr('phase4FeedUnitLabel');
+
+  @override
+  String get phase4FeedPriceLabel => tr('phase4FeedPriceLabel');
+
+  @override
+  String get phase4FeedLoadError => tr('phase4FeedLoadError');
+
+  @override
+  String get analyticsDashboardTitle => tr('analyticsDashboardTitle');
+
+  @override
+  String get analyticsActiveAnimals => tr('analyticsActiveAnimals');
+
+  @override
+  String get analyticsFeedCost => tr('analyticsFeedCost');
+
+  @override
+  String get analyticsTotalExpense => tr('analyticsTotalExpense');
+
+  @override
+  String get analyticsLowStock => tr('analyticsLowStock');
+
+  @override
+  String get analyticsSpeciesBreakdown => tr('analyticsSpeciesBreakdown');
+
+  @override
+  String get analyticsMonthlyReport => tr('analyticsMonthlyReport');
+
+  @override
+  String get analyticsFeedEfficiency => tr('analyticsFeedEfficiency');
+
+  @override
+  String get analyticsTotalFeedKg => tr('analyticsTotalFeedKg');
+
+  @override
+  String get analyticsAvgFeedPerAnimal => tr('analyticsAvgFeedPerAnimal');
+
+  @override
+  String get analyticsCostPerAnimal => tr('analyticsCostPerAnimal');
+
+  @override
+  String get analyticsLoadError => tr('analyticsLoadError');
+
+  @override
+  String get analyticsNoFarm => tr('analyticsNoFarm');
+
+  @override
+  String get recommendationTitle => tr('recommendationTitle');
+
+  @override
+  String get recommendationDailyIntake => tr('recommendationDailyIntake');
+
+  @override
+  String get recommendationEstimatedCost => tr('recommendationEstimatedCost');
+
+  @override
+  String recommendationDryMatter(String kg) => tr("recommendationDryMatter", {'kg': kg});
+
+  @override
+  String get recommendationWarnings => tr('recommendationWarnings');
+
+  @override
+  String get recommendationIntelligenceTitle => tr('recommendationIntelligenceTitle');
+
+  @override
+  String get recommendationExplanations => tr('recommendationExplanations');
+
+  @override
+  String get recommendationAlternatives => tr('recommendationAlternatives');
+
+  @override
+  String get recommendationSuggestedFeed => tr('recommendationSuggestedFeed');
+
+  @override
+  String get recommendationAccepted => tr('recommendationAccepted');
+
+  @override
+  String get recommendationAccept => tr('recommendationAccept');
+
+  @override
+  String get recommendationScoreOverall => tr('recommendationScoreOverall');
+
+  @override
+  String get recommendationScoreNutrition => tr('recommendationScoreNutrition');
+
+  @override
+  String get recommendationScoreAffordability => tr('recommendationScoreAffordability');
+
+  @override
+  String get recommendationScoreSeasonal => tr('recommendationScoreSeasonal');
+
+  @override
+  String get recommendationScoreHealth => tr('recommendationScoreHealth');
 
 }
 
@@ -7430,6 +7631,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get homeCareChatEta => tr('homeCareChatEta');
 
   @override
+  String get aiSymptomGuidanceNote => tr('aiSymptomGuidanceNote');
+
+  @override
   String get profileMemberSince => tr('profileMemberSince');
 
   @override
@@ -7455,6 +7659,204 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get feedCatalogSearchLabel => tr('feedCatalogSearchLabel');
+
+  @override
+  String get consentWithdrawPrivacy => tr('consentWithdrawPrivacy');
+
+  @override
+  String get consentWithdrawConfirm => tr('consentWithdrawConfirm');
+
+  @override
+  String get consentWithdrawn => tr('consentWithdrawn');
+
+  @override
+  String get animalNameLabel => tr('animalNameLabel');
+
+  @override
+  String get animalPurposeLabel => tr('animalPurposeLabel');
+
+  @override
+  String get animalQrCopy => tr('animalQrCopy');
+
+  @override
+  String get animalQrCopied => tr('animalQrCopied');
+
+  @override
+  String get ecosystemHubTitle => tr('ecosystemHubTitle');
+
+  @override
+  String get ecosystemHubSubtitle => tr('ecosystemHubSubtitle');
+
+  @override
+  String get phase4FeedHubTitle => tr('phase4FeedHubTitle');
+
+  @override
+  String get phase4FeedOfflineHint => tr('phase4FeedOfflineHint');
+
+  @override
+  String get phase4FeedLowStockAlerts => tr('phase4FeedLowStockAlerts');
+
+  @override
+  String get phase4FeedCatalogTitle => tr('phase4FeedCatalogTitle');
+
+  @override
+  String get phase4FeedCatalogSubtitle => tr('phase4FeedCatalogSubtitle');
+
+  @override
+  String get phase4FeedInventoryTitle => tr('phase4FeedInventoryTitle');
+
+  @override
+  String get phase4FeedInventorySubtitle => tr('phase4FeedInventorySubtitle');
+
+  @override
+  String get phase4FeedPurchaseTitle => tr('phase4FeedPurchaseTitle');
+
+  @override
+  String get phase4FeedPurchaseSubtitle => tr('phase4FeedPurchaseSubtitle');
+
+  @override
+  String get phase4FeedConsumptionTitle => tr('phase4FeedConsumptionTitle');
+
+  @override
+  String get phase4FeedConsumptionSubtitle => tr('phase4FeedConsumptionSubtitle');
+
+  @override
+  String get phase4FeedInventoryEmpty => tr('phase4FeedInventoryEmpty');
+
+  @override
+  String get phase4FeedPurchaseSaved => tr('phase4FeedPurchaseSaved');
+
+  @override
+  String get phase4FeedOfflineSaved => tr('phase4FeedOfflineSaved');
+
+  @override
+  String get phase4FeedInventoryItemLabel => tr('phase4FeedInventoryItemLabel');
+
+  @override
+  String get phase4FeedQuantityLabel => tr('phase4FeedQuantityLabel');
+
+  @override
+  String get phase4FeedCostLabel => tr('phase4FeedCostLabel');
+
+  @override
+  String get phase4FeedSupplierLabel => tr('phase4FeedSupplierLabel');
+
+  @override
+  String get phase4FeedSavePurchase => tr('phase4FeedSavePurchase');
+
+  @override
+  String get phase4FeedConsumptionSaved => tr('phase4FeedConsumptionSaved');
+
+  @override
+  String get phase4FeedAmountLabel => tr('phase4FeedAmountLabel');
+
+  @override
+  String get phase4FeedDeductStock => tr('phase4FeedDeductStock');
+
+  @override
+  String get phase4FeedSaveConsumption => tr('phase4FeedSaveConsumption');
+
+  @override
+  String get phase4FeedDetailTitle => tr('phase4FeedDetailTitle');
+
+  @override
+  String get phase4FeedCategoryLabel => tr('phase4FeedCategoryLabel');
+
+  @override
+  String get phase4FeedUnitLabel => tr('phase4FeedUnitLabel');
+
+  @override
+  String get phase4FeedPriceLabel => tr('phase4FeedPriceLabel');
+
+  @override
+  String get phase4FeedLoadError => tr('phase4FeedLoadError');
+
+  @override
+  String get analyticsDashboardTitle => tr('analyticsDashboardTitle');
+
+  @override
+  String get analyticsActiveAnimals => tr('analyticsActiveAnimals');
+
+  @override
+  String get analyticsFeedCost => tr('analyticsFeedCost');
+
+  @override
+  String get analyticsTotalExpense => tr('analyticsTotalExpense');
+
+  @override
+  String get analyticsLowStock => tr('analyticsLowStock');
+
+  @override
+  String get analyticsSpeciesBreakdown => tr('analyticsSpeciesBreakdown');
+
+  @override
+  String get analyticsMonthlyReport => tr('analyticsMonthlyReport');
+
+  @override
+  String get analyticsFeedEfficiency => tr('analyticsFeedEfficiency');
+
+  @override
+  String get analyticsTotalFeedKg => tr('analyticsTotalFeedKg');
+
+  @override
+  String get analyticsAvgFeedPerAnimal => tr('analyticsAvgFeedPerAnimal');
+
+  @override
+  String get analyticsCostPerAnimal => tr('analyticsCostPerAnimal');
+
+  @override
+  String get analyticsLoadError => tr('analyticsLoadError');
+
+  @override
+  String get analyticsNoFarm => tr('analyticsNoFarm');
+
+  @override
+  String get recommendationTitle => tr('recommendationTitle');
+
+  @override
+  String get recommendationDailyIntake => tr('recommendationDailyIntake');
+
+  @override
+  String get recommendationEstimatedCost => tr('recommendationEstimatedCost');
+
+  @override
+  String recommendationDryMatter(String kg) => tr("recommendationDryMatter", {'kg': kg});
+
+  @override
+  String get recommendationWarnings => tr('recommendationWarnings');
+
+  @override
+  String get recommendationIntelligenceTitle => tr('recommendationIntelligenceTitle');
+
+  @override
+  String get recommendationExplanations => tr('recommendationExplanations');
+
+  @override
+  String get recommendationAlternatives => tr('recommendationAlternatives');
+
+  @override
+  String get recommendationSuggestedFeed => tr('recommendationSuggestedFeed');
+
+  @override
+  String get recommendationAccepted => tr('recommendationAccepted');
+
+  @override
+  String get recommendationAccept => tr('recommendationAccept');
+
+  @override
+  String get recommendationScoreOverall => tr('recommendationScoreOverall');
+
+  @override
+  String get recommendationScoreNutrition => tr('recommendationScoreNutrition');
+
+  @override
+  String get recommendationScoreAffordability => tr('recommendationScoreAffordability');
+
+  @override
+  String get recommendationScoreSeasonal => tr('recommendationScoreSeasonal');
+
+  @override
+  String get recommendationScoreHealth => tr('recommendationScoreHealth');
 
 }
 

@@ -6,7 +6,8 @@ import 'package:pranidoctor_user/l10n/app_localizations.dart';
 import '../../../routing/app_routes.dart';
 import '../data/ai_dto.dart';
 import 'ai_providers.dart';
-import 'widgets/ai_escalation_disclosure_strip.dart';
+import 'compliance/ai_compliance_model.dart';
+import 'compliance/ai_compliance_shell.dart';
 import 'widgets/triage_card.dart';
 
 class AiResultPage extends ConsumerWidget {
@@ -18,38 +19,26 @@ class AiResultPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final triage = result ?? ref.watch(aiChatProvider).value?.triageResult;
-    final trigger = triage?.escalationFields?.trigger ??
-        (triage != null
-            ? escalationTriggerFromTriage(
-                escalationRequired: triage.escalationRequired,
-                emergency: triage.emergency,
-              )
-            : null);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.aiResultTitle)),
-      body: triage == null
-          ? Center(child: Text(l10n.aiResultEmpty))
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                TriageCard(result: triage),
-                if (trigger != null) ...[
-                  const SizedBox(height: 8),
-                  AiEscalationDisclosureStrip(
-                    trigger: trigger,
-                    apiDisclosure: triage.escalationFields?.disclosure,
-                    showKeywordLimitation: true,
-                    onRequestHumanReview: () => requestAiHumanReview(ref),
+      body: AiCompliancePageBody(
+        surface: AiComplianceSurface.triage,
+        showEscalationAwarenessBanner: true,
+        child: triage == null
+            ? Center(child: Text(l10n.aiResultEmpty))
+            : ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  TriageCard(result: triage),
+                  const SizedBox(height: 16),
+                  OutlinedButton(
+                    onPressed: () => context.push(AppRoutes.aiChat),
+                    child: Text(l10n.aiAskTitle),
                   ),
                 ],
-                const SizedBox(height: 16),
-                OutlinedButton(
-                  onPressed: () => context.push(AppRoutes.aiChat),
-                  child: Text(l10n.aiAskTitle),
-                ),
-              ],
-            ),
+              ),
+      ),
     );
   }
 }

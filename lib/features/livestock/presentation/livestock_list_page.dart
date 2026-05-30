@@ -55,14 +55,14 @@ class _LivestockListPageState extends ConsumerState<LivestockListPage> {
 
     if (farmRef == null || farmRef.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.t(TranslationKeys.livestockListTitle))),
+        appBar: AppBar(title: Text(l10n.t(TranslationKeys.animalListTitle))),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(l10n.t(TranslationKeys.livestockNoFarmHint)),
+                Text(l10n.t(TranslationKeys.farmEmpty)),
                 const SizedBox(height: 16),
                 FilledButton(
                   onPressed: () => context.push(AppRoutes.farms),
@@ -77,7 +77,7 @@ class _LivestockListPageState extends ConsumerState<LivestockListPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.t(TranslationKeys.livestockListTitle)),
+        title: Text(l10n.t(TranslationKeys.animalListTitle)),
         actions: [
           IconButton(
             onPressed: () => context.push(AppRoutes.livestockCreate),
@@ -116,7 +116,7 @@ class _LivestockListPageState extends ConsumerState<LivestockListPage> {
                     child: TextField(
                       controller: _searchController,
                       decoration: InputDecoration(
-                        labelText: l10n.t(TranslationKeys.livestockSearchHint),
+                        labelText: l10n.t(TranslationKeys.animalSearchHint),
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.search),
                           onPressed: _applySearch,
@@ -183,11 +183,11 @@ class _LivestockListPageState extends ConsumerState<LivestockListPage> {
   String _filterLabel(dynamic l10n, LivestockFilter filter) {
     switch (filter) {
       case LivestockFilter.active:
-        return l10n.t(TranslationKeys.livestockFilterActive);
+        return l10n.t(TranslationKeys.animalFilterActive);
       case LivestockFilter.inactive:
-        return l10n.t(TranslationKeys.livestockFilterInactive);
+        return l10n.t(TranslationKeys.animalFilterInactive);
       case LivestockFilter.all:
-        return l10n.t(TranslationKeys.livestockFilterAll);
+        return l10n.t(TranslationKeys.animalFilterAll);
     }
   }
 }

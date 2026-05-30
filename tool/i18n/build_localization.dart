@@ -78,32 +78,29 @@ void main() {
   final allKeys = {...entries.keys, ..._errorKeys.keys}.toList()..sort();
 
   _writeTranslationKeys(root, allKeys);
-  _writeAppLocalizationsBase(root);
+  _writeAppLocalizationsBase(root, entries, placeholders);
   _writeAppLocalizationsImpl(root, entries, placeholders);
 
   print('Generated ${entries.length} keys → assets/i18n/{en,bn}.json');
 }
 
-void _writeAppLocalizationsBase(Directory root) {
-  final source = File('${root.path}/lib/l10n/app_localizations.dart');
-  if (!source.existsSync()) {
-    stderr.writeln('Run flutter gen-l10n once before build_localization.');
-    return;
-  }
-  final lines = source.readAsLinesSync();
-  final end = lines.indexWhere((l) => l.startsWith('class _AppLocalizationsDelegate'));
-  if (end < 0) {
-    stderr.writeln('Could not find delegate in app_localizations.dart');
-    return;
-  }
-  final head = lines.sublist(0, end).join('\n');
-  var patched = head.replaceFirst(
-    "import 'app_localizations_en.dart';",
-    "import 'generated/app_localizations_impl.dart';",
-  );
-  patched = patched.replaceFirst(
-    'abstract class AppLocalizations {\n  AppLocalizations(String locale)\n    : localeName = intl.Intl.canonicalizedLocale(locale.toString());\n\n  final String localeName;',
-    '''
+void _writeAppLocalizationsBase(
+  Directory root,
+  Map<String, String> entries,
+  Map<String, Map<String, String>> placeholders,
+) {
+  final buf = StringBuffer('''
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations_delegate.dart';
+import 'localization_loader.dart';
+import 'localization_format.dart';
+
+// ignore_for_file: type=lint
+
+/// Typed localization API generated from lib/l10n/app_en.arb.
 abstract class AppLocalizations {
   AppLocalizations(this._localeCode)
       : localeName = intl.Intl.canonicalizedLocale(_localeCode);
@@ -120,6 +117,9 @@ abstract class AppLocalizations {
         LocalizationLoader.lookup(_localeCode, key),
         args,
       );
+
+  /// Dynamic key lookup (`context.tr.translate(TranslationKeys.x)`).
+  String translate(String key, [Map<String, Object?>? args]) => tr(key, args);
 
   /// Maps API error [code] to localized text; falls back to [code] if unknown.
   String apiError(String code) {
@@ -141,17 +141,46 @@ abstract class AppLocalizations {
   String get errorServerTitle => tr('errorServerTitle');
   String get errorNetworkTitle => tr('errorNetworkTitle');
   String get errorSettingsLoadTitle => tr('errorSettingsLoadTitle');
-''',
-  );
-  if (!patched.contains('import \'localization_loader.dart\';')) {
-    patched = patched.replaceFirst(
-      "import 'generated/app_localizations_impl.dart';",
-      "import 'generated/app_localizations_impl.dart';\nimport 'localization_loader.dart';\nimport 'localization_format.dart';",
-    );
+
+  static AppLocalizations? of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      appLocalizationsDelegate;
+
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
+
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('bn'),
+    Locale('en'),
+  ];
+
+''');
+
+  for (final key in entries.keys) {
+    final ph = placeholders[key];
+    if (ph == null || ph.isEmpty) {
+      buf.writeln('  String get $key;');
+    } else {
+      final params = ph.entries
+          .map((e) => '${_dartType(e.value)} ${e.key}')
+          .join(', ');
+      buf.writeln('  String $key($params);');
+    }
+    buf.writeln();
+  }
+
+  buf.writeln('}');
+
   File('${root.path}/lib/core/localization/app_localizations_base.dart')
-      .writeAsStringSync('$patched\n');
+      .writeAsStringSync(buf.toString());
 }
 
 Directory _findProjectRoot() {
@@ -481,8 +510,8 @@ const _errorKeys = <String, _ErrorPair>{
   ),
   'searchEmergency': _ErrorPair(en: 'Emergency', bn: 'জরুরি'),
   'searchEmergencySubtitle': _ErrorPair(
-    en: 'Emergency doctors and services',
-    bn: 'জরুরি ডাক্তার ও সেবা',
+    en: 'Doctors who may accept emergency requests',
+    bn: 'যারা জরুরি অনুরোধ গ্রহণ করতে পারেন',
   ),
   'animalCreateTitle': _ErrorPair(
     en: 'Add animal',
@@ -517,6 +546,23 @@ const _keyOverrides = <String, String>{
   'homeGreetingAfternoonBn': 'শুভ অপরাহ্ন',
   'homeGreetingEveningBn': 'শুভ সন্ধ্যা',
   'homeUniversalSearchHint': 'ডাক্তার, সেবা, AI, চিকিৎসা সার্চ করুন',
+  'emergencyAvailable': 'জরুরি অনুরোধ গ্রহণ করতে পারেন (খালি থাকলে নয়)',
+  'homeInstantCareTitle': 'জরুরি সহায়তার বিকল্প',
+  'homeInstantCareSubtitle':
+      'কীভাবে সাহায্য নেবেন বেছে নিন। উপলব্ধতা নিশ্চিত নয়।',
+  'homeCareAiDoctorEta': 'স্বয়ংক্রিয় নির্দেশনা — সরাসরি প্রাণী চিকিৎসক নয়',
+  'homeCareCallDoctorEta':
+      'আমরা উপলব্ধ প্রাণী চিকিৎসকের সাথে যোগাযোগের চেষ্টা করছি। সাড়ার সময় পরিবর্তনশীল হতে পারে।',
+  'homeCareEmergencyVisitEta':
+      'জরুরি পরিদর্শনের অনুরোধ সম্ভব হলে পর্যালোচনা হয় — তাত্ক্ষণিক পাঠানোর সেবা নয়।',
+  'homeCareVideoConsultationEta':
+      'অনলাইন পরামর্শ চিকিৎসকের উপলব্ধতার উপর নির্ভরশীল। জীবনঝুঁকির জন্য উপযুক্ত নয়।',
+  'homeCareNearestServiceEta':
+      'আপনার অবস্থান ও সেবার ধারণক্ষমতার উপর নির্ভর করে উপলব্ধতা',
+  'homeCareChatEta':
+      'সাপোর্ট সাড়ার সময় পরিবর্তনশীল হতে পারে। জরুরি প্রাণী চিকিৎসা নয়।',
+  'aiSymptomGuidanceNote':
+      'শুধু নির্দেশনা — নির্ণয় নয়। সাড়া ও বুকিংয়ের সময় পরিবর্তনশীল হতে পারে।',
 };
 
 const _phraseOverrides = <String, String>{

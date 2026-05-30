@@ -58,7 +58,7 @@ class LivestockCard extends StatelessWidget {
                         profile.earTagNumber!.isNotEmpty)
                       Text(
                         l10n.t(
-                          TranslationKeys.livestockEarTag,
+                          TranslationKeys.animalTagLabel,
                           {'tag': profile.earTagNumber!},
                         ),
                         style: theme.textTheme.bodySmall,
