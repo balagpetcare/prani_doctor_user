@@ -19,10 +19,14 @@ import '../offline/data/sync_coordinator.dart';
 import '../profile/data/mobile_me_dto.dart';
 import '../profile/data/profile_repository.dart';
 import '../profile/presentation/profile_providers.dart';
+import '../profile/services/profile_completion_service.dart';
 import '../../core/network/dio_provider.dart';
 import '../../core/session/session_auth.dart';
 import '../../core/session/session_controller.dart';
 import '../../core/session/session_manager.dart';
+import '../../core/startup/boot_api_guard.dart';
+import '../../core/startup/startup_trace.dart';
+import '../../core/util/api_timeout.dart';
 import 'boot_state.dart';
 
 /// Orchestrates cold-start: config → maintenance/update → session restore.
@@ -48,10 +52,8 @@ class BootController extends StateNotifier<BootState> {
       _log('Boot pipeline started');
 
       final packageInfoFuture = PackageInfo.fromPlatform();
-      final configFuture = _ref.read(appConfigRepositoryProvider).loadConfig();
-      final sessionFuture = _ref
-          .read(sessionControllerProvider.notifier)
-          .restoreFromStorage();
+      final configFuture = _loadBootConfig();
+      final sessionFuture = _restoreSessionForBoot();
       final splashFuture = Future<void>.delayed(
         const Duration(milliseconds: BrandAssets.splashMinDisplayMs),
       );
@@ -162,6 +164,40 @@ class BootController extends StateNotifier<BootState> {
     await _finishBoot();
   }
 
+  Future<ApiResult<AppConfigLoadResult>> _loadBootConfig() async {
+    try {
+      return await runWithTimeout(
+        label: 'boot-app-config',
+        timeout: BootApiGuard.configLoadTimeout,
+        action: () => _ref.read(appConfigRepositoryProvider).loadConfig(),
+      );
+    } catch (e) {
+      final cached = await _ref.read(appConfigRepositoryProvider).readCachedConfig();
+      if (cached != null) {
+        _log('config timeout/error — using cache');
+        return ApiResult.success(
+          AppConfigLoadResult(config: cached, fromCache: true),
+        );
+      }
+      return ApiResult.failure(
+        AppException(message: 'Could not load app config', cause: e),
+      );
+    }
+  }
+
+  Future<void> _restoreSessionForBoot() async {
+    try {
+      await runWithTimeout(
+        label: 'boot-session-restore',
+        timeout: BootApiGuard.sessionRestoreTimeout,
+        action: () =>
+            _ref.read(sessionControllerProvider.notifier).restoreFromStorage(),
+      );
+    } catch (e) {
+      _log('session restore timed out or failed — continuing as guest');
+    }
+  }
+
   Future<void> _finishBoot() async {
     state = state.copyWith(phase: BootPhase.restoringSession);
     await _restoreSession();
@@ -170,6 +206,7 @@ class BootController extends StateNotifier<BootState> {
   }
 
   Future<void> _restoreSession() async {
+    StartupTrace.authCheckStart();
     final remember = await _ref.read(authPreferencesProvider).rememberSession();
     if (!remember) {
       await _ref.read(sessionControllerProvider.notifier).signOut();
@@ -203,7 +240,7 @@ class BootController extends StateNotifier<BootState> {
       return;
     }
 
-    var meResult = await _ref.read(profileRepositoryProvider).getMe();
+    var meResult = await _fetchBootProfile();
     var validated = await _handleMeResult(meResult);
     if (!validated) {
       final authFailed = meResult.when(
@@ -215,7 +252,7 @@ class BootController extends StateNotifier<BootState> {
           dio: dio,
         );
         if (recovered) {
-          meResult = await _ref.read(profileRepositoryProvider).getMe();
+          meResult = await _fetchBootProfile(retry: true);
           validated = await _handleMeResult(meResult);
         }
         if (!validated &&
@@ -236,9 +273,35 @@ class BootController extends StateNotifier<BootState> {
     }
   }
 
+  Future<ApiResult<MobileMeDto>> _fetchBootProfile({bool retry = false}) async {
+    try {
+      return await runWithTimeout(
+        label: retry ? 'boot-profile-me-retry' : 'boot-profile-me',
+        timeout: BootApiGuard.profileFetchTimeout,
+        action: () => _ref.read(profileRepositoryProvider).getMe(forceRefresh: true),
+      );
+    } catch (e) {
+      final cached = await _ref.read(profileRepositoryProvider).readCachedProfile();
+      if (cached != null) {
+        return ApiResult.success(cached);
+      }
+      return ApiResult.failure(
+        AppException(message: 'Profile load timed out', cause: e),
+      );
+    }
+  }
+
   Future<bool> _handleMeResult(ApiResult<MobileMeDto> meResult) async {
     return meResult.when(
       success: (profile) async {
+        ProfileCompletionService.logLocationSetupStatus(
+          phase: 'boot-hydrate',
+          profile: profile,
+        );
+        ProfileCompletionService.evaluate(
+          profile,
+          source: ProfileCompletionSource.server,
+        );
         _ref.read(mobileMeProvider.notifier).hydrate(profile);
         return true;
       },

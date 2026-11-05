@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
 import '../../routing/app_routes.dart';
+import 'navigation_diagnostics.dart';
 import 'navigation_guard.dart';
+import 'shell_navigation.dart';
 
 /// Central back-navigation rules for shell roots, feature hubs, and pushed routes.
 abstract final class NavigationService {
@@ -59,8 +61,10 @@ abstract final class NavigationService {
 
   /// Handles system back. Returns `true` when the app should exit.
   static Future<bool> handleBack(BuildContext context) async {
+    NavigationDiagnostics.navigationStart(action: 'system-back');
     if (context.canPop()) {
       SafePop.maybePop(context);
+      NavigationDiagnostics.navigationEnd(action: 'system-back');
       return false;
     }
 
@@ -68,14 +72,17 @@ abstract final class NavigationService {
     final location = router?.state.matchedLocation ?? AppRoutes.home;
 
     if (RootRouteDetector.isShellRoot(location)) {
+      NavigationDiagnostics.navigationEnd(action: 'system-back', route: location);
       return showExitDialog(context);
     }
 
     if (RootRouteDetector.isFeatureHubRoot(location)) {
-      context.go(AppRoutes.home);
+      ShellNavigation.goShellRoot(context, AppRoutes.home);
+      NavigationDiagnostics.navigationEnd(action: 'system-back', route: AppRoutes.home);
       return false;
     }
 
+    NavigationDiagnostics.navigationEnd(action: 'system-back', route: location);
     return showExitDialog(context);
   }
 

@@ -590,6 +590,11 @@ class _QuickActions extends StatelessWidget {
       children: [
 
         ActionChip(
+          avatar: const Icon(Icons.monitor_weight_outlined, size: 18),
+          label: const Text('Weight history'),
+          onPressed: () => context.push(AppRoutes.animalWeightHistory(animalId)),
+        ),
+        ActionChip(
 
           avatar: const Icon(Icons.medical_services_outlined, size: 18),
 

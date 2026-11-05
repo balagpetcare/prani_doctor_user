@@ -107,6 +107,7 @@ class OfflineQueuePanel extends ConsumerWidget {
         return l10n.offlineItemProfile;
       case OutboxKind.animalCreate:
       case OutboxKind.animalPatch:
+      case OutboxKind.animalWeightMeasurementCreate:
         return l10n.selectAnimal;
       case OutboxKind.livestockCreate:
         return 'Livestock sync pending';

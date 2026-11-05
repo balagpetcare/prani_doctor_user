@@ -4,6 +4,7 @@ enum OutboxKind {
   profilePatch('profile_patch'),
   animalCreate('animal_create'),
   animalPatch('animal_patch'),
+  animalWeightMeasurementCreate('animal_weight_measurement_create'),
   batchCreate('batch_create'),
   batchPatch('batch_patch'),
   batchMove('batch_move'),

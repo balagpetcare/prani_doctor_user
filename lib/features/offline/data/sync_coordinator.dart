@@ -26,6 +26,7 @@ import '../../milk/data/milk_api_paths.dart';
 import '../../batches/data/batch_api_paths.dart';
 import '../../fattening/data/fattening_api_paths.dart';
 import '../../animals/data/animal_api_paths.dart';
+import '../../animals/weight/data/animal_weight_api_paths.dart';
 import '../../livestock/data/livestock_api_paths.dart';
 import '../../phase4_feed/data/phase4_feed_api_paths.dart';
 import '../../service_requests/data/service_request_api_paths.dart';
@@ -170,6 +171,18 @@ class SyncCoordinator {
             }
             final body = Map<String, dynamic>.from(item.payload)..remove('id');
             await patchJson(dio, AnimalApiPaths.animal(id), body);
+          case OutboxKind.animalWeightMeasurementCreate:
+            final animalId = item.payload['animalId'] as String?;
+            if (animalId == null) {
+              throw const AppException(message: 'Missing animal id');
+            }
+            final wBody = Map<String, dynamic>.from(item.payload)
+              ..remove('animalId');
+            await postJson(
+              dio,
+              AnimalWeightApiPaths.measurements(animalId),
+              wBody,
+            );
           case OutboxKind.batchCreate:
             await postJson(dio, BatchApiPaths.batches, item.payload);
           case OutboxKind.batchPatch:

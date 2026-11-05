@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../../core/navigation/shell_navigation.dart';
+
 class HomeBottomNav extends StatelessWidget {
   const HomeBottomNav({
     super.key,
@@ -19,7 +21,11 @@ class HomeBottomNav extends StatelessWidget {
     return NavigationBar(
       selectedIndex: navigationShell.currentIndex,
       onDestinationSelected: (index) {
-        navigationShell.goBranch(index, initialLocation: true);
+        ShellNavigation.selectTab(
+          context,
+          shell: navigationShell,
+          index: index,
+        );
       },
       destinations: [
         NavigationDestination(

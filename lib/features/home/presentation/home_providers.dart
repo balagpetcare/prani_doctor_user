@@ -7,6 +7,7 @@ import '../../../core/offline/network_errors.dart';
 import '../../../core/network/auto_refresh_guard.dart';
 import '../../../core/providers/provider_stability.dart';
 import '../../../core/session/session_providers.dart';
+import '../../../core/util/api_timeout.dart';
 import '../../farm/data/farm_repository.dart';
 import '../../notifications/data/notification_dto.dart';
 import '../../notifications/data/notification_repository.dart';
@@ -16,6 +17,8 @@ import '../../vaccine/data/vaccine_dto.dart';
 import '../../vaccine/data/vaccine_repository.dart';
 import '../data/dashboard_context_dto.dart';
 import '../data/dashboard_repository.dart';
+import '../data/home_api_guard.dart';
+import 'home_performance_diagnostics.dart';
 import 'home_state.dart';
 import 'providers/home_section_providers.dart';
 
@@ -180,7 +183,36 @@ class DashboardNotifier extends AsyncNotifier<DashboardContext?>
       return cached;
     }
     ref.read(homeStateProvider.notifier).set(HomeState.loading);
-    return _load(forceRefresh: false);
+    return _loadWithFallback(forceRefresh: false);
+  }
+
+  Future<DashboardContext?> _loadWithFallback({
+    required bool forceRefresh,
+  }) async {
+    try {
+      return await runWithTimeout(
+        label: 'dashboard-notifier',
+        timeout: HomeApiGuard.dashboardLoadTimeout,
+        action: () => _load(forceRefresh: forceRefresh),
+      );
+    } catch (e) {
+      if (e is AppException && (e.code == '401' || e.code == '403')) {
+        rethrow;
+      }
+      return _recoverContextAfterFailure();
+    }
+  }
+
+  Future<DashboardContext?> _recoverContextAfterFailure() async {
+    final cached = await ref
+        .read(dashboardRepositoryProvider)
+        .readCachedDashboard();
+    if (cached != null) {
+      ref.read(homeStateProvider.notifier).set(HomeState.offline);
+      return cached;
+    }
+    ref.read(homeStateProvider.notifier).set(HomeState.cached);
+    return DashboardContext.degraded();
   }
 
   void _scheduleBackgroundRefresh() {
@@ -208,15 +240,23 @@ class DashboardNotifier extends AsyncNotifier<DashboardContext?>
 
   Future<void> reload({bool forceRefresh = false}) async {
     if (!guardReload()) return;
+    HomePerformanceDiagnostics.providerRefresh(
+      'dashboardProvider',
+      reason: 'reload force=$forceRefresh',
+    );
     final previous = state.valueOrNull;
     if (previous == null) {
       ref.read(homeStateProvider.notifier).set(HomeState.loading);
       state = const AsyncLoading();
     }
     try {
-      final data = await _load(forceRefresh: forceRefresh);
+      final data = await _loadWithFallback(forceRefresh: forceRefresh);
       state = AsyncData(data);
-      ref.read(homeStateProvider.notifier).set(HomeState.ready);
+      ref.read(homeStateProvider.notifier).set(
+        data?.fromCache == true && data?.user.id == 'offline'
+            ? HomeState.cached
+            : HomeState.ready,
+      );
       scheduleInvalidateDashboardSections(ref);
     } catch (e, st) {
       if (previous != null) {
@@ -240,12 +280,16 @@ class DashboardNotifier extends AsyncNotifier<DashboardContext?>
     if (!allowBackground && !guardRefresh(silent: silent)) return;
     if (allowBackground && anyRefreshInFlight) return;
     if (allowBackground) refreshInFlight = true;
+    HomePerformanceDiagnostics.providerRefresh(
+      'dashboardProvider',
+      reason: 'refresh silent=$silent',
+    );
     final previous = state.value;
     if (!silent && previous != null) {
       state = AsyncData(previous);
     }
     try {
-      final data = await _load(forceRefresh: true);
+      final data = await _loadWithFallback(forceRefresh: true);
       state = AsyncData(data);
       ref.read(homeStateProvider.notifier).set(
         data?.fromCache == true ? HomeState.cached : HomeState.ready,
@@ -292,34 +336,48 @@ Future<DashboardMetrics> _loadMetrics(Ref ref, DashboardContext context) async {
   var unreadNotifications = 0;
   var fromCache = context.fromCache;
 
-  final farmResult = await ref
-      .read(farmRepositoryProvider)
-      .listFarms(pageSize: 1);
-  farmResult.when(
-    success: (page) {
-      totalFarms = page.total;
-      fromCache = fromCache || page.fromCache;
-    },
-    failure: (_) {},
-  );
+  try {
+    final farmResult = await runWithTimeout(
+      label: 'dashboard-metrics-farms',
+      timeout: HomeApiGuard.dashboardLoadTimeout,
+      action: () => ref.read(farmRepositoryProvider).listFarms(pageSize: 1),
+    );
+    farmResult.when(
+      success: (page) {
+        totalFarms = page.total;
+        fromCache = fromCache || page.fromCache;
+      },
+      failure: (_) {},
+    );
+  } catch (_) {}
 
-  final requestsResult = await ref
-      .read(serviceRequestRepositoryProvider)
-      .listRequests(limit: 100);
-  requestsResult.when(
-    success: (data) {
-      activeAppointments = data.requests.where((r) => r.status.isActive).length;
-    },
-    failure: (_) {},
-  );
+  try {
+    final requestsResult = await runWithTimeout(
+      label: 'dashboard-metrics-requests',
+      timeout: HomeApiGuard.dashboardLoadTimeout,
+      action: () =>
+          ref.read(serviceRequestRepositoryProvider).listRequests(limit: 100),
+    );
+    requestsResult.when(
+      success: (data) {
+        activeAppointments =
+            data.requests.where((r) => r.status.isActive).length;
+      },
+      failure: (_) {},
+    );
+  } catch (_) {}
 
-  final notificationsResult = await ref
-      .read(notificationRepositoryProvider)
-      .getUnreadCount();
-  notificationsResult.when(
-    success: (count) => unreadNotifications = count,
-    failure: (_) {},
-  );
+  try {
+    final notificationsResult = await runWithTimeout(
+      label: 'dashboard-metrics-notifications',
+      timeout: HomeApiGuard.dashboardLoadTimeout,
+      action: () => ref.read(notificationRepositoryProvider).getUnreadCount(),
+    );
+    notificationsResult.when(
+      success: (count) => unreadNotifications = count,
+      failure: (_) {},
+    );
+  } catch (_) {}
 
   return DashboardMetrics(
     totalFarms: totalFarms,
@@ -451,6 +509,10 @@ final dashboardSummaryProvider = FutureProvider<DashboardSummary>((ref) async {
 
 void scheduleInvalidateDashboardSections(Ref ref) {
   _sectionInvalidateDebouncer.schedule(() async {
+    HomePerformanceDiagnostics.providerRefresh(
+      'dashboardSections',
+      reason: 'debounced-invalidate',
+    );
     ProviderLog.provider('invalidate dashboard sections');
     ref.invalidate(dashboardMetricsProvider);
     ref.invalidate(dashboardAppointmentsProvider);

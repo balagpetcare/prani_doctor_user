@@ -7,6 +7,7 @@ import '../../../core/network/dio_helpers.dart';
 import '../../../core/network/dio_provider.dart';
 import '../../../core/offline/local_cache_contract.dart';
 import '../../../core/offline/network_errors.dart';
+import '../../../core/util/json_isolate.dart';
 import '../../shared/upload/services/upload_service.dart';
 import '../../offline/data/local_cache_service.dart';
 import '../../offline/data/outbox_item.dart';
@@ -38,10 +39,10 @@ class AnimalRepository implements AnimalRepositoryContract {
   Future<AnimalPageResult?> readCachedList() async {
     final cached = await _cache.read(LocalCacheContract.animalsListKey);
     if (cached == null) return null;
-    final animals = (cached['animals'] as List<dynamic>? ?? [])
+    final raw = (cached['animals'] as List<dynamic>? ?? [])
         .whereType<Map<String, dynamic>>()
-        .map((j) => AnimalProfile.fromJson(j, fromCache: true))
-        .toList();
+        .toList(growable: false);
+    final animals = await parseAnimalProfilesOffMain(raw);
     return AnimalPageResult(
       animals: animals,
       total: cached['total'] as int? ?? animals.length,

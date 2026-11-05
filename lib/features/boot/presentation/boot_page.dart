@@ -5,6 +5,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/branding/brand_assets.dart';
 import '../../../core/branding/brand_image.dart';
+import '../../../core/startup/boot_api_guard.dart';
+import '../../../core/startup/startup_trace.dart';
+import '../../../shared/widgets/async_loading_timeout_guard.dart';
 import '../boot_controller.dart';
 import '../boot_state.dart';
 import 'pages/splash_page.dart';
@@ -23,6 +26,7 @@ class _BootPageState extends ConsumerState<BootPage> {
   @override
   void initState() {
     super.initState();
+    StartupTrace.splashStart();
     Future.microtask(() => ref.read(bootControllerProvider.notifier).run());
   }
 
@@ -41,12 +45,26 @@ class _BootPageState extends ConsumerState<BootPage> {
     };
 
     if (isLoadingPhase) {
-      return SplashPage(
-        statusMessage: _statusMessage(l10n, boot.phase),
-        onAnimationComplete: () {
-          if (!mounted) return;
-          setState(() => _splashAnimationDone = true);
-        },
+      return AsyncLoadingTimeoutGuard(
+        isLoading: true,
+        scope: 'boot-splash',
+        timeout: BootApiGuard.splashMaxDisplay,
+        loadingChild: SplashPage(
+          statusMessage: _statusMessage(l10n, boot.phase),
+          onAnimationComplete: () {
+            if (!mounted) return;
+            setState(() => _splashAnimationDone = true);
+          },
+        ),
+        onTimeout: (retry) => _BootSplashTimeoutView(
+          l10n: l10n,
+          onRetry: () {
+            retry();
+            setState(() => _splashAnimationDone = false);
+            ref.read(bootControllerProvider.notifier).retry();
+          },
+        ),
+        child: const SizedBox.shrink(),
       );
     }
 
@@ -98,6 +116,50 @@ class _BootPageState extends ConsumerState<BootPage> {
     final uri = Uri.tryParse(target);
     if (uri == null) return;
     await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+}
+
+class _BootSplashTimeoutView extends StatelessWidget {
+  const _BootSplashTimeoutView({required this.l10n, required this.onRetry});
+
+  final AppLocalizations l10n;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.hourglass_disabled_outlined,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'অ্যাপ লোড করতে সমস্যা হয়েছে',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Text(l10n.bootInitError, textAlign: TextAlign.center),
+                const SizedBox(height: 24),
+                FilledButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh),
+                  label: Text(l10n.bootRetry),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

@@ -9,6 +9,10 @@ import '../../../routing/app_routes.dart';
 import '../data/animal_dto.dart';
 import '../data/animal_repository.dart';
 import '../data/animal_validation.dart';
+import '../weight/data/animal_weight_capture_draft.dart';
+import '../weight/data/animal_weight_method.dart';
+import '../weight/data/animal_weight_validation.dart';
+import '../weight/presentation/animal_weight_metrics_step.dart';
 import 'animal_navigation.dart';
 import 'animal_providers.dart';
 import 'widgets/animal_image_upload.dart';
@@ -27,8 +31,8 @@ class _AnimalFormPageState extends ConsumerState<AnimalFormPage> {
   final _pageController = PageController();
   final _nameController = TextEditingController();
   final _tagController = TextEditingController();
-  final _weightController = TextEditingController();
   final _ageController = TextEditingController();
+  AnimalWeightCaptureDraft _weightCapture = const AnimalWeightCaptureDraft();
   final _notesController = TextEditingController();
 
   String _animalType = 'GOAT';
@@ -97,7 +101,13 @@ class _AnimalFormPageState extends ConsumerState<AnimalFormPage> {
     _nameController.text = input.name ?? '';
     _tagController.text = input.tag ?? '';
     _breed = input.breed;
-    _weightController.text = input.weightKg?.toString() ?? '';
+    _weightCapture = input.weightCapture ?? const AnimalWeightCaptureDraft();
+    if (_weightCapture.method == null && input.weightKg != null) {
+      _weightCapture = AnimalWeightCaptureDraft(
+        method: AnimalWeightMethod.scale,
+        scaleWeightKg: input.weightKg,
+      );
+    }
     _ageController.text = input.ageYears?.toString() ?? '';
     _notesController.text = input.notes ?? '';
     _gender = input.gender == 'UNKNOWN' ? null : input.gender;
@@ -114,7 +124,8 @@ class _AnimalFormPageState extends ConsumerState<AnimalFormPage> {
       gender: _gender,
       notes: _notesController.text.trim(),
       photoUrl: _photoUrl,
-      weightKg: double.tryParse(_weightController.text.trim()),
+      weightKg: _weightCapture.resolvedWeightKg,
+      weightCapture: _weightCapture.hasCapture ? _weightCapture : null,
     );
   }
 
@@ -172,10 +183,19 @@ class _AnimalFormPageState extends ConsumerState<AnimalFormPage> {
       tag: _tagController.text,
       message: l10n.animalNameOrTagRequired,
     );
-    final weightError = AnimalValidation.validateWeight(
-      _weightController.text,
-      invalidMessage: l10n.animalWeightInvalid,
-    );
+    final weightError = _weightCapture.method != null
+        ? AnimalWeightValidation.validateCapture(
+            _weightCapture,
+            animalType: _animalType,
+            methodRequiredMessage: l10n.animalWeightInvalid,
+            tapeHeartMessage: l10n.animalWeightInvalid,
+            tapeLengthMessage: l10n.animalWeightInvalid,
+            weightMessage: l10n.animalWeightInvalid,
+            aiMediaMessage: l10n.animalWeightInvalid,
+            aiDisclaimerMessage: l10n.animalWeightInvalid,
+            tapeUnsupportedMessage: l10n.animalWeightInvalid,
+          )
+        : null;
     final ageError = AnimalValidation.validateAgeYears(
       _ageController.text,
       invalidMessage: l10n.animalAgeInvalid,
@@ -248,7 +268,6 @@ class _AnimalFormPageState extends ConsumerState<AnimalFormPage> {
     _pageController.dispose();
     _nameController.dispose();
     _tagController.dispose();
-    _weightController.dispose();
     _ageController.dispose();
     _notesController.dispose();
     super.dispose();
@@ -459,28 +478,24 @@ class _AnimalFormPageState extends ConsumerState<AnimalFormPage> {
   }
 
   Widget _stepMetrics(AppLocalizations l10n) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            l10n.animalFormStepMetrics,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _weightController,
-            decoration: InputDecoration(labelText: l10n.animalWeightLabel),
-            keyboardType: TextInputType.number,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: AnimalWeightMetricsStep(
+            animalType: _animalType,
+            draft: _weightCapture,
             enabled: !_loading,
-            onChanged: (_) {
+            onDraftChanged: (next) {
               _markEdited();
+              setState(() => _weightCapture = next);
               _autosaveDraft();
             },
           ),
-          const SizedBox(height: 12),
-          TextField(
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+          child: TextField(
             controller: _ageController,
             decoration: InputDecoration(labelText: l10n.animalAgeLabel),
             keyboardType: TextInputType.number,
@@ -490,8 +505,8 @@ class _AnimalFormPageState extends ConsumerState<AnimalFormPage> {
               _autosaveDraft();
             },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

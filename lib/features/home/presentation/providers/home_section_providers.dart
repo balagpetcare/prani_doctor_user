@@ -79,7 +79,7 @@ final homeHealthTasksProvider = FutureProvider<List<HomeHealthTask>>((
     return tasks;
   } catch (e) {
     HomeAnalytics.sectionError('tasks');
-    rethrow;
+    return const [];
   }
 });
 
@@ -100,7 +100,7 @@ final homeDoctorsPreviewProvider =
         return doctors;
       } catch (e) {
         HomeAnalytics.sectionError('doctors');
-        rethrow;
+        return const [];
       }
     });
 

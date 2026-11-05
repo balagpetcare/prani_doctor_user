@@ -7,6 +7,9 @@ import '../../../core/network/dio_helpers.dart';
 import '../../../core/network/dio_provider.dart';
 import '../../../core/offline/local_cache_contract.dart';
 import '../../../core/offline/network_errors.dart';
+import '../../../core/util/api_timeout.dart';
+import '../../../core/util/json_isolate.dart';
+import 'home_api_guard.dart';
 import '../../offline/data/local_cache_service.dart';
 import '../../offline/offline_providers.dart';
 import 'dashboard_api_paths.dart';
@@ -22,13 +25,13 @@ class DashboardRepository implements DashboardRepositoryContract {
 
   Future<ApiResult<DashboardContext>>? _fetchInFlight;
 
-  static const _maxAttempts = 1;
+  static const _maxAttempts = HomeApiGuard.maxApiAttempts;
 
   @override
   Future<DashboardContext?> readCachedDashboard() async {
     final cached = await _cache.read(LocalCacheContract.dashboardKey);
     if (cached == null) return null;
-    return DashboardContext.fromJson(cached, fromCache: true);
+    return parseDashboardContextOffMain(cached);
   }
 
   Future<void> _writeCache(Map<String, dynamic> data) async {
@@ -63,7 +66,11 @@ class DashboardRepository implements DashboardRepositoryContract {
 
     for (var attempt = 1; attempt <= _maxAttempts; attempt++) {
       try {
-        final data = await getJson(_dio, DashboardApiPaths.dashboardContext);
+        final data = await runWithTimeout(
+          label: 'dashboard-context',
+          timeout: HomeApiGuard.dashboardLoadTimeout,
+          action: () => getJson(_dio, DashboardApiPaths.dashboardContext),
+        );
         await _writeCache(data);
         return ApiResult.success(DashboardContext.fromJson(data));
       } on AppException catch (e) {
@@ -72,8 +79,13 @@ class DashboardRepository implements DashboardRepositoryContract {
           return ApiResult.failure(e);
         }
         if (!isTransientNetworkError(e) || attempt >= _maxAttempts) break;
+        await Future<void>.delayed(HomeApiGuard.retryDelay);
       } catch (e) {
         lastError = AppException(message: 'Could not load dashboard', cause: e);
+        if (attempt < _maxAttempts) {
+          await Future<void>.delayed(HomeApiGuard.retryDelay);
+          continue;
+        }
         break;
       }
     }

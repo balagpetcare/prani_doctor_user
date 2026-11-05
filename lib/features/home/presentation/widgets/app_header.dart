@@ -5,6 +5,7 @@ import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
 import '../../../../core/branding/brand_assets.dart';
 import '../../../../core/branding/brand_image.dart';
+import '../../../../core/navigation/shell_navigation.dart';
 import '../../../../routing/app_routes.dart';
 import '../../../notifications/presentation/notification_providers.dart';
 import '../../../profile/presentation/profile_providers.dart';
@@ -47,7 +48,17 @@ class HomeAppHeader extends ConsumerWidget {
             leading: IconButton(
               icon: const Icon(Icons.menu),
               tooltip: l10n.drawerTitle,
-              onPressed: () => Scaffold.of(context).openDrawer(),
+              onPressed: () {
+                final scaffold = Scaffold.maybeOf(context);
+                if (scaffold?.hasDrawer ?? false) {
+                  scaffold!.openDrawer();
+                  return;
+                }
+                final messenger = ScaffoldMessenger.maybeOf(context);
+                messenger?.showSnackBar(
+                  SnackBar(content: Text(l10n.dashboardLoadError)),
+                );
+              },
             ),
             title: Semantics(
               label: l10n.navHome,
@@ -64,7 +75,7 @@ class HomeAppHeader extends ConsumerWidget {
                 child: IconButton(
                   onPressed: () {
                     HomeAnalytics.navigate(AppRoutes.inbox);
-                    context.go(AppRoutes.inbox);
+                    ShellNavigation.goShellRoot(context, AppRoutes.inbox);
                   },
                   icon: const Icon(Icons.notifications_outlined),
                   tooltip: l10n.dashboardNotifications,
@@ -82,7 +93,10 @@ class HomeAppHeader extends ConsumerWidget {
                   semanticLabel: displayName,
                   onTap: () {
                     HomeAnalytics.navigate(AppRoutes.settingsProfile);
-                    context.go(AppRoutes.settingsProfile);
+                    ShellNavigation.goShellRoot(
+                      context,
+                      AppRoutes.settingsProfile,
+                    );
                   },
                 ),
               ),

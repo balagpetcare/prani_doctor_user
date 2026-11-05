@@ -48,6 +48,7 @@ abstract final class AppRoutes {
   static const animalCreate = '/animals/create';
   static String animalDetail(String id) => '/animals/$id';
   static String animalEdit(String id) => '/animals/$id/edit';
+  static String animalWeightHistory(String id) => '/animals/$id/weight/history';
   static const ecosystemHub = '/ecosystem';
   static const livestock = '/livestock';
   static const livestockCreate = '/livestock/create';
@@ -139,6 +140,20 @@ abstract final class AppRoutes {
   static const supportContact = '/support/contact';
   static const supportAttachmentView = '/support/attachment';
   static const ai = '/ai';
+  static const aiDoctor = '/ai/doctor';
+  static const aiDoctorCaseNew = '/ai/case/new';
+  static const aiDoctorHistory = '/ai/doctor/history';
+  static String aiDoctorCase(String caseId, String segment) =>
+      '/ai/case/$caseId/$segment';
+  static String aiDoctorCaseIntake(String caseId) => '/ai/case/$caseId/intake';
+  static String aiDoctorCaseChat(String caseId) => '/ai/case/$caseId/chat';
+  static String aiDoctorCaseResult(String caseId) => '/ai/case/$caseId/result';
+  static String aiDoctorCaseEmergency(String caseId) =>
+      '/ai/case/$caseId/emergency';
+  static String aiDoctorCaseEscalate(String caseId) =>
+      '/ai/case/$caseId/escalate';
+  static String aiDoctorCaseHandoff(String caseId) =>
+      '/ai/case/$caseId/handoff';
   static const aiChat = '/home/ai-chat';
   static const aiVoiceInput = '/home/ai-chat/voice';
   static const aiHistory = '/ai/history';

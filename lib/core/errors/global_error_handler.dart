@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../logging/app_logger.dart';
 import '../logging/crash_reporter.dart';
 import '../logging/crash_reporting_context.dart';
+import '../startup/startup_trace.dart';
 import '../../shared/widgets/app_graceful_error.dart';
 
 /// Installs framework-wide error handlers before [runApp].
@@ -50,6 +51,7 @@ abstract final class GlobalErrorHandler {
   static void _onFlutterError(FlutterErrorDetails details) {
     final exception = details.exception;
     final stack = details.stack ?? StackTrace.current;
+    StartupTrace.mark('FLUTTER_ERROR', detail: '$exception');
 
     AppLog.error(
       'Flutter framework error',
@@ -66,6 +68,7 @@ abstract final class GlobalErrorHandler {
   }
 
   static bool _onPlatformError(Object error, StackTrace stack) {
+    StartupTrace.mark('PLATFORM_ERROR', detail: '$error');
     AppLog.error(
       'Uncaught async error',
       tag: 'Platform',

@@ -9,6 +9,7 @@ import '../../../core/session/session_controller.dart';
 import '../../../core/session/session_manager.dart';
 import '../../../routing/app_routes.dart';
 import '../../profile/data/profile_repository.dart';
+import '../../profile/services/profile_completion_service.dart';
 import '../../profile/presentation/profile_navigation.dart';
 import '../../profile/presentation/profile_providers.dart';
 import '../../settings/presentation/settings_providers.dart';
@@ -34,7 +35,9 @@ Future<void> navigateAfterAuth(BuildContext context, WidgetRef ref) async {
     return;
   }
 
-  var meResult = await ref.read(profileRepositoryProvider).getMe();
+  var meResult = await ref
+      .read(profileRepositoryProvider)
+      .getMe(forceRefresh: true);
   if (!context.mounted) return;
 
   var authFailed = meResult.when(
@@ -46,7 +49,9 @@ Future<void> navigateAfterAuth(BuildContext context, WidgetRef ref) async {
     final dio = ref.read(dioProvider);
     final recovered = await sessionManager.recoverFromUnauthorized(dio: dio);
     if (recovered) {
-      meResult = await ref.read(profileRepositoryProvider).getMe();
+      meResult = await ref
+          .read(profileRepositoryProvider)
+          .getMe(forceRefresh: true);
       if (!context.mounted) return;
       authFailed = meResult.when(
         success: (_) => false,
@@ -62,23 +67,34 @@ Future<void> navigateAfterAuth(BuildContext context, WidgetRef ref) async {
     }
   }
 
-  final needsProfile = meResult.when(
-    success: (profile) => profile.needsProfileSetup,
-    failure: (_) => false,
+  final profile = meResult.when(
+    success: (data) => data,
+    failure: (_) => null,
   );
+  final completion = ProfileCompletionService.evaluate(
+    profile,
+    source: ProfileCompletionSource.server,
+  );
+  final needsProfile = !completion.profileCompleted;
 
   ref.invalidate(mobileMeProvider);
   ref.invalidate(settingsProvider);
 
   if (needsProfile) {
-    final profile = meResult.when(
-      success: (data) => data,
-      failure: (_) => null,
+    ProfileCompletionService.logOnboardingDecision(
+      decision: 'post-auth-profile-setup',
+      status: completion,
+      route: profileSetupRoute(profile),
     );
     if (context.mounted) {
       context.go(profileSetupRoute(profile));
     }
   } else {
+    ProfileCompletionService.logOnboardingDecision(
+      decision: 'post-auth-home',
+      status: completion,
+      route: AppRoutes.home,
+    );
     context.go(AppRoutes.home);
   }
 }

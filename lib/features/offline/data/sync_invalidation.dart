@@ -50,6 +50,7 @@ SyncDomain? syncDomainForOutboxKind(OutboxKind kind) {
       return SyncDomain.serviceRequest;
     case OutboxKind.animalCreate:
     case OutboxKind.animalPatch:
+    case OutboxKind.animalWeightMeasurementCreate:
       return SyncDomain.animal;
     case OutboxKind.batchCreate:
     case OutboxKind.batchPatch:

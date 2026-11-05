@@ -7,6 +7,8 @@ import '../features/boot/boot_controller.dart';
 import '../features/onboarding/presentation/onboarding_providers.dart';
 import '../features/profile/presentation/profile_navigation.dart';
 import '../features/profile/presentation/profile_providers.dart';
+import '../features/profile/services/profile_completion_service.dart';
+import '../core/startup/startup_trace.dart';
 import 'app_routes.dart';
 import 'legal_consent_gate.dart';
 
@@ -68,14 +70,48 @@ String? guestEntryRoute(Ref ref) {
 }
 
 String? authenticatedBootExit(Ref ref) {
-  final profile = ref.read(mobileMeProvider).value;
-  if (profile?.needsProfileSetup == true) {
-    return profileSetupRoute(profile);
+  final profileAsync = ref.read(mobileMeProvider);
+  final profile = profileAsync.valueOrNull;
+
+  if (profileAsync.isLoading && profile == null) {
+    StartupTrace.mark(
+      'BOOT_EXIT_PROFILE_PENDING',
+      detail: 'route=${AppRoutes.settingsProfileComplete}',
+    );
+    // Never return null — that leaves GoRouter on /boot with splash forever.
+    return profileSetupRoute(null);
   }
+
+  final completion = ProfileCompletionService.evaluate(
+    profile,
+    source: ProfileCompletionSource.reconciled,
+  );
+
+  if (!completion.profileCompleted) {
+    final route = profileSetupRoute(profile);
+    ProfileCompletionService.logOnboardingDecision(
+      decision: 'boot-exit-profile-setup',
+      status: completion,
+      route: route,
+    );
+    return route;
+  }
+
+  ProfileCompletionService.logOnboardingDecision(
+    decision: 'boot-exit-check-consent',
+    status: completion,
+  );
+
   final gate = ref.read(legalConsentGateProvider);
   if (gate?.needsReconsent == true) {
     return AppRoutes.reconsent;
   }
+
+  ProfileCompletionService.logOnboardingDecision(
+    decision: 'boot-exit-home',
+    status: completion,
+    route: AppRoutes.home,
+  );
   return AppRoutes.home;
 }
 

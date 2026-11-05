@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../shared/widgets/app_graceful_error.dart';
+import '../../core/navigation/navigation_route_observer.dart';
 import 'nav_guard.dart';
 import '../features/auth/presentation/forgot_password_page.dart';
 import '../features/auth/presentation/login_page.dart';
@@ -66,6 +67,15 @@ import '../features/support/presentation/support_home_page.dart';
 import '../features/support/presentation/support_ticket_create_page.dart';
 import '../features/support/presentation/support_ticket_detail_page.dart';
 import '../features/support/presentation/support_ticket_list_page.dart';
+import '../features/ai_doctor/presentation/pages/ai_doctor_case_setup_page.dart';
+import '../features/ai_doctor/presentation/pages/ai_doctor_chat_page.dart';
+import '../features/ai_doctor/presentation/pages/ai_doctor_emergency_page.dart';
+import '../features/ai_doctor/presentation/pages/ai_doctor_escalation_page.dart';
+import '../features/ai_doctor/presentation/pages/ai_doctor_handoff_page.dart';
+import '../features/ai_doctor/presentation/pages/ai_doctor_history_page.dart';
+import '../features/ai_doctor/presentation/pages/ai_doctor_home_page.dart';
+import '../features/ai_doctor/presentation/pages/ai_doctor_intake_page.dart';
+import '../features/ai_doctor/presentation/pages/ai_doctor_result_page.dart';
 import '../features/ai/presentation/ai_chat_page.dart';
 import '../features/ai/presentation/widgets/ai_disclaimer_gate.dart';
 import '../features/ai/data/ai_disclaimer_dto.dart';
@@ -86,6 +96,7 @@ import '../features/batches/presentation/batch_detail_page.dart';
 import '../features/batches/presentation/batch_form_page.dart';
 import '../features/batches/presentation/batch_list_page.dart';
 import '../features/animals/presentation/animal_detail_page.dart';
+import '../features/animals/weight/presentation/animal_weight_history_page.dart';
 import '../features/animals/presentation/animal_form_page.dart';
 import '../features/animals/presentation/animal_list_page.dart';
 import '../features/ecosystem/presentation/ecosystem_hub_page.dart';
@@ -152,6 +163,7 @@ import '../features/settings/presentation/settings_about_page.dart';
 import '../features/settings/presentation/connection_check_page.dart';
 import '../features/settings/presentation/settings_data_sync_page.dart';
 import '../features/settings/settings_page.dart';
+import '../features/profile/presentation/profile_providers.dart';
 import '../features/settings/presentation/settings_providers.dart';
 import '../features/profile/presentation/change_password_page.dart';
 import '../features/profile/presentation/profile_address_page.dart';
@@ -165,6 +177,7 @@ import 'app_routes.dart';
 import 'shell/app_shell_scaffold.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final navigationRouteObserver = NavigationRouteObserver();
 
 /// Notifies [GoRouter] after frame — avoids redirect during widget rebuild.
 class RouterNotifier extends ChangeNotifier {
@@ -192,6 +205,7 @@ class RouterNotifier extends ChangeNotifier {
       }
     });
     _ref.listen(onboardingCompletedProvider, (_, _) => scheduleNotify());
+    _ref.listen(mobileMeProvider, (_, _) => scheduleNotify());
     _ref.listen(settingsProvider, (_, _) => scheduleNotify());
   }
 
@@ -220,6 +234,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: AppRoutes.boot,
     refreshListenable: notifier,
+    observers: [navigationRouteObserver],
     redirect: (context, state) => resolveRedirect(ref: ref, state: state),
     routes: [
       GoRoute(
@@ -676,6 +691,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) =>
                     AnimalFormPage(animalId: state.pathParameters['id']),
+              ),
+              GoRoute(
+                path: 'weight/history',
+                name: 'animalWeightHistory',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => AnimalWeightHistoryPage(
+                  animalId: state.pathParameters['id']!,
+                ),
               ),
             ],
           ),
@@ -1297,6 +1320,85 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.ai,
         parentNavigatorKey: _rootNavigatorKey,
         name: 'aiHome',
+        builder: (context, state) => const AiDoctorDisclaimerGate(
+          child: AiDoctorHomePage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.aiDoctorCaseNew,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiDoctorCaseNew',
+        builder: (context, state) => AiDoctorDisclaimerGate(
+          child: AiDoctorCaseSetupPage(
+            prefilledSpecies: state.uri.queryParameters['species'],
+            prefilledLivestockId: state.uri.queryParameters['livestockId'],
+            symptomCheckSessionId:
+                state.uri.queryParameters['symptomCheckSessionId'],
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/ai/case/:caseId/intake',
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiDoctorCaseIntake',
+        builder: (context, state) => AiDoctorDisclaimerGate(
+          child: AiDoctorIntakePage(
+            caseId: state.pathParameters['caseId']!,
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/ai/case/:caseId/chat',
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiDoctorCaseChat',
+        builder: (context, state) => AiDoctorDisclaimerGate(
+          child: AiDoctorChatPage(caseId: state.pathParameters['caseId']!),
+        ),
+      ),
+      GoRoute(
+        path: '/ai/case/:caseId/result',
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiDoctorCaseResult',
+        builder: (context, state) => AiDoctorDisclaimerGate(
+          child: AiDoctorResultPage(caseId: state.pathParameters['caseId']!),
+        ),
+      ),
+      GoRoute(
+        path: '/ai/case/:caseId/emergency',
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiDoctorCaseEmergency',
+        builder: (context, state) => AiDoctorDisclaimerGate(
+          child: AiDoctorEmergencyPage(caseId: state.pathParameters['caseId']!),
+        ),
+      ),
+      GoRoute(
+        path: '/ai/case/:caseId/escalate',
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiDoctorCaseEscalate',
+        builder: (context, state) => AiDoctorDisclaimerGate(
+          child: AiDoctorEscalationPage(caseId: state.pathParameters['caseId']!),
+        ),
+      ),
+      GoRoute(
+        path: '/ai/case/:caseId/handoff',
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiDoctorCaseHandoff',
+        builder: (context, state) => AiDoctorDisclaimerGate(
+          child: AiDoctorHandoffPage(caseId: state.pathParameters['caseId']!),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.aiDoctorHistory,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiDoctorHistory',
+        builder: (context, state) => const AiDoctorDisclaimerGate(
+          child: AiDoctorHistoryPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/ai/legacy-home',
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'aiLegacyHome',
         builder: (context, state) => AiDisclaimerGate(
           surface: AiDisclaimerAcceptSurface.aiHome,
           child: const AiHomePage(),

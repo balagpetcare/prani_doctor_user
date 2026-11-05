@@ -18,6 +18,7 @@ import 'profile_api_paths.dart';
 import 'profile_fetch_policy.dart';
 import 'profile_media_models.dart';
 import 'profile_repository_contract.dart';
+import '../services/profile_completion_service.dart';
 import '../services/profile_media_service.dart';
 
 /// Production profile repository with cache, offline queue, and upload support.
@@ -62,13 +63,32 @@ class ProfileRepository implements ProfileRepositoryContract {
     );
   }
 
-  Future<MobileMeDto> _mergeCachedAddress(MobileMeDto profile) async {
-    if (profile.address != null) {
-      await _writeAddressCache(profile.address);
-      return profile;
-    }
+  Future<MobileMeDto> _mergeCachedAddress(
+    MobileMeDto profile, {
+    ProfileCompletionSource source = ProfileCompletionSource.reconciled,
+  }) async {
+    final cachedProfile = await readCachedProfile();
     final cachedAddress = await readCachedAddress();
-    return profile.mergeAddress(cachedAddress);
+
+    final reconciled = ProfileCompletionService.reconcileWithServer(
+      server: profile,
+      cachedProfile: cachedProfile,
+      cachedAddress: cachedAddress,
+    );
+
+    ProfileCompletionService.evaluate(
+      reconciled,
+      source: source,
+    );
+    ProfileCompletionService.logLocationSetupStatus(
+      phase: 'profile-merge',
+      profile: reconciled,
+    );
+
+    if (reconciled.address != null) {
+      await _writeAddressCache(reconciled.address);
+    }
+    return reconciled;
   }
 
   Future<void> _writeProfileCache(Map<String, dynamic> data) async {
@@ -85,7 +105,7 @@ class ProfileRepository implements ProfileRepositoryContract {
       return _getMeInFlight!;
     }
 
-    final future = _fetchMeWithRetry();
+    final future = _fetchMeWithRetry(forceRefresh: forceRefresh);
     _getMeInFlight = future;
     try {
       return await future;
@@ -94,7 +114,9 @@ class ProfileRepository implements ProfileRepositoryContract {
     }
   }
 
-  Future<ApiResult<MobileMeDto>> _fetchMeWithRetry() async {
+  Future<ApiResult<MobileMeDto>> _fetchMeWithRetry({
+    bool forceRefresh = false,
+  }) async {
     AppException? lastError;
 
     for (
@@ -108,11 +130,25 @@ class ProfileRepository implements ProfileRepositoryContract {
           ProfileApiPaths.me,
           logTag: 'PROFILE',
         ).timeout(ProfileFetchPolicy.requestTimeout);
-        await _writeProfileCache(data);
-        final profile = await _mergeCachedAddress(MobileMeDto.fromJson(data));
+        final serverProfile = MobileMeDto.fromJson(data);
+        ProfileCompletionService.evaluate(
+          serverProfile,
+          source: ProfileCompletionSource.server,
+        );
+        ProfileCompletionService.logLocationSetupStatus(
+          phase: 'profile-fetch-api',
+          profile: serverProfile,
+        );
+
+        final profile = await _mergeCachedAddress(
+          serverProfile,
+          source: ProfileCompletionSource.server,
+        );
+        await _writeProfileCache(profile.toJson());
         if (kDebugMode) {
           debugPrint(
-            '[PROFILE_FETCH] ok union=${profile.address?.unionId} village=${profile.address?.villageId}',
+            '[PROFILE_FETCH] ok union=${profile.address?.unionId} village=${profile.address?.villageId} '
+            'completed=${profile.profileCompleted}',
           );
         }
         return ApiResult.success(profile);
@@ -133,10 +169,19 @@ class ProfileRepository implements ProfileRepositoryContract {
       }
     }
 
-    final cached = await _cache.read(LocalCacheContract.profileKey);
-    if (cached != null) {
-      final profile = await _mergeCachedAddress(MobileMeDto.fromJson(cached));
-      return ApiResult.success(profile);
+    if (!forceRefresh) {
+      final cached = await _cache.read(LocalCacheContract.profileKey);
+      if (cached != null) {
+        final profile = await _mergeCachedAddress(
+          MobileMeDto.fromJson(cached),
+          source: ProfileCompletionSource.cache,
+        );
+        ProfileCompletionService.logLocationSetupStatus(
+          phase: 'profile-fetch-cache-fallback',
+          profile: profile,
+        );
+        return ApiResult.success(profile);
+      }
     }
 
     return ApiResult.failure(
@@ -193,14 +238,21 @@ class ProfileRepository implements ProfileRepositoryContract {
       ).timeout(ProfileFetchPolicy.requestTimeout);
       if (mergedInput.address != null) {
         await _writeAddressCache(mergedInput.address);
-        if (kDebugMode) {
-          debugPrint(
-            '[LOCATION_SAVE] union=${mergedInput.address!.unionId} village=${mergedInput.address!.villageId} villageName=${mergedInput.address!.villageName}',
-          );
-        }
+        ProfileCompletionService.logLocationSetupStatus(
+          phase: 'location-save',
+          address: mergedInput.address,
+        );
       }
-      await _writeProfileCache(data);
-      final profile = await _mergeCachedAddress(MobileMeDto.fromJson(data));
+      final serverProfile = MobileMeDto.fromJson(data);
+      ProfileCompletionService.evaluate(
+        serverProfile,
+        source: ProfileCompletionSource.server,
+      );
+      final profile = await _mergeCachedAddress(
+        serverProfile,
+        source: ProfileCompletionSource.server,
+      );
+      await _writeProfileCache(profile.toJson());
       return ApiResult.success(profile);
     } on AppException catch (e) {
       if (isTransientNetworkError(e)) {

@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/auth/jwt_utils.dart';
-import '../../../core/network/auto_refresh_guard.dart';
 import '../../../core/error/api_result.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/error/http_error_mapper.dart';
@@ -13,12 +12,26 @@ import '../../../core/network/dio_provider.dart';
 import '../../../core/offline/network_errors.dart';
 import '../../../core/session/session_manager.dart';
 import '../../../core/session/session_providers.dart';
+import '../../../core/startup/startup_trace.dart';
+import '../../../core/util/api_timeout.dart';
+import '../../home/data/home_api_guard.dart';
 import '../data/mobile_me_dto.dart';
 import '../data/profile_media_models.dart';
 import '../data/profile_repository.dart';
 import '../data/profile_repository_contract.dart';
+import '../services/profile_completion_service.dart';
 import '../../../core/localization/language_controller.dart';
 import 'profile_location_draft_provider.dart';
+
+final profileCompletionProvider = Provider<ProfileCompletionStatus>((ref) {
+  final profile = ref.watch(mobileMeProvider).valueOrNull;
+  return ProfileCompletionService.evaluate(
+    profile,
+    source: profile == null
+        ? ProfileCompletionSource.unknown
+        : ProfileCompletionSource.reconciled,
+  );
+});
 
 final mobileMeProvider = AsyncNotifierProvider<MobileMeNotifier, MobileMeDto?>(
   MobileMeNotifier.new,
@@ -26,6 +39,8 @@ final mobileMeProvider = AsyncNotifierProvider<MobileMeNotifier, MobileMeDto?>(
 
 class MobileMeNotifier extends AsyncNotifier<MobileMeDto?> {
   bool _reloadInFlight = false;
+  int _authRecoveryAttempts = 0;
+  static const _maxAuthRecoveryAttempts = 2;
 
   void _log(String message) {
     if (kDebugMode) debugPrint('[PROFILE] $message');
@@ -48,6 +63,14 @@ class MobileMeNotifier extends AsyncNotifier<MobileMeDto?> {
 
   Future<void> _handleAuthFailure(Object error) async {
     if (!_isAuthError(error)) return;
+    if (_authRecoveryAttempts >= _maxAuthRecoveryAttempts) {
+      _log('auth recovery limit reached — invalidating session');
+      await ref.read(sessionManagerProvider).invalidateSession(
+        reason: 'profile auth recovery limit',
+      );
+      return;
+    }
+    _authRecoveryAttempts++;
     _log('auth failure — attempting refresh');
     final sessionManager = ref.read(sessionManagerProvider);
     final dio = ref.read(dioProvider);
@@ -87,26 +110,22 @@ class MobileMeNotifier extends AsyncNotifier<MobileMeDto?> {
     }
     final repo = ref.read(profileRepositoryProvider);
 
-    // cache → api
-    final cached = await repo.readCachedProfile();
-    if (cached != null && !forceRefresh) {
-      _log('[PROFILE_FETCH] serving cached profile');
-      unawaited(
-        ref.read(profileLocationDraftProvider.notifier).hydrateFromProfile(
-          cached,
-          replace: false,
-        ),
-      );
-      ref.scheduleSilentRefresh(() => _refreshProfileInBackground(repo));
-      return cached;
-    }
-
-    final result = await repo.getMe(forceRefresh: forceRefresh);
+    // Always fetch from API first; cache is offline fallback inside repository.
+    final result = await runWithTimeout(
+      label: 'profile-me',
+      timeout: HomeApiGuard.dashboardLoadTimeout,
+      action: () => repo.getMe(forceRefresh: forceRefresh),
+    );
     if (result is ApiSuccess<MobileMeDto>) {
+      _authRecoveryAttempts = 0;
       ref
           .read(profileLocaleControllerProvider.notifier)
           .syncFromApiTag(result.data.locale);
-      _log('[PROFILE_FETCH] profile loaded from API');
+      _log('[PROFILE_FETCH] profile loaded from API (force=$forceRefresh)');
+      ProfileCompletionService.logLocationSetupStatus(
+        phase: 'profile-notifier-load',
+        profile: result.data,
+      );
       unawaited(
         ref.read(profileLocationDraftProvider.notifier).hydrateFromProfile(
           result.data,
@@ -121,7 +140,11 @@ class MobileMeNotifier extends AsyncNotifier<MobileMeDto?> {
     await _handleAuthFailure(error);
     final fallback = await repo.readCachedProfile();
     if (fallback != null) {
-      _log('profile recovery — using cache');
+      _log('profile recovery — using cache (offline fallback only)');
+      ProfileCompletionService.logLocationSetupStatus(
+        phase: 'profile-notifier-cache-fallback',
+        profile: fallback,
+      );
       return fallback;
     }
     throw error;
@@ -143,7 +166,11 @@ class MobileMeNotifier extends AsyncNotifier<MobileMeDto?> {
         ),
       );
       _log('[PROFILE_REFRESH] background refresh ok');
-      if (result.data.canContinueToHome) {
+      ProfileCompletionService.logLocationSetupStatus(
+        phase: 'profile-background-refresh',
+        profile: result.data,
+      );
+      if (result.data.profileCompleted) {
         _log('[CONTINUE_ENABLED] profile ready after background refresh');
       }
     }
@@ -154,6 +181,7 @@ class MobileMeNotifier extends AsyncNotifier<MobileMeDto?> {
     if (!ref.watch(protectedApisEnabledProvider)) {
       return null;
     }
+    StartupTrace.profileLoadStart();
     return _loadProfileWithRecovery();
   }
 
@@ -170,7 +198,7 @@ class MobileMeNotifier extends AsyncNotifier<MobileMeDto?> {
         forceRefresh: forceRefresh,
       );
       state = AsyncData(profile);
-      if (profile?.canContinueToHome == true) {
+      if (profile?.profileCompleted == true) {
         _log('[CONTINUE_ENABLED] profile ready after refresh');
       }
     } catch (e, st) {

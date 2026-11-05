@@ -8,6 +8,7 @@ import '../../notifications/presentation/notification_providers.dart';
 import '../../offline/data/sync_coordinator.dart';
 import '../../profile/presentation/profile_providers.dart';
 import 'home_analytics.dart';
+import 'home_performance_diagnostics.dart';
 import 'home_providers.dart';
 
 /// Dashboard refresh + section invalidation helpers.
@@ -27,6 +28,10 @@ abstract final class HomeNavigation {
           .read(dashboardProvider.notifier)
           .refresh(invalidateSections: true);
 
+      HomePerformanceDiagnostics.providerRefresh(
+        'mobileMeProvider',
+        reason: 'pull-to-refresh',
+      );
       ref.invalidate(mobileMeProvider);
 
       await Future.wait([

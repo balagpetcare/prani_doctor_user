@@ -208,6 +208,22 @@ class DashboardContext {
   bool get isEmpty =>
       user.id.isEmpty && (farmSummary == null || farmSummary!.animalCount == 0);
 
+  /// Minimal context so the home shell renders when network/cache both fail.
+  factory DashboardContext.degraded({DashboardContextUser? user}) {
+    return DashboardContext(
+      dashboardType: DashboardType.general,
+      user:
+          user ??
+          const DashboardContextUser(
+            id: 'offline',
+            name: '',
+            phone: '',
+            email: '',
+          ),
+      fromCache: true,
+    );
+  }
+
   DashboardContext copyWith({bool? fromCache}) {
     return DashboardContext(
       dashboardType: dashboardType,

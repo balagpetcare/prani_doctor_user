@@ -27,7 +27,7 @@
 Point `API_BASE_URL` at **backend** (foundation `/api/area/*` is not proxied by Next.js web):
 
 ```powershell
-flutter run --dart-define=API_BASE_URL=http://localhost:3001
+flutter run --dart-define=API_BASE_URL=http://localhost:3000
 ```
 
 ## UI reuse

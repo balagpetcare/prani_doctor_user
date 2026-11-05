@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../routing/app_routes.dart';
 import '../../data/ai_phase8_dto.dart';
 import '../../data/ai_phase8_repository.dart';
 import '../compliance/ai_compliance_model.dart';
@@ -36,6 +39,7 @@ class _SymptomCheckerPageState extends ConsumerState<SymptomCheckerPage> {
         child: _result != null
             ? _ResultView(
                 result: _result!,
+                species: widget.species,
                 onReset: () => setState(() => _result = null),
               )
             : taxonomyAsync.when(
@@ -120,9 +124,14 @@ class _SymptomCheckerPageState extends ConsumerState<SymptomCheckerPage> {
 }
 
 class _ResultView extends ConsumerWidget {
-  const _ResultView({required this.result, required this.onReset});
+  const _ResultView({
+    required this.result,
+    required this.species,
+    required this.onReset,
+  });
 
   final SymptomCheckResultModel result;
+  final String species;
   final VoidCallback onReset;
 
   @override
@@ -179,6 +188,21 @@ class _ResultView extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
+        FilledButton.icon(
+          onPressed: () {
+            final uri = Uri(
+              path: AppRoutes.aiDoctorCaseNew,
+              queryParameters: {
+                'species': species,
+                'symptomCheckSessionId': result.sessionId,
+              },
+            );
+            context.push(uri.toString());
+          },
+          icon: const Icon(Icons.medical_services_outlined),
+          label: const Text('AI Doctor-এ চালিয়ে যান'),
+        ),
+        const SizedBox(height: 8),
         OutlinedButton(onPressed: onReset, child: const Text('আবার চেষ্টা')),
       ],
     );

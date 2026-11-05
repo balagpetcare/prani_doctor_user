@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/location/location_merge.dart';
 import '../../../core/offline/local_cache_contract.dart';
+import '../../../core/startup/startup_trace.dart';
 import '../../offline/data/local_cache_service.dart';
 import '../../offline/offline_providers.dart';
 import '../data/mobile_me_dto.dart';
@@ -141,6 +142,7 @@ class ProfileLocationDraftNotifier extends AsyncNotifier<ProfileLocationDraft> {
 
   @override
   Future<ProfileLocationDraft> build() async {
+    StartupTrace.locationLoadStart();
     final raw = await _cache.read(_locationDraftKey);
     if (raw != null) {
       return ProfileLocationDraft.fromJson(raw);

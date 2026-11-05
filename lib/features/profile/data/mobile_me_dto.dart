@@ -134,10 +134,20 @@ class MobileMeDto {
 
   bool get hasLocation => hasRequiredLocation;
 
-  /// Client-side completion — name + union. Photo/village never block navigation.
-  bool get canContinueToHome => hasDisplayName && hasRequiredLocation;
+  /// Optional village (catalog id or free-text name).
+  bool get hasOptionalVillage {
+    final id = address?.villageId?.trim();
+    final name = address?.villageName?.trim();
+    return (id != null && id.isNotEmpty) || (name != null && name.isNotEmpty);
+  }
 
-  bool get needsProfileSetup => !canContinueToHome;
+  /// Authoritative completion — name + union. Village/photo never block navigation.
+  bool get profileCompleted => hasDisplayName && hasRequiredLocation;
+
+  /// Client-side completion gate (alias of [profileCompleted]).
+  bool get canContinueToHome => profileCompleted;
+
+  bool get needsProfileSetup => !profileCompleted;
 
   factory MobileMeDto.fromJson(Map<String, dynamic> json) {
     MobileMeAddressDto? address;

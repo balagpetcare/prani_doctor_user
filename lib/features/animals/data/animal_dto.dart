@@ -1,4 +1,5 @@
 import '../../../core/util/safe_numeric.dart';
+import '../weight/data/animal_weight_capture_draft.dart';
 
 enum AnimalFilter { all, active, inactive, livestock, pets }
 
@@ -14,6 +15,8 @@ class AnimalProfile {
     this.animalType,
     this.breed,
     this.weightKg,
+    this.lastWeightMethod,
+    this.lastWeightMeasuredAt,
     this.dateOfBirth,
     this.ageYears,
     this.ageMonths,
@@ -37,6 +40,8 @@ class AnimalProfile {
   final String? animalType;
   final String? breed;
   final String? weightKg;
+  final String? lastWeightMethod;
+  final DateTime? lastWeightMeasuredAt;
   final DateTime? dateOfBirth;
   final int? ageYears;
   final int? ageMonths;
@@ -104,6 +109,10 @@ class AnimalProfile {
       animalType: json['animalType'] as String?,
       breed: json['breed'] as String?,
       weightKg: json['weightKg']?.toString(),
+      lastWeightMethod: json['lastWeightMethod'] as String?,
+      lastWeightMeasuredAt: json['lastWeightMeasuredAt'] != null
+          ? DateTime.tryParse(json['lastWeightMeasuredAt'] as String)
+          : null,
       dateOfBirth: json['dateOfBirth'] == null
           ? null
           : DateTime.tryParse(json['dateOfBirth'] as String),
@@ -245,6 +254,7 @@ class AnimalInput {
     this.notes,
     this.photoUrl,
     this.weightKg,
+    this.weightCapture,
   });
 
   final String animalType;
@@ -257,6 +267,7 @@ class AnimalInput {
   final String? notes;
   final String? photoUrl;
   final double? weightKg;
+  final AnimalWeightCaptureDraft? weightCapture;
 
   Map<String, dynamic> toCreateJson() {
     return {
@@ -270,7 +281,11 @@ class AnimalInput {
       if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
       if (photoUrl != null && photoUrl!.trim().isNotEmpty)
         'photoUrl': photoUrl!.trim(),
-      if (weightKg != null) 'weightKg': weightKg,
+      if (weightCapture != null) ...{
+        if (weightCapture!.toWeightCaptureJson() != null)
+          'weightCapture': weightCapture!.toWeightCaptureJson(),
+      } else if (weightKg != null)
+        'weightKg': weightKg,
     };
   }
 
@@ -285,7 +300,11 @@ class AnimalInput {
       if (notes != null) 'notes': notes!.trim().isEmpty ? null : notes!.trim(),
       if (photoUrl != null)
         'photoUrl': photoUrl!.trim().isEmpty ? null : photoUrl!.trim(),
-      if (weightKg != null) 'weightKg': weightKg,
+      if (weightCapture != null) ...{
+        if (weightCapture!.toWeightCaptureJson() != null)
+          'weightCapture': weightCapture!.toWeightCaptureJson(),
+      } else if (weightKg != null)
+        'weightKg': weightKg,
       'animalType': animalType,
     };
   }
@@ -301,6 +320,7 @@ class AnimalInput {
     'notes': notes,
     'photoUrl': photoUrl,
     'weightKg': weightKg,
+    'weightCapture': weightCapture?.toDraftJson(),
   };
 
   factory AnimalInput.fromDraftJson(Map<String, dynamic> json) {
@@ -315,6 +335,9 @@ class AnimalInput {
       notes: json['notes'] as String?,
       photoUrl: json['photoUrl'] as String?,
       weightKg: safeNullableDouble(json['weightKg']),
+      weightCapture: AnimalWeightCaptureDraft.fromDraftJson(
+        json['weightCapture'] as Map<String, dynamic>?,
+      ),
     );
   }
 }

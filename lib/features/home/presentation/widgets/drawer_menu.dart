@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pranidoctor_user/l10n/app_localizations.dart';
 
+import '../../../../core/navigation/shell_navigation.dart';
 import '../../../../core/navigation/navigation_service.dart';
 import '../../../../core/localization/localization_extensions.dart';
 import '../../../../routing/app_routes.dart';
@@ -34,8 +35,15 @@ class _HomeDrawerMenuState extends ConsumerState<HomeDrawerMenu> {
 
   void _goToTab(BuildContext context, int branchIndex, String route) {
     _closeDrawer(context);
-    widget.navigationShell.goBranch(branchIndex, initialLocation: true);
-    context.go(route);
+    ShellNavigation.selectTab(
+      context,
+      shell: widget.navigationShell,
+      index: branchIndex,
+    );
+    final router = GoRouter.of(context);
+    if (router.state.matchedLocation != route) {
+      router.go(route);
+    }
   }
 
   void _pushRoute(BuildContext context, String route) {
@@ -50,8 +58,11 @@ class _HomeDrawerMenuState extends ConsumerState<HomeDrawerMenu> {
           const DoctorDiscoveryFilters(emergencyOnly: true);
       ref.invalidate(doctorListProvider);
     }
-    widget.navigationShell.goBranch(1, initialLocation: true);
-    context.go(AppRoutes.services);
+    ShellNavigation.selectTab(
+      context,
+      shell: widget.navigationShell,
+      index: 1,
+    );
   }
 
   @override

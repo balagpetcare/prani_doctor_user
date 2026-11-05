@@ -90,6 +90,10 @@ abstract class LocalCacheContract {
   static const supportHelpKey = 'support_help_snapshot';
   static const supportCreateDraftKey = 'support_create_draft';
   static const aiActiveSessionKey = 'ai_active_session';
+  static const aiDoctorCaseListKey = 'ai_doctor_case_list';
+  static const aiDoctorActiveCaseKey = 'ai_doctor_active_case';
+  static String aiDoctorCaseKey(String caseId) => 'ai_doctor_case:$caseId';
+  static String aiDoctorChatKey(String caseId) => 'ai_doctor_chat:$caseId';
   static String aiConversationKey(String sessionId) =>
       'ai_conversation:$sessionId';
   static const aiDraftKey = 'ai_draft_input';

@@ -15,12 +15,15 @@ import '../core/logging/sentry_bootstrap.dart';
 import '../core/logging/crash_reporter_factory.dart';
 import '../core/logging/crash_reporting_bootstrap.dart';
 import '../core/logging/crash_reporting_provider_observer.dart';
+import '../core/logging/startup_provider_observer.dart';
 import '../core/startup/image_cache_config.dart';
+import '../core/startup/startup_trace.dart';
 import '../features/notifications/fcm_background.dart';
 import 'app.dart';
 import 'app_env.dart';
 
 Future<void> bootstrap() async {
+  StartupTrace.appStart();
   final env = AppEnv.fromEnvironment();
   await SentryBootstrap.initIfConfigured(env);
   final crashReporter = resolveCrashReporter(env: env);
@@ -31,6 +34,7 @@ Future<void> bootstrap() async {
 }
 
 Future<void> _bootstrapApp(AppEnv env) async {
+  StartupTrace.mark('BOOTSTRAP_BEGIN');
   CrashReportingBootstrap.applyEnvironment(env);
 
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +42,7 @@ Future<void> _bootstrapApp(AppEnv env) async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   await initHiveCache();
+  StartupTrace.mark('HIVE_READY');
 
   // Locale strings + intl symbols can load in parallel after Hive is ready.
   await Future.wait([
@@ -45,6 +50,7 @@ Future<void> _bootstrapApp(AppEnv env) async {
     initializeDateFormatting('bn'),
     initializeDateFormatting('en'),
   ]);
+  StartupTrace.mark('L10N_READY');
 
   final cache = CacheStore(openCacheBox());
   env.assertProductionReady();
@@ -69,9 +75,13 @@ Future<void> _bootstrapApp(AppEnv env) async {
 
   runApp(
     ProviderScope(
-      observers: const [CrashReportingProviderObserver()],
+      observers: const [
+        CrashReportingProviderObserver(),
+        StartupProviderObserver(),
+      ],
       overrides: [cacheStoreProvider.overrideWithValue(cache)],
       child: const PraniDoctorApp(),
     ),
   );
+  StartupTrace.mark('RUN_APP');
 }
