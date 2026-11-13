@@ -98,6 +98,9 @@ import '../features/batches/presentation/batch_list_page.dart';
 import '../features/animals/presentation/animal_detail_page.dart';
 import '../features/animals/weight/presentation/animal_weight_history_page.dart';
 import '../features/animals/presentation/animal_form_page.dart';
+import '../features/free_zone/presentation/free_feed_page.dart';
+import '../features/free_zone/presentation/free_zone_page.dart';
+import '../features/free_zone/presentation/my_free_questions_page.dart';
 import '../features/animals/presentation/animal_list_page.dart';
 import '../features/ecosystem/presentation/ecosystem_hub_page.dart';
 import '../features/feed_recommendations/presentation/daily_ration_page.dart';
@@ -665,6 +668,24 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: AppRoutes.freeFeed,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'freeFeed',
+        builder: (context, state) => const FreeFeedPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.myFreeQuestions,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'myFreeQuestions',
+        builder: (context, state) => const MyFreeQuestionsPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.freeZone,
+        parentNavigatorKey: _rootNavigatorKey,
+        name: 'freeZone',
+        builder: (context, state) => const FreeZonePage(),
       ),
       GoRoute(
         path: AppRoutes.animals,

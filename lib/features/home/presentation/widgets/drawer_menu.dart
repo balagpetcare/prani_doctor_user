@@ -95,6 +95,11 @@ class _HomeDrawerMenuState extends ConsumerState<HomeDrawerMenu> {
                     onTap: () => _goToTab(context, 0, AppRoutes.home),
                   ),
                   _DrawerTile(
+                    icon: Icons.volunteer_activism_outlined,
+                    title: 'ফ্রি পরামর্শ',
+                    onTap: () => _pushRoute(context, AppRoutes.freeZone),
+                  ),
+                  _DrawerTile(
                     icon: Icons.pets_outlined,
                     title: l10n.animalListTitle,
                     onTap: () => _pushRoute(context, AppRoutes.animals),

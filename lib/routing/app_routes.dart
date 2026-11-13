@@ -44,6 +44,9 @@ abstract final class AppRoutes {
 
   static String fatteningWeightHistory(String farmId, String batchId) =>
       '/farms/$farmId/fattening/$batchId/weight/history';
+  static const freeZone = '/free-zone';
+  static const myFreeQuestions = '/free-zone/mine';
+  static const freeFeed = '/free-zone/feed';
   static const animals = '/animals';
   static const animalCreate = '/animals/create';
   static String animalDetail(String id) => '/animals/$id';
